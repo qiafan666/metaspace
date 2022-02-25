@@ -1,0 +1,16 @@
+dataSource:
+  - addr: 3.20.122.137
+    port: 3306
+    username: root
+    password: "!devpass123456"
+    idle_conn: 10
+    max_conn: 20
+    max_idle_time: 20
+    max_life_time: 20
+    charset: utf8mb4
+    db_name: metaspace
+    name: metaspace
+    type: mysql
+    slow_sql: 100 #ms
+jwt:
+  secret: 12345678
