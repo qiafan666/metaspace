@@ -81,7 +81,7 @@ func (s Imp) Commit() error {
 var db *gorm.DB
 var once sync.Once
 
-func DeviceInstance() Dao {
+func Instance() Dao {
 	once.Do(func() {
 		db = cornus.GetCornusInstance().FeatureDB("metaspace").GormDB()
 		//check table

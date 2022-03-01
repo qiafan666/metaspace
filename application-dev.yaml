@@ -12,5 +12,10 @@ dataSource:
     name: metaspace
     type: mysql
     slow_sql: 100 #ms
+redis:
+  - host: 3.20.122.137:6379
+    password: "!devpass123456"
+    db: 1
+    name: metaspace
 jwt:
   secret: 12345678

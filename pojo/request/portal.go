@@ -31,3 +31,8 @@ type PasswordUpdate struct {
 	NewPassword       string `json:"new_password" validate:"required,max=192,min=8"`
 	RepeatNewPassword string `json:"repeat_new_password" validate:"required,max=192,eqfield=NewPassword"`
 }
+
+type GetNonce struct {
+	BaseRequest
+	Address string `json:"address" validate:"required,eth_addr"`
+}

@@ -4,15 +4,16 @@ go 1.17
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/go-redis/redis/v8 v8.11.4
 	github.com/iris-contrib/middleware/cors v0.0.0-20211207164801-081c558a02bb
-	github.com/jau1jz/cornus v1.0.1
+	github.com/jau1jz/cornus v1.0.3
 	github.com/kataras/iris/v12 v12.2.0-alpha5
 	gorm.io/gorm v1.23.1
 )
 
 require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
-	github.com/CloudyKit/fastprinter v0.0.0-20200109182630-33d98a066a53 // indirect
+	github.com/CloudyKit/fastprinter v0.0.0-20200109182630-33d98a066a53 // indirectnavi
 	github.com/CloudyKit/jet/v6 v6.1.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
@@ -39,7 +40,6 @@ require (
 	github.com/go-openapi/swag v0.19.5 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
-	github.com/go-redis/redis/v8 v8.11.4 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect

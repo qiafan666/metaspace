@@ -23,11 +23,20 @@ func (receiver *PortalWebController) PostLogin() {
 	}
 	input.Ctx = receiver.Ctx.Value("ctx").(context.Context)
 	if out, code, err := receiver.PortalService.Login(input); err != nil {
-		if code == 0 {
-			_, _ = receiver.Ctx.JSON(commons.BuildFailed(commons.UnKnowError))
-		} else {
-			_, _ = receiver.Ctx.JSON(commons.BuildFailed(code))
-		}
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out))
+	}
+}
+func (receiver *PortalWebController) PostLoginNonce() {
+	input := request.GetNonce{}
+	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostLoginNonce"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	input.Ctx = receiver.Ctx.Value("ctx").(context.Context)
+	if out, code, err := receiver.PortalService.GetNonce(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code))
 	} else {
 		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out))
 	}
@@ -40,11 +49,7 @@ func (receiver *PortalWebController) PostRegister() {
 	}
 	input.Ctx = receiver.Ctx.Value("ctx").(context.Context)
 	if out, code, err := receiver.PortalService.Register(input); err != nil {
-		if code == 0 {
-			_, _ = receiver.Ctx.JSON(commons.BuildFailed(commons.UnKnowError))
-		} else {
-			_, _ = receiver.Ctx.JSON(commons.BuildFailed(code))
-		}
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code))
 	} else {
 		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out))
 	}
@@ -70,11 +75,7 @@ func (receiver *PortalWebController) PostPasswordUpdate() {
 	}
 	input.Ctx = receiver.Ctx.Value("ctx").(context.Context)
 	if out, code, err := receiver.PortalService.UpdatePassword(input); err != nil {
-		if code == 0 {
-			_, _ = receiver.Ctx.JSON(commons.BuildFailed(commons.UnKnowError))
-		} else {
-			_, _ = receiver.Ctx.JSON(commons.BuildFailed(code))
-		}
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code))
 	} else {
 		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out))
 	}

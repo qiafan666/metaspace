@@ -202,8 +202,8 @@ github.com/iris-contrib/schema v0.0.6 h1:CPSBLyx2e91H2yJzPuhGuifVRnZBBJ3pCOMbOvP
 github.com/iris-contrib/schema v0.0.6/go.mod h1:iYszG0IOsuIsfzjymw1kMzTL8YQcCWlm65f3wX8J5iA=
 github.com/iris-contrib/swagger/v12 v12.0.1 h1:ZZ9+dfpWMhIg5L/PUdllQe0sEOvVzp8HQPygklWxeB0=
 github.com/iris-contrib/swagger/v12 v12.0.1/go.mod h1:4RfrpjHi0rhxMdVz0L/IawxpTuZBV51CmsNPlloRtnU=
-github.com/jau1jz/cornus v1.0.1 h1:465uFuDr0MgpUrnSwJWtK9AWdaNiORjNScTvIYxaqO0=
-github.com/jau1jz/cornus v1.0.1/go.mod h1:55+iqOVKproM0/wX9lXgRbRhsCCPLp0xPFgDGsyKrZs=
+github.com/jau1jz/cornus v1.0.3 h1:JMf+CQqY4UPo844kXD7ANr3YUTeuMz/EmxaHdwzfjbA=
+github.com/jau1jz/cornus v1.0.3/go.mod h1:55+iqOVKproM0/wX9lXgRbRhsCCPLp0xPFgDGsyKrZs=
 github.com/jcmturner/aescts/v2 v2.0.0 h1:9YKLH6ey7H4eDBXW8khjYslgyqG2xZikXP0EQFKrle8=
 github.com/jcmturner/aescts/v2 v2.0.0/go.mod h1:AiaICIRyfYg35RUkr8yESTqvSy7csK90qZ5xfvvsoNs=
 github.com/jcmturner/dnsutils/v2 v2.0.0 h1:lltnkeZGL0wILNvrNiVCR6Ro5PGU/SeBvVO/8c/iPbo=

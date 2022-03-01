@@ -10,7 +10,7 @@ func main() {
 	server := cornus.GetCornusInstance()
 	server.Default()
 	server.RegisterErrorCodeAndMsg(common.CodeMsg)
-	server.StartServer(cornus.DatabaseService)
+	server.StartServer(cornus.DatabaseService, cornus.RedisService)
 	router.RegisterRouter(server.App().GetIrisApp())
 	server.WaitClose()
 }
