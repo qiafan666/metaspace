@@ -65,11 +65,11 @@ func (p portalServiceImp) GetNonce(info request.GetNonce) (out response.GetNonce
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp First error %s", err.Error())
 		return out, 0, err
 	} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
-		slog.Slog.InfoF(info.Ctx, "portalServiceImp First %s", common.CodeMsg[common.WalletAddressDoesNotRegister])
+		slog.Slog.InfoF(info.Ctx, "portalServiceImp First %s")
 		return out, common.WalletAddressDoesNotRegister, err
 	}
 	nonce := utils.GenerateUUID()
-	err = p.redis.SetNonce(info.Ctx, info.UUID, nonce, time.Minute*5)
+	err = p.redis.SetNonce(info.Ctx, userInfo.UUID, nonce, time.Minute*5)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetNonce error %s", err.Error())
 		return out, 0, err
@@ -89,7 +89,7 @@ func (p portalServiceImp) UpdatePassword(info request.PasswordUpdate) (out respo
 		}
 	}()
 	err = tx.First([]string{model.UserColumns.Password}, map[string]interface{}{
-		model.UserColumns.UUID: info.UUID,
+		model.UserColumns.UUID: info.BaseUUID,
 	}, func(db *gorm.DB) *gorm.DB {
 		return db.Set("gorm:query_option", "FOR UPDATE")
 	}, &user)
@@ -101,18 +101,18 @@ func (p portalServiceImp) UpdatePassword(info request.PasswordUpdate) (out respo
 
 	if utils.StringToSha256(info.OldPassword) != user.Password {
 		slog.Slog.InfoF(info.Ctx, "portalServiceImp UpdatePassword old_password not equal")
-		return out, common.OldPasswordNotEqual, errors.New(commons.CodeMsg[common.OldPasswordNotEqual])
+		return out, common.OldPasswordNotEqual, errors.New(commons.GetCodeAndMsg(common.OldPasswordNotEqual, info.Language))
 	}
 
 	if info.OldPassword == info.NewPassword {
 		slog.Slog.InfoF(info.Ctx, "portalServiceImp UpdatePassword old_password equal new password")
-		return out, common.OldPasswordEqualNewPassword, errors.New(commons.CodeMsg[common.OldPasswordEqualNewPassword])
+		return out, common.OldPasswordEqualNewPassword, errors.New(commons.GetCodeAndMsg(common.OldPasswordEqualNewPassword, info.Language))
 	}
 
-	_, err = tx.Update(model.User{
+	_, err = tx.WithContext(info.Ctx).Update(model.User{
 		Password: utils.StringToSha256(info.NewPassword),
 	}, map[string]interface{}{
-		model.UserColumns.UUID: info.UUID,
+		model.UserColumns.UUID: info.BaseUUID,
 	}, nil)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp UpdatePassword Update error %s", err.Error())
@@ -132,14 +132,14 @@ func (p portalServiceImp) Register(info request.RegisterUser) (out response.Regi
 	}
 	if count > 0 {
 		slog.Slog.InfoF(info.Ctx, "portalServiceImp Register account already exists")
-		return out, common.AccountAlreadyExists, errors.New(commons.CodeMsg[common.AccountAlreadyExists])
+		return out, common.AccountAlreadyExists, errors.New(commons.GetCodeAndMsg(common.AccountAlreadyExists, info.Language))
 	}
 	user := model.User{
 		UUID:     utils.GenerateUUID(),
 		Email:    info.Email,
 		Password: utils.StringToSha256(info.Password),
 	}
-	err = p.dao.Create(&user)
+	err = p.dao.WithContext(info.Ctx).Create(&user)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp Register Create error %s", err.Error())
 		return out, 0, err
@@ -158,7 +158,7 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 		if info.Type == common.LoginTypeEmail {
 			AccountType = model.UserColumns.Email
 		}
-		err = p.dao.First([]string{model.UserColumns.UUID}, map[string]interface{}{
+		err = p.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.Email}, map[string]interface{}{
 			AccountType:                info.Account,
 			model.UserColumns.Password: utils.StringToSha256(info.Password),
 		}, nil, &user)
@@ -170,15 +170,15 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			slog.Slog.InfoF(info.Ctx, "portalServiceImp Register account or password error")
-			return out, common.PasswordOrAccountError, errors.New(commons.CodeMsg[common.PasswordOrAccountError])
+			return out, common.PasswordOrAccountError, errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, info.Language))
 		}
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"account": info.Account,
-			"uuid":    user.UUID,
-			"iss":     "demo",
-			"iat":     time.Now().Unix(),
-			"exp":     time.Now().Add(24 * time.Hour).Unix(),
+			"email": user.Email,
+			"uuid":  user.UUID,
+			"iss":   "demo",
+			"iat":   time.Now().Unix(),
+			"exp":   time.Now().Add(24 * time.Hour).Unix(),
 		})
 		out.JwtToken = token.Raw
 		signedString, err := token.SignedString([]byte(jwtConfig.JWT.Secret))

@@ -1,10 +1,9 @@
 package web
 
 import (
-	"context"
+	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/pojo/request"
 	bizservice "github.com/blockfishio/metaspace-backend/services"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/jau1jz/cornus/commons"
 	"github.com/jau1jz/cornus/commons/utils"
 	"github.com/kataras/iris/v12"
@@ -21,11 +20,11 @@ func (receiver *PortalWebController) PostLogin() {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
-	input.Ctx = receiver.Ctx.Value("ctx").(context.Context)
+	function.BindBaseRequest(&input, receiver.Ctx)
 	if out, code, err := receiver.PortalService.Login(input); err != nil {
-		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code))
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
 	} else {
-		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out))
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
 	}
 }
 func (receiver *PortalWebController) PostLoginNonce() {
@@ -34,11 +33,11 @@ func (receiver *PortalWebController) PostLoginNonce() {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
-	input.Ctx = receiver.Ctx.Value("ctx").(context.Context)
+	function.BindBaseRequest(&input, receiver.Ctx)
 	if out, code, err := receiver.PortalService.GetNonce(input); err != nil {
-		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code))
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
 	} else {
-		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out))
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
 	}
 }
 func (receiver *PortalWebController) PostRegister() {
@@ -47,11 +46,11 @@ func (receiver *PortalWebController) PostRegister() {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
-	input.Ctx = receiver.Ctx.Value("ctx").(context.Context)
+	function.BindBaseRequest(&input, receiver.Ctx)
 	if out, code, err := receiver.PortalService.Register(input); err != nil {
-		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code))
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
 	} else {
-		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out))
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
 	}
 }
 func (receiver *PortalWebController) PostPasswordUpdate() {
@@ -60,23 +59,10 @@ func (receiver *PortalWebController) PostPasswordUpdate() {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
-	claims, ok := receiver.Ctx.Value("claims").(jwt.MapClaims)
-	if ok != true {
-		_, _ = receiver.Ctx.JSON(commons.BuildFailed(commons.UnKnowError))
-		return
-	}
-	if input.UUID, ok = claims["uuid"].(string); !ok || input.UUID == "" {
-		_, _ = receiver.Ctx.JSON(commons.BuildFailed(commons.UnKnowError))
-		return
-	}
-	if input.Account, ok = claims["account"].(string); !ok {
-		_, _ = receiver.Ctx.JSON(commons.BuildFailed(commons.UnKnowError))
-		return
-	}
-	input.Ctx = receiver.Ctx.Value("ctx").(context.Context)
+	function.BindBaseRequest(&input, receiver.Ctx)
 	if out, code, err := receiver.PortalService.UpdatePassword(input); err != nil {
-		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code))
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
 	} else {
-		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out))
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
 	}
 }

@@ -47,11 +47,11 @@ func (s Imp) Update(info interface{}, where map[string]interface{}, scope func(*
 	rows = db.RowsAffected
 	return
 }
-func (s Imp) Count(etity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (total int64, err error) {
+func (s Imp) Count(entity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (total int64, err error) {
 	if scope != nil {
 		s.db = s.db.Scopes(scope)
 	}
-	err = s.db.Model(etity).Where(where).Count(&total).Error
+	err = s.db.Model(entity).Where(where).Count(&total).Error
 	return
 }
 func (s Imp) Delete(entity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {

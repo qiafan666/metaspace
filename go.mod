@@ -111,3 +111,7 @@ require (
 	gorm.io/driver/mysql v1.3.2 // indirect
 	gorm.io/driver/sqlite v1.2.6 // indirect
 )
+
+replace (
+	github.com/jau1jz/cornus => ../../jau1jz/cornus
+)

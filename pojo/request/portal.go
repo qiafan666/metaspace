@@ -6,9 +6,10 @@ import (
 )
 
 type BaseRequest struct {
-	Ctx     context.Context
-	UUID    string `json:"uuid"`
-	Account string `json:"account"`
+	Ctx       context.Context `json:"ctx"`
+	BaseUUID  string          `json:"base_uuid"`
+	BaseEmail string          `json:"base_email"`
+	Language  string          `json:"language"`
 }
 
 type UserLogin struct {

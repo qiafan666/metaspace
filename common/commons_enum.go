@@ -13,9 +13,9 @@ const (
 	WalletAddressDoesNotRegister = 100005
 )
 
-// CodeMsg local code and msg
+// EnglishCodeMsg local code and msg
 
-var CodeMsg = map[commons.ResponseCode]string{
+var EnglishCodeMsg = map[commons.ResponseCode]string{
 	PasswordOrAccountError:       "account or password error.",
 	AccountAlreadyExists:         "account already exists.",
 	OldPasswordNotEqual:          "old password not equal",
