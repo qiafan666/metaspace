@@ -208,22 +208,20 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 			slog.Slog.InfoF(info.Ctx, "portalServiceImp Register account or password error")
 			return out, common.PasswordOrAccountError, errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, info.Language))
 		}
-
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"email": user.Email,
-			"uuid":  user.UUID,
-			"iss":   "demo",
-			"iat":   time.Now().Unix(),
-			"exp":   time.Now().Add(24 * time.Hour).Unix(),
-		})
-		out.JwtToken = token.Raw
-		signedString, err := token.SignedString([]byte(jwtConfig.JWT.Secret))
-		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "portalServiceImp Login SignedString error %s", err.Error())
-			return out, 0, err
-		}
-		out.JwtToken = signedString
 	}
-
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"email": user.Email,
+		"uuid":  user.UUID,
+		"iss":   "demo",
+		"iat":   time.Now().Unix(),
+		"exp":   time.Now().Add(24 * time.Hour).Unix(),
+	})
+	out.JwtToken = token.Raw
+	signedString, err := token.SignedString([]byte(jwtConfig.JWT.Secret))
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp Login SignedString error %s", err.Error())
+		return out, 0, err
+	}
+	out.JwtToken = signedString
 	return
 }

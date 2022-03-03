@@ -19,8 +19,8 @@ const (
 // EnglishCodeMsg local code and msg
 
 var EnglishCodeMsg = map[commons.ResponseCode]string{
-	PasswordOrAccountError:       "account or password error.",
-	AccountAlreadyExists:         "account already exists.",
+	PasswordOrAccountError:       "account or password error",
+	AccountAlreadyExists:         "account already exists",
 	OldPasswordNotEqual:          "old password not equal",
 	OldPasswordEqualNewPassword:  "old password equal new password",
 	WalletAddressDoesNotRegister: "wallet address does not register",
