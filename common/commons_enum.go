@@ -11,6 +11,9 @@ const (
 	OldPasswordNotEqual          = 100003
 	OldPasswordEqualNewPassword  = 100004
 	WalletAddressDoesNotRegister = 100005
+	SignatureVerificationError   = 100006
+	WalletAddressDoesNotExist    = 100007
+	NonceExpireOrNull            = 100008
 )
 
 // EnglishCodeMsg local code and msg
@@ -21,6 +24,9 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	OldPasswordNotEqual:          "old password not equal",
 	OldPasswordEqualNewPassword:  "old password equal new password",
 	WalletAddressDoesNotRegister: "wallet address does not register",
+	SignatureVerificationError:   "signature verification error",
+	WalletAddressDoesNotExist:    "wallet address does not exist",
+	NonceExpireOrNull:            "nonce expire or null",
 }
 
 // login type
