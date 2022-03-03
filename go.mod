@@ -6,14 +6,14 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/iris-contrib/middleware/cors v0.0.0-20211207164801-081c558a02bb
-	github.com/jau1jz/cornus v1.0.3
+	github.com/jau1jz/cornus v1.0.4
 	github.com/kataras/iris/v12 v12.2.0-alpha5
 	gorm.io/gorm v1.23.1
 )
 
 require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
-	github.com/CloudyKit/fastprinter v0.0.0-20200109182630-33d98a066a53 // indirectnavi
+	github.com/CloudyKit/fastprinter v0.0.0-20200109182630-33d98a066a53 // indirect; indirectnavi
 	github.com/CloudyKit/jet/v6 v6.1.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
@@ -110,8 +110,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	gorm.io/driver/mysql v1.3.2 // indirect
 	gorm.io/driver/sqlite v1.2.6 // indirect
-)
-
-replace (
-	github.com/jau1jz/cornus => ../../jau1jz/cornus
 )
