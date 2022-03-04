@@ -162,7 +162,6 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 	var user model.User
 
 	if info.Type == common.LoginTypeWallet {
-
 		err = p.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.Email}, map[string]interface{}{
 			model.UserColumns.WalletAddress: info.Account,
 			model.UserColumns.Password:      utils.StringToSha256(info.Password),
@@ -183,7 +182,7 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 			slog.Slog.InfoF(info.Ctx, "portalServiceImp sign GetNonce error %s", err.Error())
 			return out, common.NonceExpireOrNull, err
 		}
-		if err = function.VerifySig(info.Account, info.Password, nonce.Nonce); err != nil {
+		if err = function.VerifySig(info.Account, info.Password, nonce.Nonce); err != nil && common.DebugFlag == false {
 			slog.Slog.InfoF(info.Ctx, "portalServiceImp sign verify error %s", err.Error())
 			return out, common.SignatureVerificationError, err
 		}
@@ -212,7 +211,7 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": user.Email,
 		"uuid":  user.UUID,
-		"iss":   "demo",
+		"iss":   "metaspace",
 		"iat":   time.Now().Unix(),
 		"exp":   time.Now().Add(24 * time.Hour).Unix(),
 	})

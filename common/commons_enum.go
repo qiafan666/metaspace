@@ -2,7 +2,16 @@ package common
 
 import (
 	"github.com/jau1jz/cornus/commons"
+	"github.com/jau1jz/cornus/config"
 )
+
+var DebugFlag bool
+
+func init() {
+	if config.SC.SConfigure.Profile == "dev" {
+		DebugFlag = true
+	}
+}
 
 //define the error code
 const (
