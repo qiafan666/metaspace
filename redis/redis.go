@@ -24,8 +24,8 @@ type Imp struct {
 	redis *redis.Client
 }
 
-func (i Imp) GetNonce(ctx context.Context, uuid string) (out inner.Nonce, err error) {
-	result := i.redis.Get(ctx, fmt.Sprintf(common.UserNonce, uuid))
+func (i Imp) GetNonce(ctx context.Context, address string) (out inner.Nonce, err error) {
+	result := i.redis.Get(ctx, fmt.Sprintf(common.UserNonce, address))
 	if result.Err() != nil {
 		return out, result.Err()
 	}
@@ -38,7 +38,7 @@ func (i Imp) SetNonce(ctx context.Context, nonce inner.Nonce, expire time.Durati
 	if err != nil {
 		return err
 	}
-	return i.redis.SetEX(ctx, fmt.Sprintf(common.UserNonce, nonce.UUID), marshal, expire).Err()
+	return i.redis.SetEX(ctx, fmt.Sprintf(common.UserNonce, nonce.Address), marshal, expire).Err()
 }
 
 func (i Imp) DelNonce(ctx context.Context, uuid string) (err error) {
