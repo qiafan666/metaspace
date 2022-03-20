@@ -6,13 +6,19 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ethereum/go-ethereum v1.10.16
 	github.com/go-redis/redis/v8 v8.11.4
+	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/iris-contrib/middleware/cors v0.0.0-20211207164801-081c558a02bb
 	github.com/jau1jz/cornus v1.0.4
 	github.com/kataras/iris/v12 v12.2.0-alpha5
+	github.com/sirupsen/logrus v1.8.1
 	gorm.io/gorm v1.23.1
 )
 
-require github.com/btcsuite/btcd v0.20.1-beta // indirect
+require (
+	github.com/btcsuite/btcd v0.20.1-beta // indirect
+	github.com/hashicorp/errwrap v1.0.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.0 // indirect
+)
 
 require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
@@ -103,7 +109,7 @@ require (
 	golang.org/x/sys v0.0.0-20211124211545-fe61309f8881 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
-	golang.org/x/tools v0.1.0 // indirect
+	golang.org/x/tools v0.1.5 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
