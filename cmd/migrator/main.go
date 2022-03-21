@@ -28,7 +28,7 @@ func main() {
 	defer log.Infoln("Completed")
 
 	// Config
-	// export DB_URL='mysql://root:!devpass123456@tcp(3.20.122.137:3306)/spacetest?parseTime=true&charset=utf8mb4'
+	// export DB_URL='mysql://root:!devpass123456@tcp(3.20.122.137:3306)/metaspacetest?parseTime=true&charset=utf8mb4'
 	dbUrl := os.Getenv("DB_URL")
 	if dbUrl == "" {
 		log.Fatalf("Missing database connection string. Please set ENV DB_URL")

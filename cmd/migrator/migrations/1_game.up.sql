@@ -1,9 +1,5 @@
 BEGIN;
 
--- ----------------------------
--- Table structure for assets
--- ----------------------------
-DROP TABLE IF EXISTS `assets`;
 CREATE TABLE `assets` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'asset id',
   `uid` varchar(128) COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT 'user id',
@@ -20,6 +16,7 @@ CREATE TABLE `assets` (
   `block_number` text COLLATE utf8mb4_bin COMMENT 'block number',
   `tx_hash` text COLLATE utf8mb4_bin COMMENT 'transaction hash',
   `status` varchar(64) COLLATE utf8mb4_bin COMMENT 'status',
+  `mint_signature` text COLLATE utf8mb4_bin COMMENT 'mint signature',
   `created_at` datetime(3) NOT NULL COMMENT 'create timestamp',
   `updated_at` datetime(3) NOT NULL COMMENT 'update timestamp',
   PRIMARY KEY (`id`) USING BTREE,
