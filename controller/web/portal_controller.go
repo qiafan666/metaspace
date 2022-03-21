@@ -10,8 +10,9 @@ import (
 )
 
 type PortalWebController struct {
-	Ctx           iris.Context
-	PortalService bizservice.PortalService
+	Ctx               iris.Context
+	PortalService     bizservice.PortalService
+	GameAssetsService bizservice.GameAssetsService
 }
 
 func (receiver *PortalWebController) PostLogin() {
@@ -61,6 +62,19 @@ func (receiver *PortalWebController) PostPasswordUpdate() {
 	}
 	function.BindBaseRequest(&input, receiver.Ctx)
 	if out, code, err := receiver.PortalService.UpdatePassword(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+func (receiver *PortalWebController) PostUserAssets() {
+	input := request.GetGameAssets{}
+	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostUserAssets"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.GameAssetsService.GetGameAssets(input); err != nil {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
 	} else {
 		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))

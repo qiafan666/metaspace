@@ -37,3 +37,7 @@ type GetNonce struct {
 	BaseRequest
 	Address string `json:"address" validate:"required,eth_addr"`
 }
+
+type GetGameAssets struct {
+	BaseRequest
+}

@@ -20,7 +20,8 @@ func RegisterRouter(ctx *iris.Application) {
 			application.Router.Use(middleware.CheckAuth)
 			//application.Router.Use(jwtHandler.Serve)
 			application.Handle(&web.PortalWebController{
-				PortalService: bizservice.NewPortalServiceInstance(),
+				PortalService:     bizservice.NewPortalServiceInstance(),
+				GameAssetsService: bizservice.NewGameAssetsInstance(),
 			})
 		})
 }

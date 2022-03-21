@@ -2,7 +2,11 @@ package bizservice
 
 import (
 	"errors"
-	"fmt"
+	"github.com/blockfishio/metaspace-backend/common/function"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/dao"
 	"github.com/blockfishio/metaspace-backend/model"
@@ -16,8 +20,6 @@ import (
 	slog "github.com/jau1jz/cornus/commons/log"
 	"github.com/jau1jz/cornus/commons/utils"
 	"gorm.io/gorm"
-	"sync"
-	"time"
 )
 
 // PortalService service layer interface
@@ -145,6 +147,12 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 	var user model.User
 
 	if info.Type == common.LoginTypeWallet {
+		////check sign hex add hex prefix
+		if strings.HasPrefix(info.Password, "0x") == false {
+			info.Password = "0x" + info.Password
+		}
+
+		//check sign len
 		nonce, err := p.redis.GetNonce(info.Ctx, info.Account)
 		if err != nil && err.Error() != redis.Nil.Error() {
 			slog.Slog.InfoF(info.Ctx, "portalServiceImp sign GetNonce error %s", err.Error())
@@ -153,20 +161,18 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 			slog.Slog.InfoF(info.Ctx, "portalServiceImp sign GetNonce error %s", err.Error())
 			return out, common.NonceExpireOrNull, err
 		}
-		fmt.Println(nonce)
-		//if err = function.VerifySig(info.Account, info.Password, nonce.Nonce); err != nil && common.DebugFlag == false {
-		//	slog.Slog.InfoF(info.Ctx, "portalServiceImp sign verify error %s", err.Error())
-		//	return out, common.SignatureVerificationError, err
-		//}
+		if err = function.VerifySig(info.Account, info.Password, nonce.Nonce); err != nil && common.DebugFlag == false {
+			slog.Slog.InfoF(info.Ctx, "portalServiceImp sign verify error %s", err.Error())
+			return out, common.SignatureVerificationError, err
+		}
 		if err = p.redis.DelNonce(info.Ctx, user.UUID); err != nil {
 			slog.Slog.InfoF(info.Ctx, "portalServiceImp DelNonce error %s", err.Error())
 			return out, 0, err
 		}
 		//if wallet address does not register,then register
-		var userInfo model.User
 		err = p.dao.First([]string{model.UserColumns.UUID}, map[string]interface{}{
 			model.UserColumns.WalletAddress: info.Account,
-		}, nil, &userInfo)
+		}, nil, &user)
 		if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp First error %s", err.Error())
 			return out, 0, err
