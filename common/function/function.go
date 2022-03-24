@@ -1,9 +1,10 @@
 package function
 
 import (
+	"reflect"
+
 	"github.com/blockfishio/metaspace-backend/pojo/request"
 	"github.com/kataras/iris/v12"
-	"reflect"
 )
 
 func BindBaseRequest(entity interface{}, ctx iris.Context) {

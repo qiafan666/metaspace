@@ -2,10 +2,11 @@ package bizservice
 
 import (
 	"errors"
-	"github.com/blockfishio/metaspace-backend/common/function"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/blockfishio/metaspace-backend/common/function"
 
 	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/dao"
@@ -63,7 +64,7 @@ type portalServiceImp struct {
 func (p portalServiceImp) GetNonce(info request.GetNonce) (out response.GetNonce, code commons.ResponseCode, err error) {
 	nonce := utils.GenerateUUID()
 	err = p.redis.SetNonce(info.Ctx, inner.Nonce{
-		Address: info.Address,
+		Address: strings.ToLower(info.Address),
 		Nonce:   nonce,
 	}, time.Minute*5)
 	if err != nil {
@@ -171,7 +172,7 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 		}
 		//if wallet address does not register,then register
 		err = p.dao.First([]string{model.UserColumns.UUID}, map[string]interface{}{
-			model.UserColumns.WalletAddress: info.Account,
+			model.UserColumns.WalletAddress: strings.ToLower(info.Account),
 		}, nil, &user)
 		if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp First error %s", err.Error())
@@ -180,7 +181,7 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 			//register
 			user = model.User{
 				UUID:          utils.GenerateUUID(),
-				WalletAddress: info.Account,
+				WalletAddress: strings.ToLower(info.Account),
 			}
 			if err := p.dao.Create(&user); err != nil {
 				slog.Slog.InfoF(info.Ctx, "portalServiceImp Create error %s", err.Error())

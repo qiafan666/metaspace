@@ -2,7 +2,9 @@ package bizservice
 
 import (
 	"encoding/json"
+	"strings"
 
+	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/dao"
 	"github.com/blockfishio/metaspace-backend/model"
@@ -18,7 +20,8 @@ import (
 )
 
 const (
-	NftApiUrl = "http://nftapi.spacey2025.com/v1/nfts?owner="
+	//NftApiUrl = "http://nftapi.spacey2025.com/v1/nfts?owner="
+	NftApiUrl = "http://0.0.0.0:5000/v1/nfts?owner="
 )
 
 // PortalService service layer interface
@@ -54,11 +57,33 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp failed to fetch UUID. Error: %s", err.Error())
 		return out, 0, err
 	}
-	// TODO: Find all ingame assets (unmited assets)
+
+	vWalletAddress := strings.ToLower(user.WalletAddress)
+	// TODO: Find all ingame NFT assets (unmited assets)
+	var vAssets []model.Assets
+	err = p.dao.WithContext(info.Ctx).Find([]string{}, map[string]interface{}{
+		model.AssetsColumns.Uid: vWalletAddress,
+	}, nil, &vAssets)
+
+	for _, vAsset := range vAssets {
+		out.Assets = append(out.Assets, response.AssetBody{
+			IsNft:           false,
+			TokenId:         string(rune(vAsset.Id)),
+			ContractAddress: "0xxxxx",
+			ContrainChain:   "BSC",
+			Name:            vAsset.Name,
+			Image:           vAsset.Image,
+			Description:     vAsset.Description,
+			Category:        function.GetCategoryString(common.AssetType(vAsset.Category)),
+			CategoryId:      vAsset.Category,
+			Rarity:          function.GetRarityString(common.RarityType(vAsset.Rarity)),
+			RarityId:        vAsset.Rarity,
+		})
+	}
 
 	// Find all onchain assets
 	// Test: "0x47bfEf1eed74f02feBe37F39D3119dcc3feDa3A2"
-	var URL = NftApiUrl + user.WalletAddress
+	var URL = NftApiUrl + "0x47bfEf1eed74f02feBe37F39D3119dcc3feDa3A2"
 	vNftResp := &inner.NftResp{}
 	vNftRespInJson, err := function.HandleGet(URL)
 	if err != nil {
@@ -76,9 +101,14 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			IsNft:           true,
 			TokenId:         vNftDetail.Nft.TokenId,
 			ContractAddress: vNftDetail.Nft.ContractAddress,
+			ContrainChain:   "BSC",
 			Name:            vNftDetail.Nft.Name,
 			Image:           vNftDetail.Nft.Image,
 			Description:     vNftDetail.Nft.Description,
+			Category:        "Tower",
+			CategoryId:      5,
+			Rarity:          "Legendary",
+			RarityId:        5,
 		})
 	}
 

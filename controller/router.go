@@ -11,9 +11,9 @@ import (
 
 func RegisterRouter(ctx *iris.Application) {
 	crs := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"}, //允许通过的主机名称
-		AllowCredentials: true,
-		AllowedHeaders:   []string{"*"},
+		//AllowedOrigins:   []string{"*"}, //允许通过的主机名称
+		//AllowCredentials: true,
+		//AllowedHeaders:   []string{"*"},
 	})
 	mvc.Configure(ctx.Party("/metaspace/web", crs).AllowMethods(iris.MethodOptions),
 		func(application *mvc.Application) {
