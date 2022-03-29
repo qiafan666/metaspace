@@ -80,3 +80,16 @@ func (receiver *PortalWebController) PostUserAssets() {
 		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
 	}
 }
+func (receiver *PortalWebController) PostSubscribeNewsletterEmail() {
+	input := request.SubscribeNewsletterEmail{}
+	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostSubscribeNewsletterEmail"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.PortalService.SubscribeNewsletterEmail(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}

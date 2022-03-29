@@ -41,3 +41,8 @@ type GetNonce struct {
 type GetGameAssets struct {
 	BaseRequest
 }
+
+type SubscribeNewsletterEmail struct {
+	BaseRequest
+	Email string `json:"email" validate:"required,max=192,eqfield=email"`
+}

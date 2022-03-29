@@ -27,3 +27,6 @@ type AssetBody struct {
 	Image           string `json:"image"`
 	Description     string `json:"description"`
 }
+
+type SubscribeNewsletterEmail struct {
+}

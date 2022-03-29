@@ -20,9 +20,10 @@ func init() {
 }
 
 var witheList = map[string]string{
-	"/metaspace/web/register":    "",
-	"/metaspace/web/login":       "",
-	"/metaspace/web/login/nonce": "",
+	"/metaspace/web/register":                   "",
+	"/metaspace/web/login":                      "",
+	"/metaspace/web/login/nonce":                "",
+	"/metaspace/web/subscribe/newsletter/email": "",
 }
 
 func CheckAuth(ctx iris.Context) {

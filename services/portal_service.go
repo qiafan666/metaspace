@@ -30,6 +30,7 @@ type PortalService interface {
 	GetNonce(info request.GetNonce) (out response.GetNonce, code commons.ResponseCode, err error)
 	Register(info request.RegisterUser) (out response.RegisterUser, code commons.ResponseCode, err error)
 	UpdatePassword(info request.PasswordUpdate) (out response.PasswordUpdate, code commons.ResponseCode, err error)
+	SubscribeNewsletterEmail(info request.SubscribeNewsletterEmail) (out response.SubscribeNewsletterEmail, code commons.ResponseCode, err error)
 }
 
 var jwtConfig struct {
@@ -219,4 +220,33 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 	}
 	out.JwtToken = signedString
 	return
+}
+func (p portalServiceImp) SubscribeNewsletterEmail(info request.SubscribeNewsletterEmail) (out response.SubscribeNewsletterEmail, code commons.ResponseCode, err error) {
+
+	var subscribeNewsletterEmail model.SubscribeNewsletterEmail
+	err = p.dao.First([]string{model.SubscribeNewsletterEmailColumns.Email}, map[string]interface{}{
+		model.SubscribeNewsletterEmailColumns.Email: info.Email,
+	}, nil, &subscribeNewsletterEmail)
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+
+		email := model.SubscribeNewsletterEmail{
+			Email:       info.Email,
+			CreatedTime: time.Now(),
+			UpdatedTime: time.Now(),
+			Status:      1,
+		}
+		err = p.dao.WithContext(info.Ctx).Create(&email)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp SubscribeNewsletterEmail Create error %s", err.Error())
+			return out, 0, err
+		}
+
+		out = response.SubscribeNewsletterEmail{}
+		return
+	}
+
+	slog.Slog.ErrorF(info.Ctx, "portalServiceImp SubscribeNewsletterEmail find first email error")
+	return out, 0, errors.New("portalServiceImp SubscribeNewsletterEmail find first email")
+
 }
