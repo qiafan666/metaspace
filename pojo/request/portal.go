@@ -44,5 +44,5 @@ type GetGameAssets struct {
 
 type SubscribeNewsletterEmail struct {
 	BaseRequest
-	Email string `json:"email" validate:"required,max=192,eqfield=email"`
+	Email string `json:"email" validate:"required,max=192,email"`
 }

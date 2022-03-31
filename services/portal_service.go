@@ -228,8 +228,13 @@ func (p portalServiceImp) SubscribeNewsletterEmail(info request.SubscribeNewslet
 		model.SubscribeNewsletterEmailColumns.Email: info.Email,
 	}, nil, &subscribeNewsletterEmail)
 
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SubscribeNewsletterEmail error", err.Error())
+		return out, 0, err
+	} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SubscribeNewsletterEmail find first error")
+		return out, common.EmailAlreadyExists, errors.New(commons.GetCodeAndMsg(common.EmailAlreadyExists, info.Language))
+	} else {
 		email := model.SubscribeNewsletterEmail{
 			Email:       info.Email,
 			CreatedTime: time.Now(),
@@ -245,8 +250,4 @@ func (p portalServiceImp) SubscribeNewsletterEmail(info request.SubscribeNewslet
 		out = response.SubscribeNewsletterEmail{}
 		return
 	}
-
-	slog.Slog.ErrorF(info.Ctx, "portalServiceImp SubscribeNewsletterEmail find first email error")
-	return out, 0, errors.New("portalServiceImp SubscribeNewsletterEmail find first email")
-
 }

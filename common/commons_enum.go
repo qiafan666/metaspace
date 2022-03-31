@@ -23,6 +23,7 @@ const (
 	SignatureVerificationError   = 100006
 	WalletAddressDoesNotExist    = 100007
 	NonceExpireOrNull            = 100008
+	EmailAlreadyExists           = 100009
 )
 
 // EnglishCodeMsg local code and msg
@@ -36,6 +37,7 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	SignatureVerificationError:   "signature verification error",
 	WalletAddressDoesNotExist:    "wallet address does not exist",
 	NonceExpireOrNull:            "nonce expire or null",
+	EmailAlreadyExists:           "subscription email already exists",
 }
 
 // login type
