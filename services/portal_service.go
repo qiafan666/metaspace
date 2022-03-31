@@ -147,6 +147,8 @@ func (p portalServiceImp) Register(info request.RegisterUser) (out response.Regi
 func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin, code commons.ResponseCode, err error) {
 	var user model.User
 
+	vWalletAddress := strings.ToLower(info.Account)
+
 	if info.Type == common.LoginTypeWallet {
 		////check sign hex add hex prefix
 		if strings.HasPrefix(info.Password, "0x") == false {
@@ -154,7 +156,7 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 		}
 
 		//check sign len
-		nonce, err := p.redis.GetNonce(info.Ctx, info.Account)
+		nonce, err := p.redis.GetNonce(info.Ctx, vWalletAddress)
 		if err != nil && err.Error() != redis.Nil.Error() {
 			slog.Slog.InfoF(info.Ctx, "portalServiceImp sign GetNonce error %s", err.Error())
 			return out, 0, err
@@ -162,7 +164,7 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 			slog.Slog.InfoF(info.Ctx, "portalServiceImp sign GetNonce error %s", err.Error())
 			return out, common.NonceExpireOrNull, err
 		}
-		if err = function.VerifySig(info.Account, info.Password, nonce.Nonce); err != nil && common.DebugFlag == false {
+		if err = function.VerifySig(vWalletAddress, info.Password, nonce.Nonce); err != nil && common.DebugFlag == false {
 			slog.Slog.InfoF(info.Ctx, "portalServiceImp sign verify error %s", err.Error())
 			return out, common.SignatureVerificationError, err
 		}
@@ -172,7 +174,7 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 		}
 		//if wallet address does not register,then register
 		err = p.dao.First([]string{model.UserColumns.UUID}, map[string]interface{}{
-			model.UserColumns.WalletAddress: strings.ToLower(info.Account),
+			model.UserColumns.WalletAddress: vWalletAddress,
 		}, nil, &user)
 		if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp First error %s", err.Error())
@@ -181,7 +183,7 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 			//register
 			user = model.User{
 				UUID:          utils.GenerateUUID(),
-				WalletAddress: strings.ToLower(info.Account),
+				WalletAddress: vWalletAddress,
 			}
 			if err := p.dao.Create(&user); err != nil {
 				slog.Slog.InfoF(info.Ctx, "portalServiceImp Create error %s", err.Error())

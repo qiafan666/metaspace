@@ -6,6 +6,10 @@ func GetCategoryString(mType common.AssetType) string {
 	switch mType {
 	case common.Chest:
 		return common.ChestString
+	case common.Ticket:
+		return common.TicketString
+	case common.Land:
+		return common.LandString
 	case common.Building:
 		return common.BuildingString
 	case common.Tower:

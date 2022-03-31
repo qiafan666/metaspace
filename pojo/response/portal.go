@@ -31,4 +31,5 @@ type AssetBody struct {
 	CategoryId      int    `json:"category_id"`
 	Rarity          string `json:"rarity"`
 	RarityId        int    `json:"rarity_id"`
+	MintSignature   string `json:"mint_signature"`
 }

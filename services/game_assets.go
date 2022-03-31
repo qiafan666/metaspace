@@ -2,6 +2,7 @@ package bizservice
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 
 	"github.com/blockfishio/metaspace-backend/common"
@@ -68,7 +69,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	for _, vAsset := range vAssets {
 		out.Assets = append(out.Assets, response.AssetBody{
 			IsNft:           false,
-			TokenId:         string(rune(vAsset.Id)),
+			TokenId:         strconv.FormatInt(vAsset.Id, 10),
 			ContractAddress: "0xxxxx",
 			ContrainChain:   "BSC",
 			Name:            vAsset.Name,
@@ -78,6 +79,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			CategoryId:      vAsset.Category,
 			Rarity:          function.GetRarityString(common.RarityType(vAsset.Rarity)),
 			RarityId:        vAsset.Rarity,
+			MintSignature:   vAsset.MintSignature,
 		})
 	}
 
