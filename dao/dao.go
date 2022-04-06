@@ -2,11 +2,12 @@ package dao
 
 import (
 	"context"
+	"sync"
+
 	"github.com/blockfishio/metaspace-backend/model"
 	"github.com/jau1jz/cornus"
 	slog "github.com/jau1jz/cornus/commons/log"
 	"gorm.io/gorm"
-	"sync"
 )
 
 type Dao interface {
@@ -16,6 +17,7 @@ type Dao interface {
 	WithContext(ctx context.Context) Dao
 	Create(interface{}) error
 	First([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
+	Find([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
 	Update(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
 	Delete(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
 	Count(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
@@ -37,6 +39,16 @@ func (s Imp) First(selectStr []string, where map[string]interface{}, scope func(
 	}
 
 	return s.db.Model(output).Where(where).First(output).Error
+}
+func (s Imp) Find(selectStr []string, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB, output interface{}) (err error) {
+	if scope != nil {
+		s.db = s.db.Scopes(scope)
+	}
+	if len(selectStr) > 0 {
+		s.db = s.db.Select(selectStr)
+	}
+
+	return s.db.Model(output).Where(where).Find(output).Error
 }
 func (s Imp) Update(info interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {
 	if scope != nil {
