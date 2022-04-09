@@ -8,12 +8,33 @@ type AssetDetail struct {
 	Nft NftDetail `json:"nft"`
 }
 type NftDetail struct {
-	TokenId         string `json:"tokenId"`
-	ContractAddress string `json:"contractAddress"`
-	Owner           string `json:"owner"`
-	Name            string `json:"name"`
-	Image           string `json:"image"`
-	Description     string `json:"description"`
-	UpdatedAt       int64  `json:"updatedAt"`
-	CreatedAt       int64  `json:"createdAt"`
+	Id              string      `json:"id"`
+	TokenId         string      `json:"tokenId"`
+	ContractAddress string      `json:"contractAddress"`
+	ActiveOrderId   interface{} `json:"activeOrderId"`
+	Owner           string      `json:"owner"`
+	Name            string      `json:"name"`
+	Image           string      `json:"image"`
+	Thumbnail       string      `json:"thumbnail"`
+	Url             string      `json:"url"`
+	Description     string      `json:"description"`
+	Data            Data        `json:"data"`
+	IssuedId        interface{} `json:"issuedId"`
+	ItemId          interface{} `json:"itemId"`
+	Category        string      `json:"category"`
+	Subcategory     string      `json:"subcategory"`
+	Network         string      `json:"network"`
+	ChainId         int         `json:"chainId"`
+	CreatedAt       int64       `json:"createdAt"`
+	UpdatedAt       int64       `json:"updatedAt"`
+}
+
+type Data struct {
+	Tower Tower `json:"tower"`
+}
+
+type Tower struct {
+	Description string `json:"description"`
+	Id          string `json:"id"`
+	Rarity      string `json:"rarity"`
 }

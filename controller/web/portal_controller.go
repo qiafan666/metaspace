@@ -93,3 +93,30 @@ func (receiver *PortalWebController) PostSubscribeNewsletterEmail() {
 		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
 	}
 }
+func (receiver *PortalWebController) PostTowerStatus() {
+	input := request.TowerStats{}
+	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostTowerStatus"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.PortalService.GetTowerStatus(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
+func (receiver *PortalWebController) PostSign() {
+	input := request.Sign{}
+	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostSign"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.PortalService.GetSign(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}

@@ -32,7 +32,20 @@ type AssetBody struct {
 	Rarity          string `json:"rarity"`
 	RarityId        int    `json:"rarity_id"`
 	MintSignature   string `json:"mint_signature"`
+	Subcategory     string `json:"subcategory"`
+	SubcategoryId   int    `json:"subcategory_id"`
 }
 
 type SubscribeNewsletterEmail struct {
+}
+
+type TowerStats struct {
+	Attack      int     `json:"attack"`
+	FireRate    float32 `json:"fire_rate"`
+	AttackRange int     `json:"attack_range"`
+	Durability  int     `json:"durability"`
+}
+
+type Sign struct {
+	SignMessage string `json:"sign_message"`
 }

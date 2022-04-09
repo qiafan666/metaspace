@@ -1,0 +1,17 @@
+syntax = "proto3";
+option go_package = "./proto";
+package signature;
+
+service DataController {
+  // 签名
+  rpc Sign(SigRequest) returns (SigResponse) {}
+
+}
+
+message SigRequest {
+  string mess = 1;
+}
+
+message SigResponse {
+  string value = 1;
+}

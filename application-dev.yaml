@@ -19,3 +19,6 @@ redis:
     name: metaspace
 jwt:
   secret: 12345678
+grpc:
+  host: "127.0.0.1"
+  port: "10011"

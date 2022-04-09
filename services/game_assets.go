@@ -67,6 +67,12 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	}, nil, &vAssets)
 
 	for _, vAsset := range vAssets {
+		SubcategoryString, err := function.GetSubcategoryString(strconv.Itoa(vAsset.Category), strconv.Itoa(vAsset.Type))
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp dao SubcategoryString Error: %s", err.Error())
+			return out, 0, err
+		}
+
 		out.Assets = append(out.Assets, response.AssetBody{
 			IsNft:           false,
 			TokenId:         strconv.FormatInt(vAsset.Id, 10),
@@ -80,6 +86,8 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			Rarity:          function.GetRarityString(common.RarityType(vAsset.Rarity)),
 			RarityId:        vAsset.Rarity,
 			MintSignature:   vAsset.MintSignature,
+			SubcategoryId:   vAsset.Type,
+			Subcategory:     SubcategoryString,
 		})
 	}
 
@@ -97,8 +105,29 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp failed to parse onchain data. Error: %s", err.Error())
 		return out, 0, err
 	}
+
 	// iterate the NftResp to generate the response
 	for _, vNftDetail := range vNftResp.Data {
+		Subcategory, err := strconv.Atoi(vNftDetail.Nft.Subcategory)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp Subcategory format Error: %s", err.Error())
+			return out, 0, err
+		}
+		Category, err := strconv.Atoi(vNftDetail.Nft.Category)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp Category format Error: %s", err.Error())
+			return out, 0, err
+		}
+		Rarity, err := strconv.Atoi(vNftDetail.Nft.Data.Tower.Rarity)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp Category Rarity Error: %s", err.Error())
+			return out, 0, err
+		}
+		SubcategoryString, err := function.GetSubcategoryString(vNftDetail.Nft.Category, vNftDetail.Nft.Subcategory)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp Nft SubcategoryString Error: %s", err.Error())
+			return out, 0, err
+		}
 		out.Assets = append(out.Assets, response.AssetBody{
 			IsNft:           true,
 			TokenId:         vNftDetail.Nft.TokenId,
@@ -107,10 +136,12 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			Name:            vNftDetail.Nft.Name,
 			Image:           vNftDetail.Nft.Image,
 			Description:     vNftDetail.Nft.Description,
-			Category:        "Tower",
-			CategoryId:      5,
-			Rarity:          "Legendary",
-			RarityId:        5,
+			Category:        function.GetCategoryString(common.AssetType(Category)),
+			CategoryId:      Category,
+			Rarity:          function.GetRarityString(common.RarityType(Rarity)),
+			RarityId:        Rarity,
+			Subcategory:     SubcategoryString,
+			SubcategoryId:   Subcategory,
 		})
 	}
 

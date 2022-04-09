@@ -46,3 +46,13 @@ type SubscribeNewsletterEmail struct {
 	BaseRequest
 	Email string `json:"email" validate:"required,max=192,email"`
 }
+type TowerStats struct {
+	BaseRequest
+	TowerType   string `json:"tower_type" validate:"required,max=8"`
+	TowerRarity string `json:"tower_rarity" validate:"required,max=8"`
+}
+
+type Sign struct {
+	BaseRequest
+	Message string `json:"message"  validate:"required,max=192"`
+}

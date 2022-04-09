@@ -1,7 +1,11 @@
 package bizservice
 
 import (
+	"context"
 	"errors"
+	"github.com/blockfishio/metaspace-backend/grpc"
+	"github.com/blockfishio/metaspace-backend/grpc/proto"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -32,6 +36,8 @@ type PortalService interface {
 	Register(info request.RegisterUser) (out response.RegisterUser, code commons.ResponseCode, err error)
 	UpdatePassword(info request.PasswordUpdate) (out response.PasswordUpdate, code commons.ResponseCode, err error)
 	SubscribeNewsletterEmail(info request.SubscribeNewsletterEmail) (out response.SubscribeNewsletterEmail, code commons.ResponseCode, err error)
+	GetTowerStatus(info request.TowerStats) (out response.TowerStats, code commons.ResponseCode, err error)
+	GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error)
 }
 
 var jwtConfig struct {
@@ -40,14 +46,22 @@ var jwtConfig struct {
 	} `yaml:"jwt"`
 }
 
+var grpcConfig struct {
+	GRPC struct {
+		Host string `yaml:"host"`
+		Port string `yaml:"port"`
+	} `yaml:"grpc"`
+}
+
 func init() {
 	cornus.GetCornusInstance().LoadCustomizeConfig(&jwtConfig)
+	cornus.GetCornusInstance().LoadCustomizeConfig(&grpcConfig)
 }
 
 var portalServiceIns *portalServiceImp
 var portalServiceInitOnce sync.Once
 
-func NewPortalServiceInstance() PortalService {
+func NewPortalServiceInstance() *portalServiceImp {
 	portalServiceInitOnce.Do(func() {
 		portalServiceIns = &portalServiceImp{
 			dao:   dao.Instance(),
@@ -253,4 +267,108 @@ func (p portalServiceImp) SubscribeNewsletterEmail(info request.SubscribeNewslet
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SubscribeNewsletterEmail find first error")
 		return out, common.EmailAlreadyExists, errors.New(commons.GetCodeAndMsg(common.EmailAlreadyExists, info.Language))
 	}
+}
+
+func (p portalServiceImp) GetTowerStatus(info request.TowerStats) (out response.TowerStats, code commons.ResponseCode, err error) {
+
+	if _, err := strconv.Atoi(info.TowerType); err != nil {
+		slog.Slog.ErrorF(info.Ctx, "TowerType error:%s", err.Error())
+		return out, 0, err
+	}
+
+	if _, err := strconv.Atoi(info.TowerRarity); err != nil {
+		slog.Slog.ErrorF(info.Ctx, "TowerRarity error:%s", err.Error())
+		return out, 0, err
+	}
+	TowerTypeConfigs := make(map[string]model.TowerConfig)
+	TowerTypeConfigs[common.TowerTypeConfigs1] = model.TowerConfig{
+		AttackFactors:       [3]float32{20, 2, 0.15},
+		AttackSpeedFactors:  [3]float32{100, 140, 240},
+		AttackRangeFactors:  [3]float32{300, 350, 400},
+		DurabilityFactors:   [3]float32{100, 5, 0.7},
+		DefaultAttackPerSec: 0.2,
+	}
+	TowerTypeConfigs[common.TowerTypeConfigs2] = model.TowerConfig{
+		AttackFactors:       [3]float32{80, 8, 0.6},
+		AttackSpeedFactors:  [3]float32{100, 140, 240},
+		AttackRangeFactors:  [3]float32{400, 500, 500},
+		DurabilityFactors:   [3]float32{80, 6, 0.4},
+		DefaultAttackPerSec: 1.2,
+	}
+	TowerTypeConfigs[common.TowerTypeConfigs3] = model.TowerConfig{
+		AttackFactors:       [3]float32{300, 200, 3},
+		AttackSpeedFactors:  [3]float32{100, 130, 180},
+		AttackRangeFactors:  [3]float32{600, 650, 700},
+		DurabilityFactors:   [3]float32{30, 3, 0.3},
+		DefaultAttackPerSec: 4,
+	}
+	TowerTypeConfigs[common.TowerTypeConfigs4] = model.TowerConfig{
+		AttackFactors:       [3]float32{82, 10, 0.8},
+		AttackSpeedFactors:  [3]float32{100, 140, 200},
+		AttackRangeFactors:  [3]float32{350, 400, 450},
+		DurabilityFactors:   [3]float32{70, 4.5, 0.5},
+		DefaultAttackPerSec: 3,
+	}
+	TowerTypeConfigs[common.TowerTypeConfigs5] = model.TowerConfig{
+		AttackFactors:       [3]float32{200, 150, 6},
+		AttackSpeedFactors:  [3]float32{100, 135, 200},
+		AttackRangeFactors:  [3]float32{200, 250, 300},
+		DurabilityFactors:   [3]float32{80, 5, 0.6},
+		DefaultAttackPerSec: 4,
+	}
+	RarityConfigs := make(map[string]model.RarityConfig)
+	RarityConfigs[common.RarityConfigs1] = model.RarityConfig{
+		AttackFactor:     1,
+		DurabilityFactor: 1,
+	}
+	RarityConfigs[common.RarityConfigs2] = model.RarityConfig{
+		AttackFactor:     1.2,
+		DurabilityFactor: 1.2,
+	}
+	RarityConfigs[common.RarityConfigs3] = model.RarityConfig{
+		AttackFactor:     1.4,
+		DurabilityFactor: 1.4,
+	}
+	RarityConfigs[common.RarityConfigs4] = model.RarityConfig{
+		AttackFactor:     1.65,
+		DurabilityFactor: 1.65,
+	}
+	RarityConfigs[common.RarityConfigs5] = model.RarityConfig{
+		AttackFactor:     1.8,
+		DurabilityFactor: 1.8,
+	}
+	RarityConfigs[common.RarityConfigs6] = model.RarityConfig{
+		AttackFactor:     0.5,
+		DurabilityFactor: 0.5,
+	}
+
+	if TowerTypeConfig, ok1 := TowerTypeConfigs[info.TowerType]; ok1 {
+		if RarityConfig, ok2 := RarityConfigs[info.TowerRarity]; ok2 {
+			out = response.TowerStats{
+				Attack:      int((TowerTypeConfig.AttackFactors[0] + TowerTypeConfig.AttackFactors[1] + TowerTypeConfig.AttackFactors[2]) * RarityConfig.AttackFactor),
+				FireRate:    TowerTypeConfig.DefaultAttackPerSec * TowerTypeConfig.AttackSpeedFactors[0] / 100,
+				AttackRange: int(TowerTypeConfig.AttackRangeFactors[0]),
+				Durability:  int((TowerTypeConfig.DurabilityFactors[0] + TowerTypeConfig.DurabilityFactors[1] + TowerTypeConfig.DurabilityFactors[2]) * RarityConfig.DurabilityFactor),
+				// Durability: "N/A",
+			}
+			return
+		}
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetTowerStatus RarityConfigs not find TowerRarity error")
+		return out, common.MapNotOk, errors.New(commons.GetCodeAndMsg(common.MapNotOk, info.Language))
+	}
+	slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetTowerStatus not find TowerTypeConfigs error")
+	return out, common.MapNotOk, errors.New(commons.GetCodeAndMsg(common.MapNotOk, info.Language))
+}
+
+func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error) {
+
+	// 调用方法
+	req := &proto.SigRequest{Mess: info.Message}
+	res, err := grpc.SignGrpc.SignClient.Sign(context.Background(), req)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Sign error", err)
+		return out, common.GRpcSignError, errors.New(commons.GetCodeAndMsg(common.GRpcSignError, info.Language))
+	}
+	out.SignMessage = res.Value
+	return
 }
