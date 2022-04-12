@@ -2,9 +2,15 @@ package bizservice
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"github.com/blockfishio/metaspace-backend/grpc"
 	"github.com/blockfishio/metaspace-backend/grpc/proto"
+	contracts "github.com/blockfishio/metaspace-backend/metaspace/contract"
+	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"math/big"
 	"strconv"
 	"strings"
 	"sync"
@@ -40,22 +46,18 @@ type PortalService interface {
 	GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error)
 }
 
-var jwtConfig struct {
+var portalConfig struct {
 	JWT struct {
 		Secret string `yaml:"secret"`
 	} `yaml:"jwt"`
-}
-
-var grpcConfig struct {
-	GRPC struct {
-		Host string `yaml:"host"`
-		Port string `yaml:"port"`
-	} `yaml:"grpc"`
+	Contract struct {
+		ethClient string `yaml:"eth_client"`
+		address   string `yaml:"address"`
+	} `yaml:"contract"`
 }
 
 func init() {
-	cornus.GetCornusInstance().LoadCustomizeConfig(&jwtConfig)
-	cornus.GetCornusInstance().LoadCustomizeConfig(&grpcConfig)
+	cornus.GetCornusInstance().LoadCustomizeConfig(&portalConfig)
 }
 
 var portalServiceIns *portalServiceImp
@@ -230,7 +232,7 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 		"iat":   time.Now().Unix(),
 		"exp":   time.Now().Add(24 * time.Hour).Unix(),
 	})
-	signedString, err := token.SignedString([]byte(jwtConfig.JWT.Secret))
+	signedString, err := token.SignedString([]byte(portalConfig.JWT.Secret))
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp Login SignedString error %s", err.Error())
 		return out, 0, err
@@ -362,13 +364,82 @@ func (p portalServiceImp) GetTowerStatus(info request.TowerStats) (out response.
 
 func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error) {
 
-	// 调用方法
-	req := &proto.SigRequest{Mess: info.Message}
-	res, err := grpc.SignGrpc.SignClient.Sign(context.Background(), req)
+	client, err := ethclient.Dial(portalConfig.Contract.ethClient)
 	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Sign error", err)
-		return out, common.GRpcSignError, errors.New(commons.GetCodeAndMsg(common.GRpcSignError, info.Language))
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign ethClient Dial error")
+		return out, 0, err
 	}
-	out.SignMessage = res.Value
-	return
+
+	address := ethcommon.HexToAddress(portalConfig.Contract.address)
+	instance, err := contracts.NewContracts(address, client)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign NewContracts error")
+		return out, 0, err
+	}
+
+	var vAssets model.Assets
+	err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.Category, model.AssetsColumns.Rarity, model.AssetsColumns.Type}, map[string]interface{}{
+		model.AssetsColumns.TokenId: info.Id,
+	}, nil, &vAssets)
+
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign error", err.Error())
+		return out, 0, err
+	} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign assets not find error")
+		return out, common.AssetsNotExist, errors.New(commons.GetCodeAndMsg(common.AssetsNotExist, info.Language))
+	} else {
+		//_nftAddress
+		//_tokenId
+		var id int
+		id, err = strconv.Atoi(info.Id)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign id format error")
+			return out, 0, err
+		}
+		tokenId := new(big.Int).SetUint64(uint64(id))
+
+		//_ownerAddress
+		var user model.User
+		err = p.dao.WithContext(info.Ctx).First([]string{model.UserColumns.WalletAddress}, map[string]interface{}{
+			model.UserColumns.UUID: info.BaseUUID,
+		}, nil, &user)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign User by UUid not find error")
+			return out, 0, err
+		}
+
+		if false == function.StringCheck(user.WalletAddress, strconv.Itoa(int(vAssets.Category)), strconv.Itoa(int(vAssets.Type)), strconv.Itoa(int(vAssets.Rarity))) {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp asset data not nil error")
+			return out, 0, err
+		}
+
+		userAddress := ethcommon.HexToAddress(user.WalletAddress)
+		//_category
+		category := big.NewInt(vAssets.Category)
+		//_subcategory
+		subCategory := big.NewInt(vAssets.Type)
+		//_rarity
+		rarity := big.NewInt(vAssets.Rarity)
+
+		var message [32]byte
+		message, err = instance.GetMessageHash(nil, address, tokenId, userAddress, category, subCategory, rarity)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign GetMessageHash error")
+			return out, 0, err
+		}
+
+		// 调用方法
+		req := &proto.SigRequest{Mess: fmt.Sprintf(hex.EncodeToString(message[:]))}
+
+		var res *proto.SigResponse
+		res, err = grpc.SignGrpc.SignClient.Sign(context.Background(), req)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Sign error", err)
+			return out, common.GRpcSignError, errors.New(commons.GetCodeAndMsg(common.GRpcSignError, info.Language))
+		}
+		out.SignMessage = res.Value
+		return
+	}
+
 }

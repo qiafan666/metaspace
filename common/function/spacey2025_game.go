@@ -101,3 +101,12 @@ func GetSubcategoryString(Category string, subCategory string) (string, error) {
 		return "", errors.New(" Category data Not found")
 	}
 }
+
+func StringCheck(ins ...string) bool {
+	for _, in := range ins {
+		if len(in) <= 0 {
+			return false
+		}
+	}
+	return true
+}

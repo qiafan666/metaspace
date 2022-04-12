@@ -27,6 +27,7 @@ const (
 	MapNotOk                     = 100010
 	GRpcDialError                = 100011
 	GRpcSignError                = 100012
+	AssetsNotExist               = 100013
 )
 
 // EnglishCodeMsg local code and msg
@@ -44,6 +45,7 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	MapNotOk:                     "map attribute does not exist",
 	GRpcDialError:                "Grpc connect is failed",
 	GRpcSignError:                "Grpc sign error",
+	AssetsNotExist:               "assets is not exists",
 }
 
 // login type

@@ -9,9 +9,9 @@ type Assets struct {
 	Id            int64     `gorm:"primaryKey;column:id" json:"id"`
 	Uid           string    `gorm:"column:uid" json:"uid"`
 	TokenId       int64     `gorm:"column:token_id" json:"token_id"`
-	Category      int       `gorm:"column:category" json:"category"`
-	Type          int       `gorm:"column:type" json:"type"`
-	Rarity        int       `gorm:"column:rarity" json:"rarity"`
+	Category      int64     `gorm:"column:category" json:"category"`
+	Type          int64     `gorm:"column:type" json:"type"`
+	Rarity        int64     `gorm:"column:rarity" json:"rarity"`
 	Image         string    `gorm:"column:image" json:"image"`
 	Name          string    `gorm:"column:name" json:"name"`
 	Description   string    `gorm:"column:description" json:"description"`

@@ -54,5 +54,5 @@ type TowerStats struct {
 
 type Sign struct {
 	BaseRequest
-	Message string `json:"message"  validate:"required,max=192"`
+	Id string `json:"id"  validate:"required,max=8"`
 }

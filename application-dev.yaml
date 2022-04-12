@@ -22,3 +22,6 @@ jwt:
 grpc:
   host: "127.0.0.1"
   port: "10011"
+contract:
+  eth_client: "https://rinkeby.infura.io/v3/059609bf2c8e433d8ad4a895a98278ed"
+  address: "0xc10641031430cF29579f829952b118f1d873bbc2"
