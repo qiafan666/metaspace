@@ -67,7 +67,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	}, nil, &vAssets)
 
 	for _, vAsset := range vAssets {
-		SubcategoryString, err := function.GetSubcategoryString(strconv.Itoa(vAsset.Category), strconv.Itoa(vAsset.Type))
+		SubcategoryString, err := function.GetSubcategoryString(strconv.Itoa(int(vAsset.Category)), strconv.Itoa(int(vAsset.Type)))
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp dao SubcategoryString Error: %s", err.Error())
 			return out, 0, err
@@ -82,11 +82,11 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			Image:           vAsset.Image,
 			Description:     vAsset.Description,
 			Category:        function.GetCategoryString(common.AssetType(vAsset.Category)),
-			CategoryId:      vAsset.Category,
+			CategoryId:      int(vAsset.Category),
 			Rarity:          function.GetRarityString(common.RarityType(vAsset.Rarity)),
-			RarityId:        vAsset.Rarity,
+			RarityId:        int(vAsset.Rarity),
 			MintSignature:   vAsset.MintSignature,
-			SubcategoryId:   vAsset.Type,
+			SubcategoryId:   int(vAsset.Type),
 			Subcategory:     SubcategoryString,
 		})
 	}
