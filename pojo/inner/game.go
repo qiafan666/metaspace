@@ -22,7 +22,7 @@ type NftDetail struct {
 	IssuedId        interface{} `json:"issuedId"`
 	ItemId          interface{} `json:"itemId"`
 	Category        string      `json:"category"`
-	Subcategory     string      `json:"subcategory"`
+	Subcategory     int64       `json:"subcategory,string"`
 	Network         string      `json:"network"`
 	ChainId         int         `json:"chainId"`
 	CreatedAt       int64       `json:"createdAt"`
@@ -36,5 +36,5 @@ type Data struct {
 type Tower struct {
 	Description string `json:"description"`
 	Id          string `json:"id"`
-	Rarity      string `json:"rarity"`
+	Rarity      int64  `json:"rarity,string"`
 }

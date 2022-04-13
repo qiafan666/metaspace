@@ -8,7 +8,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/iris-contrib/middleware/cors v0.0.0-20211207164801-081c558a02bb
-	github.com/jau1jz/cornus v1.0.4
+	github.com/jau1jz/cornus v1.0.5
 	github.com/kataras/iris/v12 v12.2.0-alpha5
 	github.com/sirupsen/logrus v1.8.1
 	google.golang.org/grpc v1.41.0

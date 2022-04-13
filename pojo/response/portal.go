@@ -28,12 +28,12 @@ type AssetBody struct {
 	Image           string `json:"image"`
 	Description     string `json:"description"`
 	Category        string `json:"category"`
-	CategoryId      int    `json:"category_id"`
+	CategoryId      int64  `json:"category_id"`
 	Rarity          string `json:"rarity"`
-	RarityId        int    `json:"rarity_id"`
+	RarityId        int64  `json:"rarity_id"`
 	MintSignature   string `json:"mint_signature"`
 	Subcategory     string `json:"subcategory"`
-	SubcategoryId   int    `json:"subcategory_id"`
+	SubcategoryId   int64  `json:"subcategory_id"`
 }
 
 type SubscribeNewsletterEmail struct {

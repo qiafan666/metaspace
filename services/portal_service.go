@@ -5,9 +5,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/blockfishio/metaspace-backend/contract"
 	"github.com/blockfishio/metaspace-backend/grpc"
 	"github.com/blockfishio/metaspace-backend/grpc/proto"
-	contracts "github.com/blockfishio/metaspace-backend/metaspace/contract"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
@@ -51,8 +51,9 @@ var portalConfig struct {
 		Secret string `yaml:"secret"`
 	} `yaml:"jwt"`
 	Contract struct {
-		ethClient string `yaml:"eth_client"`
-		address   string `yaml:"address"`
+		EthClient     string `yaml:"eth_client"`
+		NftAddress    string `yaml:"nft_address"`
+		Erc721Address string `yaml:"erc721_address"`
 	} `yaml:"contract"`
 }
 
@@ -364,14 +365,14 @@ func (p portalServiceImp) GetTowerStatus(info request.TowerStats) (out response.
 
 func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error) {
 
-	client, err := ethclient.Dial(portalConfig.Contract.ethClient)
+	client, err := ethclient.Dial(portalConfig.Contract.EthClient)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign ethClient Dial error")
 		return out, 0, err
 	}
 
-	address := ethcommon.HexToAddress(portalConfig.Contract.address)
-	instance, err := contracts.NewContracts(address, client)
+	address := ethcommon.HexToAddress(portalConfig.Contract.NftAddress)
+	instance, err := contract.NewContracts(address, client)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign NewContracts error")
 		return out, 0, err
@@ -423,9 +424,9 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 		rarity := big.NewInt(vAssets.Rarity)
 
 		var message [32]byte
-		message, err = instance.GetMessageHash(nil, address, tokenId, userAddress, category, subCategory, rarity)
+		message, err = instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, userAddress, category, subCategory, rarity)
 		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign GetMessageHash error")
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign GetMessageHash error:%s", err.Error())
 			return out, 0, err
 		}
 
@@ -433,7 +434,10 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 		req := &proto.SigRequest{Mess: fmt.Sprintf(hex.EncodeToString(message[:]))}
 
 		var res *proto.SigResponse
-		res, err = grpc.SignGrpc.SignClient.Sign(context.Background(), req)
+
+		ctx, cancel := context.WithTimeout(info.BaseRequest.Ctx, common.GrpcTimeout)
+		defer cancel()
+		res, err = grpc.SignGrpc.SignClient.Sign(ctx, req)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Sign error", err)
 			return out, common.GRpcSignError, errors.New(commons.GetCodeAndMsg(common.GRpcSignError, info.Language))

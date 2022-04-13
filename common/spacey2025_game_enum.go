@@ -23,16 +23,23 @@ const (
 	TrapString     = "Trap"
 )
 
-// Rarity Type
-type RarityType uint8
+const (
+	CategoryId0 int64 = 0
+	CategoryId1 int64 = 1
+	CategoryId2 int64 = 2
+	CategoryId3 int64 = 3
+	CategoryId4 int64 = 4
+	CategoryId5 int64 = 5
+	CategoryId6 int64 = 6
+)
 
 const (
-	Common    RarityType = 1
-	Uncommon  RarityType = 2
-	Rare      RarityType = 3
-	Epic      RarityType = 4
-	Legendary RarityType = 5
-	Junk      RarityType = 6
+	SubCategoryId0 int64 = 0
+	SubCategoryId1 int64 = 1
+	SubCategoryId2 int64 = 2
+	SubCategoryId3 int64 = 3
+	SubCategoryId4 int64 = 4
+	SubCategoryId5 int64 = 5
 )
 
 const (

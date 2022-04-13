@@ -1,7 +1,7 @@
 // Code generated - DO NOT EDIT.
 // This file is a generated binding and any manual changes will be lost.
 
-package contracts
+package contract
 
 import (
 	"errors"
@@ -244,9 +244,9 @@ func (_Contracts *ContractsCallerSession) FeeToAddress() (common.Address, error)
 // GetMessageHash is a free data retrieval call binding the contract method 0x087c7281.
 //
 // Solidity: function getMessageHash(address _nftAddress, uint256 _tokenId, address _ownerAddress, uint256 _category, uint256 _subcategory, uint256 _rarity) pure returns(bytes32)
-func (_Contracts *ContractsCaller) GetMessageHash(opts *bind.CallOpts, _nftAddress common.Address, _tokenId *big.Int, _ownerAddress common.Address, _category *big.Int, _subcategory *big.Int, _rarity *big.Int) ([32]byte, error) {
+func (contracts *ContractsCaller) GetMessageHash(opts *bind.CallOpts, _nftAddress common.Address, _tokenId *big.Int, _ownerAddress common.Address, _category *big.Int, _subcategory *big.Int, _rarity *big.Int) ([32]byte, error) {
 	var out []interface{}
-	err := _Contracts.contract.Call(opts, &out, "getMessageHash", _nftAddress, _tokenId, _ownerAddress, _category, _subcategory, _rarity)
+	err := contracts.contract.Call(opts, &out, "getMessageHash", _nftAddress, _tokenId, _ownerAddress, _category, _subcategory, _rarity)
 
 	if err != nil {
 		return *new([32]byte), err

@@ -3,6 +3,7 @@ package common
 import (
 	"github.com/jau1jz/cornus/commons"
 	"github.com/jau1jz/cornus/config"
+	"time"
 )
 
 var DebugFlag bool
@@ -66,3 +67,5 @@ const (
 	SignGrpc_CONNECTING     = 2
 	SignGrpc_CONNECTED      = 3
 )
+
+const GrpcTimeout time.Duration = 5

@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/dao"
 	"github.com/blockfishio/metaspace-backend/model"
@@ -21,8 +20,8 @@ import (
 )
 
 const (
-	//NftApiUrl = "http://nftapi.spacey2025.com/v1/nfts?owner="
-	NftApiUrl = "http://0.0.0.0:5000/v1/nfts?owner="
+	NftApiUrl = "http://nftapi.spacey2025.com/v1/nfts?owner="
+	//NftApiUrl = "http://0.0.0.0:5000/v1/nfts?owner="
 )
 
 // PortalService service layer interface
@@ -49,8 +48,10 @@ type gameAssetsServiceImp struct {
 }
 
 func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out response.GetGameAssets, code commons.ResponseCode, err error) {
-	var user model.User
 
+	assetsNum := 0
+
+	var user model.User
 	err = p.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.WalletAddress}, map[string]interface{}{
 		model.UserColumns.UUID: info.BaseRequest.BaseUUID,
 	}, nil, &user)
@@ -65,11 +66,14 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	err = p.dao.WithContext(info.Ctx).Find([]string{}, map[string]interface{}{
 		model.AssetsColumns.Uid: vWalletAddress,
 	}, nil, &vAssets)
-
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find assets Error: %s", err.Error())
+		return out, 0, err
+	}
 	for _, vAsset := range vAssets {
-		SubcategoryString, err := function.GetSubcategoryString(strconv.Itoa(int(vAsset.Category)), strconv.Itoa(int(vAsset.Type)))
+		SubcategoryString, err := function.GetSubcategoryString(vAsset.Category, vAsset.Type)
 		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp dao SubcategoryString Error: %s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp SubcategoryString Error: %s", err.Error())
 			return out, 0, err
 		}
 
@@ -81,14 +85,15 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			Name:            vAsset.Name,
 			Image:           vAsset.Image,
 			Description:     vAsset.Description,
-			Category:        function.GetCategoryString(common.AssetType(vAsset.Category)),
-			CategoryId:      int(vAsset.Category),
-			Rarity:          function.GetRarityString(common.RarityType(vAsset.Rarity)),
-			RarityId:        int(vAsset.Rarity),
+			Category:        function.GetCategoryString(vAsset.Category),
+			CategoryId:      vAsset.Category,
+			Rarity:          function.GetRarityString(vAsset.Rarity),
+			RarityId:        vAsset.Rarity,
 			MintSignature:   vAsset.MintSignature,
-			SubcategoryId:   int(vAsset.Type),
+			SubcategoryId:   vAsset.Type,
 			Subcategory:     SubcategoryString,
 		})
+		assetsNum++
 	}
 
 	// Find all onchain assets
@@ -106,26 +111,12 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		return out, 0, err
 	}
 
-	// iterate the NftResp to generate the response
+	//iterate the NftResp to generate the response
 	for _, vNftDetail := range vNftResp.Data {
-		Subcategory, err := strconv.Atoi(vNftDetail.Nft.Subcategory)
+
+		SubcategoryString, err := function.GetSubcategoryByNftString(vNftDetail.Nft.Category, vNftDetail.Nft.Subcategory)
 		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp Subcategory format Error: %s", err.Error())
-			return out, 0, err
-		}
-		Category, err := strconv.Atoi(vNftDetail.Nft.Category)
-		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp Category format Error: %s", err.Error())
-			return out, 0, err
-		}
-		Rarity, err := strconv.Atoi(vNftDetail.Nft.Data.Tower.Rarity)
-		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp Category Rarity Error: %s", err.Error())
-			return out, 0, err
-		}
-		SubcategoryString, err := function.GetSubcategoryString(vNftDetail.Nft.Category, vNftDetail.Nft.Subcategory)
-		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp Nft SubcategoryString Error: %s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp By Nft SubcategoryString Error: %s", err.Error())
 			return out, 0, err
 		}
 		out.Assets = append(out.Assets, response.AssetBody{
@@ -136,14 +127,15 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			Name:            vNftDetail.Nft.Name,
 			Image:           vNftDetail.Nft.Image,
 			Description:     vNftDetail.Nft.Description,
-			Category:        function.GetCategoryString(common.AssetType(Category)),
-			CategoryId:      Category,
-			Rarity:          function.GetRarityString(common.RarityType(Rarity)),
-			RarityId:        Rarity,
+			Category:        vNftDetail.Nft.Category,
+			CategoryId:      function.GetCategoryId(vNftDetail.Nft.Category),
+			Rarity:          function.GetRarityString(vNftDetail.Nft.Data.Tower.Rarity),
+			RarityId:        vNftDetail.Nft.Data.Tower.Rarity,
 			Subcategory:     SubcategoryString,
-			SubcategoryId:   Subcategory,
+			SubcategoryId:   vNftDetail.Nft.Subcategory,
 		})
+		assetsNum++
 	}
-
+	out.AssetNum = assetsNum
 	return
 }

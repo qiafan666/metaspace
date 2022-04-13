@@ -24,4 +24,5 @@ grpc:
   port: "10011"
 contract:
   eth_client: "https://rinkeby.infura.io/v3/059609bf2c8e433d8ad4a895a98278ed"
-  address: "0xc10641031430cF29579f829952b118f1d873bbc2"
+  nft_address: "0xc10641031430cF29579f829952b118f1d873bbc2"
+  erc721_address: "0xe88A806D31de758762d93a0e6682042Ec1AFe6ac"
