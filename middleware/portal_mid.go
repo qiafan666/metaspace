@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+
 	"github.com/blockfishio/metaspace-backend/pojo/request"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jau1jz/cornus"
@@ -24,6 +25,7 @@ var witheList = map[string]string{
 	"/metaspace/web/login":                      "",
 	"/metaspace/web/login/nonce":                "",
 	"/metaspace/web/subscribe/newsletter/email": "",
+	"/metaspace/web/health":                     "",
 }
 
 func CheckAuth(ctx iris.Context) {

@@ -120,3 +120,8 @@ func (receiver *PortalWebController) PostSign() {
 		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
 	}
 }
+
+func (receiver *PortalWebController) GetHealth() {
+	receiver.Ctx.StatusCode(iris.StatusOK)
+	return
+}
