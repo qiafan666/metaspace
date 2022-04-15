@@ -25,10 +25,7 @@ const (
 	WalletAddressDoesNotExist    = 100007
 	NonceExpireOrNull            = 100008
 	EmailAlreadyExists           = 100009
-	MapNotOk                     = 100010
-	GRpcDialError                = 100011
-	GRpcSignError                = 100012
-	AssetsNotExist               = 100013
+	AssetsNotExist               = 100010
 )
 
 // EnglishCodeMsg local code and msg
@@ -43,9 +40,6 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	WalletAddressDoesNotExist:    "wallet address does not exist",
 	NonceExpireOrNull:            "nonce expire or null",
 	EmailAlreadyExists:           "subscription email already exists",
-	MapNotOk:                     "map attribute does not exist",
-	GRpcDialError:                "Grpc connect is failed",
-	GRpcSignError:                "Grpc sign error",
 	AssetsNotExist:               "assets is not exists",
 }
 
@@ -68,4 +62,4 @@ const (
 	SignGrpc_CONNECTED      = 3
 )
 
-const GrpcTimeout time.Duration = 5
+const GrpcTimeoutInSec = 5 * time.Second

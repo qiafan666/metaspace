@@ -356,11 +356,11 @@ func (p portalServiceImp) GetTowerStatus(info request.TowerStats) (out response.
 			}
 			return
 		}
-		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetTowerStatus RarityConfigs not find TowerRarity error")
-		return out, common.MapNotOk, errors.New(commons.GetCodeAndMsg(common.MapNotOk, info.Language))
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetTowerStatus RarityConfigs map not find TowerRarity error")
+		return out, 0, err
 	}
-	slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetTowerStatus not find TowerTypeConfigs error")
-	return out, common.MapNotOk, errors.New(commons.GetCodeAndMsg(common.MapNotOk, info.Language))
+	slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetTowerStatus TowerTypeConfigs map not find TowerType error")
+	return out, 0, err
 }
 
 func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error) {
@@ -384,7 +384,7 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 	}, nil, &vAssets)
 
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
-		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign error", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign error:%s", err.Error())
 		return out, 0, err
 	} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign assets not find error")
@@ -435,12 +435,12 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 
 		var res *proto.SigResponse
 
-		ctx, cancel := context.WithTimeout(info.BaseRequest.Ctx, common.GrpcTimeout)
+		ctx, cancel := context.WithTimeout(info.BaseRequest.Ctx, common.GrpcTimeoutInSec)
 		defer cancel()
 		res, err = grpc.SignGrpc.SignClient.Sign(ctx, req)
 		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Sign error", err)
-			return out, common.GRpcSignError, errors.New(commons.GetCodeAndMsg(common.GRpcSignError, info.Language))
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Sign error:%s", err)
+			return out, 0, err
 		}
 		out.SignMessage = res.Value
 		return
