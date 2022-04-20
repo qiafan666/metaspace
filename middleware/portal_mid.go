@@ -26,6 +26,7 @@ var witheList = map[string]string{
 	"/metaspace/web/login/nonce":                "",
 	"/metaspace/web/subscribe/newsletter/email": "",
 	"/metaspace/web/health":                     "",
+	"/metaspace/web/orders":                     "",
 }
 
 func CheckAuth(ctx iris.Context) {
