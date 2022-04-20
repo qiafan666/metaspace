@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/blockfishio/metaspace-backend/contract"
+	"github.com/blockfishio/metaspace-backend/contract/bridgecontract"
 	"github.com/blockfishio/metaspace-backend/grpc"
 	"github.com/blockfishio/metaspace-backend/grpc/proto"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -372,7 +372,7 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 	}
 
 	address := ethcommon.HexToAddress(portalConfig.Contract.NftAddress)
-	instance, err := contract.NewContracts(address, client)
+	instance, err := bridgecontract.NewContracts(address, client)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign NewContracts error")
 		return out, 0, err

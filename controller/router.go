@@ -22,6 +22,7 @@ func RegisterRouter(ctx *iris.Application) {
 			application.Handle(&web.PortalWebController{
 				PortalService:     bizservice.NewPortalServiceInstance(),
 				GameAssetsService: bizservice.NewGameAssetsInstance(),
+				MarketService:     bizservice.NewMarketInstance(),
 			})
 		})
 }

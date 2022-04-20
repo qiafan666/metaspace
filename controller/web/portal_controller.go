@@ -13,6 +13,7 @@ type PortalWebController struct {
 	Ctx               iris.Context
 	PortalService     bizservice.PortalService
 	GameAssetsService bizservice.GameAssetsService
+	MarketService     bizservice.MarketService
 }
 
 func (receiver *PortalWebController) PostLogin() {
@@ -115,6 +116,48 @@ func (receiver *PortalWebController) PostSign() {
 	}
 	function.BindBaseRequest(&input, receiver.Ctx)
 	if out, code, err := receiver.PortalService.GetSign(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
+func (receiver *PortalWebController) PostOrderSign() {
+	input := request.ShelfSign{}
+	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostOrderSign"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.MarketService.GetShelfSignature(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
+func (receiver *PortalWebController) PostOrderCreate() {
+	input := request.SellShelf{}
+	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostOrderCreate"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.MarketService.GetSellShelf(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
+func (receiver *PortalWebController) PostOrders() {
+	input := request.Orders{}
+	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostOrders"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.MarketService.GetOrders(input); err != nil {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
 	} else {
 		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))

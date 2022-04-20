@@ -1,5 +1,7 @@
 package response
 
+import "github.com/blockfishio/metaspace-backend/model"
+
 type UserLogin struct {
 	JwtToken string `json:"jwt_token"`
 }
@@ -48,4 +50,16 @@ type TowerStats struct {
 
 type Sign struct {
 	SignMessage string `json:"sign_message"`
+}
+
+type ShelfSign struct {
+	SignMessage string `json:"sign_message"`
+}
+
+type SellShelf struct {
+	Flag string `json:"flag"`
+}
+
+type Orders struct {
+	Data []model.Orders `json:"data"`
 }

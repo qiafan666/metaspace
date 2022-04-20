@@ -56,3 +56,22 @@ type Sign struct {
 	BaseRequest
 	Id string `json:"id"  validate:"required,max=8"`
 }
+
+type ShelfSign struct {
+	BaseRequest
+	AssetId      string `json:"asset_id" validate:"required,max=192"`
+	PaymentErc20 string `json:"payment_erc20" validate:"required,max=192"`
+	Price        string `json:"price" validate:"required,max=192"`
+}
+
+type SellShelf struct {
+	BaseRequest
+	SignedMessage string `json:"signed_message" validate:"required,max=192"`
+	RawMessage    string `json:"raw_message" validate:"required,max=192"`
+	ItemId        string `json:"item_id" validate:"required,max=192"`
+}
+
+type Orders struct {
+	BaseRequest
+	Status uint8 `json:"status" validate:"required,max=9"`
+}
