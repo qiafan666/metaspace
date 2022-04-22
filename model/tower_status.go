@@ -1,12 +1,5 @@
 package model
 
-type TowerStats struct {
-	Attack       int     `json:"Attack"`
-	Fire_Rate    float32 `json:"FireRate"`
-	Attack_Range int     `json:"AttackRange"`
-	Durability   int     `json:"Durability"`
-}
-
 type TowerConfig struct {
 	AttackFactors       [3]float32
 	AttackSpeedFactors  [3]float32

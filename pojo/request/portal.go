@@ -48,13 +48,12 @@ type SubscribeNewsletterEmail struct {
 }
 type TowerStats struct {
 	BaseRequest
-	TowerType   string `json:"tower_type" validate:"required,max=8"`
-	TowerRarity string `json:"tower_rarity" validate:"required,max=8"`
+	Id string `json:"id" validate:"required,max=8"`
 }
 
 type Sign struct {
 	BaseRequest
-	Id string `json:"id"  validate:"required,max=8"`
+	TokenId string `json:"token_id"  validate:"required,max=8"`
 }
 
 type ShelfSign struct {

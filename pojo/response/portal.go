@@ -1,7 +1,5 @@
 package response
 
-import "github.com/blockfishio/metaspace-backend/model"
-
 type UserLogin struct {
 	JwtToken string `json:"jwt_token"`
 }
@@ -61,5 +59,19 @@ type SellShelf struct {
 }
 
 type Orders struct {
-	Data []model.Orders `json:"data"`
+	Data []OrdersDetail `json:"orders_detail"`
+}
+
+type OrdersDetail struct {
+	Seller      string `json:"seller"`
+	Buyer       string `json:"buyer"`
+	Signature   string `json:"signature"`
+	Status      uint8  `json:"status"` // 1:active 2:expire 3:canceled 4:finished
+	NftID       string `json:"nft_id"`
+	Category    int64  `json:"category"`
+	Type        int64  `json:"type"`
+	Rarity      int64  `json:"rarity"`
+	Image       string `son:"image"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
