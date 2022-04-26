@@ -77,5 +77,5 @@ type Orders struct {
 
 type OrderCancel struct {
 	BaseRequest
-	AssetsId int `json:"assets_id" validate:"required,max=192"`
+	AssetsId string `json:"assets_id" validate:"required,max=192"`
 }
