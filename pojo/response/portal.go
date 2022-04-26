@@ -63,6 +63,7 @@ type Orders struct {
 }
 
 type OrdersDetail struct {
+	Id          int64  `json:"id"`
 	Seller      string `json:"seller"`
 	Buyer       string `json:"buyer"`
 	Signature   string `json:"signature"`

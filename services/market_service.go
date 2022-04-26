@@ -200,8 +200,8 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
 
 	var ordersDetail []join.OrdersDetail
-	err = m.dao.Find([]string{"orders.`status`,orders.signature,orders.id,orders.buyer,orders.seller,orders_detail.nft_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-		return db.Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").Where("orders.status=?", 1)
+	err = m.dao.Find([]string{"orders.id,orders.`status`,orders.signature,orders.id,orders.buyer,orders.seller,orders_detail.nft_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		return db.Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").Where("orders.status=?", common.OrderStatusActive)
 	}, &ordersDetail)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetOrders detail error %s", err.Error())
@@ -211,6 +211,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 	out.Data = make([]response.OrdersDetail, 0, len(ordersDetail))
 	for _, v := range ordersDetail {
 		out.Data = append(out.Data, response.OrdersDetail{
+			Id:          v.Id,
 			Seller:      v.Seller,
 			Buyer:       v.Buyer,
 			Signature:   v.Signature,
@@ -231,7 +232,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 func (m marketServiceImp) GetUserOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
 
 	var ordersDetail []join.OrdersDetail
-	err = m.dao.Find([]string{"orders.`status`,orders.signature,orders.id,orders.buyer,orders.seller,orders_detail.nft_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+	err = m.dao.Find([]string{"orders.id,orders.`status`,orders.signature,orders.id,orders.buyer,orders.seller,orders_detail.nft_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		return db.Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").Where("orders.status=?", info.Status).Where("orders.seller=? or orders.buyer=?", info.BaseRequest.BaseUUID, info.BaseRequest.BaseUUID)
 	}, &ordersDetail)
 	if err != nil {
@@ -242,6 +243,7 @@ func (m marketServiceImp) GetUserOrders(info request.Orders) (out response.Order
 	out.Data = make([]response.OrdersDetail, 0, len(ordersDetail))
 	for _, v := range ordersDetail {
 		out.Data = append(out.Data, response.OrdersDetail{
+			Id:          v.Id,
 			Seller:      v.Seller,
 			Buyer:       v.Buyer,
 			Signature:   v.Signature,
@@ -261,7 +263,6 @@ func (m marketServiceImp) GetUserOrders(info request.Orders) (out response.Order
 
 func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.OrderCancel, code commons.ResponseCode, err error) {
 
-	var assets model.Assets
 	tx := m.dao.Tx()
 	defer func() {
 		if err != nil {
@@ -270,35 +271,21 @@ func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.Or
 			_ = tx.Commit()
 		}
 	}()
-	err = tx.First([]string{model.AssetsColumns.TokenId}, map[string]interface{}{
-		model.AssetsColumns.Id: info.AssetsId,
-	}, nil, &assets)
-
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp assets First error %s", err.Error())
-		return out, 0, err
-	}
-
-	var ordersDetail model.OrdersDetail
-
-	err = tx.First([]string{model.OrdersDetailColumns.OrderID}, map[string]interface{}{
-		model.OrdersDetailColumns.NftID: assets.TokenId,
-	}, nil, &ordersDetail)
-
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp ordersDetail First error %s", err.Error())
-		return out, 0, err
-	}
 
 	var orders model.Orders
 
-	err = tx.First([]string{model.OrdersColumns.Status}, map[string]interface{}{
-		model.OrdersColumns.ID: ordersDetail.OrderID,
+	err = tx.First([]string{model.OrdersColumns.Status, model.OrdersColumns.Seller}, map[string]interface{}{
+		model.OrdersColumns.ID: info.OrderId,
 	}, nil, &orders)
 
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders First error %s", err.Error())
-		return out, 0, err
+		return out, common.OrdersNotExist, errors.New(commons.GetCodeAndMsg(common.OrdersNotExist, info.Language))
+	}
+
+	if orders.Seller != info.BaseRequest.BaseUUID {
+		slog.Slog.InfoF(info.Ctx, "marketServiceImp order seller")
+		return out, common.IdentityError, errors.New(commons.GetCodeAndMsg(common.IdentityError, info.Language))
 	}
 
 	if orders.Status == 3 {
@@ -307,9 +294,9 @@ func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.Or
 	}
 
 	_, err = tx.WithContext(info.Ctx).Update(model.Orders{
-		Status: 3,
+		Status: common.OrderStatusCancel,
 	}, map[string]interface{}{
-		model.OrdersColumns.ID: ordersDetail.OrderID,
+		model.OrdersColumns.ID: info.OrderId,
 	}, nil)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp OrderCancel error %s", err.Error())

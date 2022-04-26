@@ -27,6 +27,8 @@ const (
 	EmailAlreadyExists           = 100009
 	AssetsNotExist               = 100010
 	OrderAlreadyCancel           = 100011
+	OrdersNotExist               = 100012
+	IdentityError                = 100013
 )
 
 // EnglishCodeMsg local code and msg
@@ -43,6 +45,8 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	EmailAlreadyExists:           "subscription email already exists",
 	AssetsNotExist:               "assets is not exists",
 	OrderAlreadyCancel:           "order already cancel",
+	OrdersNotExist:               "orders is not exists",
+	IdentityError:                "Identity does not match current login",
 }
 
 // login type
@@ -65,3 +69,10 @@ const (
 )
 
 const GrpcTimeoutInSec = 5 * time.Second
+
+const (
+	OrderStatusActive = 1
+	OrderStatusExpire = 2
+	OrderStatusCancel = 3
+	OrderStatusFinish = 4
+)
