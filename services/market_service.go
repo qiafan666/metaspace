@@ -288,7 +288,7 @@ func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.Or
 		return out, common.IdentityError, errors.New(commons.GetCodeAndMsg(common.IdentityError, info.Language))
 	}
 
-	if orders.Status == 3 {
+	if orders.Status == common.OrderStatusCancel {
 		slog.Slog.InfoF(info.Ctx, "marketServiceImp order already cancel")
 		return out, common.OrderAlreadyCancel, errors.New(commons.GetCodeAndMsg(common.OrderAlreadyCancel, info.Language))
 	}
