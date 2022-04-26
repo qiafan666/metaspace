@@ -178,6 +178,20 @@ func (receiver *PortalWebController) PostUserOrders() {
 	}
 }
 
+func (receiver *PortalWebController) PostOrderCancel() {
+	input := request.OrderCancel{}
+	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostOrderCancel"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.MarketService.OrderCancel(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
 func (receiver *PortalWebController) GetHealth() {
 	receiver.Ctx.StatusCode(iris.StatusOK)
 	return

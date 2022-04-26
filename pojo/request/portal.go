@@ -74,3 +74,8 @@ type Orders struct {
 	BaseRequest
 	Status uint8 `json:"status" validate:"required,max=9"`
 }
+
+type OrderCancel struct {
+	BaseRequest
+	AssetsId int `json:"assets_id" validate:"required,max=192"`
+}

@@ -26,6 +26,7 @@ const (
 	NonceExpireOrNull            = 100008
 	EmailAlreadyExists           = 100009
 	AssetsNotExist               = 100010
+	OrderAlreadyCancel           = 100011
 )
 
 // EnglishCodeMsg local code and msg
@@ -41,6 +42,7 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	NonceExpireOrNull:            "nonce expire or null",
 	EmailAlreadyExists:           "subscription email already exists",
 	AssetsNotExist:               "assets is not exists",
+	OrderAlreadyCancel:           "order already cancel",
 }
 
 // login type
