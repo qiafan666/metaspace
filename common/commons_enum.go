@@ -43,10 +43,10 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	WalletAddressDoesNotExist:    "wallet address does not exist",
 	NonceExpireOrNull:            "nonce expire or null",
 	EmailAlreadyExists:           "subscription email already exists",
-	AssetsNotExist:               "assets is not exists",
-	OrderAlreadyCancel:           "order already cancel",
-	OrdersNotExist:               "orders is not exists",
-	IdentityError:                "Identity does not match current login",
+	AssetsNotExist:               "Asset doesn't exist",
+	OrderAlreadyCancel:           "Order is already cancelled.",
+	OrdersNotExist:               "Order doesn't exist",
+	IdentityError:                "Identity check failed",
 }
 
 // login type

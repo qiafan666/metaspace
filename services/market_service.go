@@ -302,6 +302,7 @@ func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.Or
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp OrderCancel error %s", err.Error())
 		return out, 0, err
 	}
+	out.OrderId = info.OrderId
 	return
 
 }

@@ -78,4 +78,5 @@ type OrdersDetail struct {
 }
 
 type OrderCancel struct {
+	OrderId uint64 `json:"order_id"`
 }
