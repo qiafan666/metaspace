@@ -29,7 +29,7 @@ var witheList = map[string]string{
 	"/metaspace/web/orders":                     "",
 }
 
-func CheckAuth(ctx iris.Context) {
+func CheckPortalAuth(ctx iris.Context) {
 	var language, uuid, email string
 	//get language
 	language = ctx.Request().Header.Get("Language")

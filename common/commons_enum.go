@@ -29,6 +29,8 @@ const (
 	OrderAlreadyCancel           = 100011
 	OrdersNotExist               = 100012
 	IdentityError                = 100013
+	ThirdPartySignError          = 100014
+	VerifyThirdPartySignError    = 100015
 )
 
 // EnglishCodeMsg local code and msg
@@ -47,6 +49,8 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	OrderAlreadyCancel:           "Order is already cancelled.",
 	OrdersNotExist:               "Order doesn't exist",
 	IdentityError:                "Identity check failed",
+	ThirdPartySignError:          "Third_Party Sign failed",
+	VerifyThirdPartySignError:    "Verify Third_Party Sign failed",
 }
 
 // login type
@@ -60,6 +64,7 @@ const (
 // redis key
 const (
 	UserNonce = "user/nonce/%s"
+	UserSign  = "user/sign/%s"
 )
 
 const (

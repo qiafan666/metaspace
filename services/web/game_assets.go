@@ -1,4 +1,4 @@
-package bizservice
+package web
 
 import (
 	"encoding/json"

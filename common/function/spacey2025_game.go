@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/blockfishio/metaspace-backend/common"
 	"strings"
+	"unsafe"
 )
 
 func GetCategoryString(mType int64) string {
@@ -192,4 +193,9 @@ func StringCheck(ins ...string) bool {
 		}
 	}
 	return true
+}
+
+func Byte2(b []byte) [32]byte {
+
+	return *(*[32]byte)(unsafe.Pointer(&b))
 }

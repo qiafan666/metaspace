@@ -3,7 +3,7 @@ package web
 import (
 	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/pojo/request"
-	bizservice "github.com/blockfishio/metaspace-backend/services"
+	"github.com/blockfishio/metaspace-backend/services/web"
 	"github.com/jau1jz/cornus/commons"
 	"github.com/jau1jz/cornus/commons/utils"
 	"github.com/kataras/iris/v12"
@@ -11,9 +11,9 @@ import (
 
 type PortalWebController struct {
 	Ctx               iris.Context
-	PortalService     bizservice.PortalService
-	GameAssetsService bizservice.GameAssetsService
-	MarketService     bizservice.MarketService
+	PortalService     web.PortalService
+	GameAssetsService web.GameAssetsService
+	MarketService     web.MarketService
 }
 
 func (receiver *PortalWebController) PostLogin() {

@@ -1,9 +1,10 @@
 package router
 
 import (
+	"github.com/blockfishio/metaspace-backend/controller/api"
 	"github.com/blockfishio/metaspace-backend/controller/web"
 	"github.com/blockfishio/metaspace-backend/middleware"
-	bizservice "github.com/blockfishio/metaspace-backend/services"
+	web2 "github.com/blockfishio/metaspace-backend/services/web"
 	"github.com/iris-contrib/middleware/cors"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
@@ -15,14 +16,20 @@ func RegisterRouter(ctx *iris.Application) {
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"*"},
 	})
+	//web router
 	mvc.Configure(ctx.Party("/metaspace/web", crs).AllowMethods(iris.MethodOptions),
 		func(application *mvc.Application) {
-			application.Router.Use(middleware.CheckAuth)
-			//application.Router.Use(jwtHandler.Serve)
+			application.Router.Use(middleware.CheckPortalAuth)
 			application.Handle(&web.PortalWebController{
-				PortalService:     bizservice.NewPortalServiceInstance(),
-				GameAssetsService: bizservice.NewGameAssetsInstance(),
-				MarketService:     bizservice.NewMarketInstance(),
+				PortalService:     web2.NewPortalServiceInstance(),
+				GameAssetsService: web2.NewGameAssetsInstance(),
+				MarketService:     web2.NewMarketInstance(),
 			})
+		})
+	//api router
+	mvc.Configure(ctx.Party("/metaspace/api"),
+		func(application *mvc.Application) {
+			application.Router.Use(middleware.CheckApiAuth)
+			application.Handle(&api.LoginApiController{})
 		})
 }
