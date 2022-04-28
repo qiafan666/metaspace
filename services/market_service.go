@@ -33,6 +33,7 @@ type MarketService interface {
 	GetSellShelf(info request.SellShelf) (out response.SellShelf, code commons.ResponseCode, err error)
 	GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error)
 	GetUserOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error)
+	OrderCancel(info request.OrderCancel) (out response.OrderCancel, code commons.ResponseCode, err error)
 }
 
 var marketConfig struct {
@@ -100,7 +101,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 	var message [32]byte
 	message, err = instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, saltNonce)
 	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign GetMessageHash error:%s", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
 		return out, 0, err
 	}
 	out.SignMessage = hex.EncodeToString(message[:])
@@ -176,7 +177,7 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 	}
 	err = tx.WithContext(info.Ctx).Create(&orders)
 	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "portalServiceImp orders Create error %s", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Create error %s", err.Error())
 		return out, 0, err
 	}
 
@@ -189,7 +190,7 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 
 	err = tx.WithContext(info.Ctx).Create(&ordersDetail)
 	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "portalServiceImp orders detail Create error %s", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders detail Create error %s", err.Error())
 		return out, 0, err
 	}
 
@@ -199,17 +200,18 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
 
 	var ordersDetail []join.OrdersDetail
-	err = m.dao.Find([]string{"orders.`status`,orders.signature,orders.id,orders.buyer,orders.seller,orders_detail.nft_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-		return db.Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").Where("orders.status=?", 1)
+	err = m.dao.Find([]string{"orders.id,orders.`status`,orders.signature,orders.id,orders.buyer,orders.seller,orders_detail.nft_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		return db.Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").Where("orders.status=?", common.OrderStatusActive)
 	}, &ordersDetail)
 	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetOrders detail error %s", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetOrders detail error %s", err.Error())
 		return response.Orders{}, 0, err
 	}
 
 	out.Data = make([]response.OrdersDetail, 0, len(ordersDetail))
 	for _, v := range ordersDetail {
 		out.Data = append(out.Data, response.OrdersDetail{
+			Id:          v.Id,
 			Seller:      v.Seller,
 			Buyer:       v.Buyer,
 			Signature:   v.Signature,
@@ -230,17 +232,18 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 func (m marketServiceImp) GetUserOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
 
 	var ordersDetail []join.OrdersDetail
-	err = m.dao.Find([]string{"orders.`status`,orders.signature,orders.id,orders.buyer,orders.seller,orders_detail.nft_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+	err = m.dao.Find([]string{"orders.id,orders.`status`,orders.signature,orders.id,orders.buyer,orders.seller,orders_detail.nft_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		return db.Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").Where("orders.status=?", info.Status).Where("orders.seller=? or orders.buyer=?", info.BaseRequest.BaseUUID, info.BaseRequest.BaseUUID)
 	}, &ordersDetail)
 	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetUserOrders detail error %s", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetUserOrders detail error %s", err.Error())
 		return response.Orders{}, 0, err
 	}
 
 	out.Data = make([]response.OrdersDetail, 0, len(ordersDetail))
 	for _, v := range ordersDetail {
 		out.Data = append(out.Data, response.OrdersDetail{
+			Id:          v.Id,
 			Seller:      v.Seller,
 			Buyer:       v.Buyer,
 			Signature:   v.Signature,
@@ -254,6 +257,52 @@ func (m marketServiceImp) GetUserOrders(info request.Orders) (out response.Order
 			Description: v.Description,
 		})
 	}
+	return
+
+}
+
+func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.OrderCancel, code commons.ResponseCode, err error) {
+
+	tx := m.dao.Tx()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			_ = tx.Commit()
+		}
+	}()
+
+	var orders model.Orders
+
+	err = tx.First([]string{model.OrdersColumns.Status, model.OrdersColumns.Seller}, map[string]interface{}{
+		model.OrdersColumns.ID: info.OrderId,
+	}, nil, &orders)
+
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders First error %s", err.Error())
+		return out, common.OrdersNotExist, errors.New(commons.GetCodeAndMsg(common.OrdersNotExist, info.Language))
+	}
+
+	if orders.Seller != info.BaseRequest.BaseUUID {
+		slog.Slog.InfoF(info.Ctx, "marketServiceImp order seller")
+		return out, common.IdentityError, errors.New(commons.GetCodeAndMsg(common.IdentityError, info.Language))
+	}
+
+	if orders.Status == common.OrderStatusCancel {
+		slog.Slog.InfoF(info.Ctx, "marketServiceImp order already cancel")
+		return out, common.OrderAlreadyCancel, errors.New(commons.GetCodeAndMsg(common.OrderAlreadyCancel, info.Language))
+	}
+
+	_, err = tx.WithContext(info.Ctx).Update(model.Orders{
+		Status: common.OrderStatusCancel,
+	}, map[string]interface{}{
+		model.OrdersColumns.ID: info.OrderId,
+	}, nil)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp OrderCancel error %s", err.Error())
+		return out, 0, err
+	}
+	out.OrderId = info.OrderId
 	return
 
 }

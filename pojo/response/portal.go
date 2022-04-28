@@ -63,6 +63,7 @@ type Orders struct {
 }
 
 type OrdersDetail struct {
+	Id          int64  `json:"id"`
 	Seller      string `json:"seller"`
 	Buyer       string `json:"buyer"`
 	Signature   string `json:"signature"`
@@ -74,4 +75,8 @@ type OrdersDetail struct {
 	Image       string `son:"image"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+}
+
+type OrderCancel struct {
+	OrderId uint64 `json:"order_id"`
 }

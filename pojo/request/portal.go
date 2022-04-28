@@ -72,5 +72,10 @@ type SellShelf struct {
 
 type Orders struct {
 	BaseRequest
-	Status uint8 `json:"status" validate:"required,max=9"`
+	Status uint8 `json:"status,string" validate:"required,max=9"`
+}
+
+type OrderCancel struct {
+	BaseRequest
+	OrderId uint64 `json:"order_id,string" validate:"required,max=192"`
 }
