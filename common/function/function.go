@@ -12,12 +12,15 @@ func BindBaseRequest(entity interface{}, ctx iris.Context) {
 	//set base request parameter
 	object := reflect.ValueOf(entity)
 	baseRequest, _ := ctx.Values().Get(common.BaseRequest).(request.BaseRequest)
-	object.Elem().FieldByName("BaseRequest").Set(reflect.ValueOf(baseRequest))
-}
+	base := object.Elem().FieldByName("BaseRequest")
 
-func BindApiBaseRequest(entity interface{}, ctx iris.Context) {
-	//set base request parameter
-	object := reflect.ValueOf(entity)
-	baseRequest, _ := ctx.Values().Get(common.BaseApiRequest).(request.BaseApiRequest)
-	object.Elem().FieldByName("BaseApiRequest").Set(reflect.ValueOf(baseRequest))
+	if base.Kind() != reflect.Invalid {
+		base.Set(reflect.ValueOf(baseRequest))
+	}
+
+	baseApiRequest, _ := ctx.Values().Get(common.BaseApiRequest).(request.BaseRequest)
+	baseApi := object.Elem().FieldByName("BaseApiRequest")
+	if baseApi.Kind() != reflect.Invalid {
+		baseApi.Set(reflect.ValueOf(baseApiRequest))
+	}
 }
