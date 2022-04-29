@@ -99,7 +99,12 @@ func (s SignServiceImp) Sign(info inner.SignRequest) (out inner.SignResponse, co
 func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.VerifySignResponse, code commons.ResponseCode, err error) {
 
 	//check time
-	tm := time.Unix(info.Timestamp, 0)
+	parseInt, err := strconv.ParseInt(info.Timestamp, 10, 64)
+	if err != nil {
+		slog.Slog.InfoF(nil, "SignServiceImp VerifySign ParseInt failed")
+		return out, 0, err
+	}
+	tm := time.Unix(parseInt, 0)
 	nowTime := time.Now()
 	if nowTime.Sub(tm) > time.Second*30 {
 		slog.Slog.InfoF(nil, "SignServiceImp sign VerifySign error %s", err.Error())
@@ -168,7 +173,7 @@ func (s SignServiceImp) CreateAuthCode(info request.CreateAuthCode) (out respons
 
 	uuid := utils.GenerateUUID()
 	err = s.redis.SetAuthCode(info.Ctx, inner.AuthCode{
-		ThirdPartyPublicId: strconv.FormatUint(info.ThirdPartyId, 10),
+		ThirdPartyPublicId: strconv.FormatUint(info.BaseThirdPartyId, 10),
 		AuthCode:           uuid,
 	}, time.Minute*3)
 	if err != nil {
@@ -183,7 +188,7 @@ func (s SignServiceImp) CreateAuthCode(info request.CreateAuthCode) (out respons
 
 func (s SignServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, err error) {
 
-	_, err = s.redis.GetAuthCode(info.Ctx, strconv.FormatUint(info.ThirdPartyId, 10))
+	_, err = s.redis.GetAuthCode(info.Ctx, strconv.FormatUint(info.BaseThirdPartyId, 10))
 	if err != nil && err.Error() != redis.Nil.Error() {
 		slog.Slog.InfoF(info.Ctx, "SignServiceImp ThirdPartyLogin error %s", err.Error())
 		return out, 0, err
@@ -259,7 +264,7 @@ func (s SignServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out respo
 
 		token := utils.GenerateUUID()
 		err = s.redis.SetThirdPartyToken(info.Ctx, inner.ThirdPartyToken{
-			ThirdPartyPublicId: strconv.FormatUint(info.ThirdPartyId, 10),
+			ThirdPartyPublicId: strconv.FormatUint(info.BaseThirdPartyId, 10),
 			Token:              token,
 		}, time.Second*30)
 		if err != nil {

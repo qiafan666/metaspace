@@ -25,9 +25,10 @@ func Logger(ctx iris.Context) {
 	if base, flag := function.GetBasePortalRequest(ctx); flag == true {
 		UserID = base.BaseUserID
 	}
-	//if base, flag := function.GetBaseApiRequest(ctx); flag == true {
-	//	//ThirdPartyID = base.ApiKey
-	//}
+	if base, flag := function.GetBaseApiRequest(ctx); flag == true {
+		ThirdPartyID = base.BaseThirdPartyId
+		UserID = base.BaseUserID
+	}
 	//check white list
 	if _, ok := logList[ctx.Request().RequestURI]; ok {
 		logService.Write(inner.LogWriteRequest{

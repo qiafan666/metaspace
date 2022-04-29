@@ -14,9 +14,9 @@ type LoginApiController struct {
 	SignService api.SignService
 }
 
-func (receiver *LoginApiController) PostLoginAuthcode() {
+func (receiver *LoginApiController) PostLoginThirdLogin() {
 	input := request.CreateAuthCode{}
-	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "LoginApiController PostLoginAuthcode"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "LoginApiController PostLoginThirdLogin"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}

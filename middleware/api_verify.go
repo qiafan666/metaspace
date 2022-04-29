@@ -8,7 +8,6 @@ import (
 	"github.com/blockfishio/metaspace-backend/services/api"
 	"github.com/jau1jz/cornus/commons"
 	"github.com/kataras/iris/v12"
-	"strconv"
 	"sync"
 )
 
@@ -16,8 +15,8 @@ var signService api.SignService
 var signMidOnce sync.Once
 
 var apiWitheList = map[string]string{
-	"/metaspace/api/login/authcode": "",
-	"/metaspace/api/login":          "",
+	"/metaspace/api/login/third/code": "",
+	"/metaspace/api/login":            "",
 }
 
 func CheckSignAuth(ctx iris.Context) {
@@ -28,40 +27,26 @@ func CheckSignAuth(ctx iris.Context) {
 
 	sign := function.Byte2([]byte(ctx.Request().Header.Get("sign")))
 
-	timestamp, err := strconv.ParseInt(ctx.Request().Header.Get("timestamp"), 10, 64)
-	if err != nil {
-		_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage))
-		return
-	}
-
-	parameter := ctx.Request().Header.Get(commons.CtxValueParameter)
-	var apiKey, rand, url string
-	apiKey = ctx.Request().Header.Get("api_key")
-	rand = ctx.Request().Header.Get("rand")
-	url = ctx.Request().RequestURI
-
-	result, _, _ := signService.VerifySign(inner.VerifySignRequest{
+	verifyResult, _, _ := signService.VerifySign(inner.VerifySignRequest{
 		Sign:      sign,
-		ApiKey:    apiKey,
-		Timestamp: timestamp,
-		Rand:      rand,
-		Uri:       url,
-		Parameter: parameter,
+		ApiKey:    ctx.Request().Header.Get("api_key"),
+		Timestamp: ctx.Request().Header.Get("timestamp"),
+		Rand:      ctx.Request().Header.Get("rand"),
+		Uri:       ctx.Request().Header.Get("rand"),
+		Parameter: ctx.Values().Get(commons.CtxValueParameter).([]byte),
 	})
 
-	if result.Flag != false {
+	if verifyResult.Flag != false {
 		_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))
 		return
 	}
-
-	ctx.Values().Set(commons.CtxValueParameter, parameter)
 
 	var uuid, email string
 	var userId uint64
 	//check white list
 	if _, ok := apiWitheList[ctx.Request().RequestURI]; !ok {
 		//查询redis
-		thirdPartyToken, err := signService.GetThirdPartyToken(ctx, result.ThirdPartyId)
+		thirdPartyToken, err := signService.GetThirdPartyToken(ctx, verifyResult.ThirdPartyId)
 		if err != nil {
 			_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))
 			return
@@ -78,10 +63,10 @@ func CheckSignAuth(ctx iris.Context) {
 	}
 
 	ctx.Values().Set(common.BaseApiRequest, request.BaseApiRequest{
-		BaseUUID:     uuid,
-		BaseEmail:    email,
-		BaseUserID:   userId,
-		ThirdPartyId: result.ThirdPartyId,
+		BaseUUID:         uuid,
+		BaseEmail:        email,
+		BaseUserID:       userId,
+		BaseThirdPartyId: verifyResult.ThirdPartyId,
 	})
 
 	ctx.Next()
