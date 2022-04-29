@@ -20,7 +20,7 @@ func RegisterRouter(ctx *iris.Application) {
 	//web router
 	mvc.Configure(ctx.Party("/metaspace/web", crs).AllowMethods(iris.MethodOptions),
 		func(application *mvc.Application) {
-			application.Router.Use(middleware.CheckPortalAuth)
+			application.Router.Use(middleware.CheckPortalAuth, middleware.Logger)
 			application.Handle(&web.PortalWebController{
 				PortalService:     web2.NewPortalServiceInstance(),
 				GameAssetsService: web2.NewGameAssetsInstance(),
@@ -30,7 +30,7 @@ func RegisterRouter(ctx *iris.Application) {
 	//api router
 	mvc.Configure(ctx.Party("/metaspace/api"),
 		func(application *mvc.Application) {
-			application.Router.Use(middleware.CheckSignAuth, middleware.CheckApiAuth)
+			application.Router.Use(middleware.CheckSignAuth, middleware.CheckApiAuth, middleware.Logger)
 			application.Handle(&api.LoginApiController{})
 		})
 }

@@ -13,7 +13,7 @@ var logService common.LoggerService
 var logMidOnce sync.Once
 
 var logList = map[string]string{
-	"/metaspace/api/test": "",
+	"/metaspace/web/login": "",
 }
 
 func Logger(ctx iris.Context) {
@@ -21,6 +21,7 @@ func Logger(ctx iris.Context) {
 		logService = common.NewSignInstance()
 	})
 	var UserID, ThirdPartyID uint64
+	baseRequest, _ := function.GetBaseRequest(ctx)
 	if base, flag := function.GetBasePortalRequest(ctx); flag == true {
 		UserID = base.BaseUserID
 	}
@@ -30,10 +31,11 @@ func Logger(ctx iris.Context) {
 	//check white list
 	if _, ok := logList[ctx.Request().RequestURI]; ok {
 		logService.Write(inner.LogWriteRequest{
+			Ctx:          baseRequest.Ctx,
 			Uri:          ctx.Request().RequestURI,
 			UserID:       UserID,
 			ThirdPartyID: ThirdPartyID,
-			Parameter:    ctx.Request().Header.Get(commons.CtxValueParameter),
+			Parameter:    ctx.Values().Get(commons.CtxValueParameter).([]byte),
 		})
 	}
 	ctx.Next()

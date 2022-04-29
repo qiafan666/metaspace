@@ -32,8 +32,8 @@ func BindBaseRequest(entity interface{}, ctx iris.Context) {
 	}
 }
 
-func GetBaseRequest(ctx iris.Context) (request.BasePortalRequest, bool) {
-	baseRequest, flag := ctx.Values().Get(common.BaseRequest).(request.BasePortalRequest)
+func GetBaseRequest(ctx iris.Context) (request.BaseRequest, bool) {
+	baseRequest, flag := ctx.Values().Get(common.BaseRequest).(request.BaseRequest)
 	return baseRequest, flag
 }
 

@@ -2,15 +2,17 @@ package common
 
 import (
 	"github.com/blockfishio/metaspace-backend/dao"
+	"github.com/blockfishio/metaspace-backend/model"
 	"github.com/blockfishio/metaspace-backend/pojo/inner"
 	"github.com/blockfishio/metaspace-backend/redis"
-	"github.com/jau1jz/cornus/commons"
+	"github.com/jau1jz/cornus/commons/utils"
 	"sync"
+	"time"
 )
 
 // LoggerService service layer interface
 type LoggerService interface {
-	Write(info inner.LogWriteRequest) (out inner.LogWriteResponse, code commons.ResponseCode, err error)
+	Write(info inner.LogWriteRequest)
 }
 
 var LogServiceIns *LogServiceImp
@@ -31,7 +33,15 @@ type LogServiceImp struct {
 	redis redis.Dao
 }
 
-func (l LogServiceImp) Write(info inner.LogWriteRequest) (out inner.LogWriteResponse, code commons.ResponseCode, err error) {
-	//TODO implement me
-	panic("implement me")
+func (l LogServiceImp) Write(info inner.LogWriteRequest) {
+	utils.Go(func() {
+		_ = l.dao.Create(&model.RequestLog{
+			ThirdPartyID: info.ThirdPartyID,
+			UserID:       info.UserID,
+			URI:          info.Uri,
+			Parameter:    info.Parameter,
+			CreatedTime:  time.Now(),
+			UpdatedTime:  time.Now(),
+		})
+	})
 }
