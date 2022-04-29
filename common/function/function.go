@@ -13,30 +13,35 @@ func BindBaseRequest(entity interface{}, ctx iris.Context) {
 	object := reflect.ValueOf(entity)
 
 	baseRequest, _ := ctx.Values().Get(common.BaseRequest).(request.BaseRequest)
-	base := object.Elem().FieldByName("BaseRequest")
+	elem := object.Elem()
+	base := elem.FieldByName("BaseRequest")
 	if base.Kind() != reflect.Invalid {
 		base.Set(reflect.ValueOf(baseRequest))
 	}
 
 	basePortalRequest, _ := ctx.Values().Get(common.BaseRequest).(request.BasePortalRequest)
-	basePortal := object.Elem().FieldByName("BasePortalRequest")
+	basePortal := elem.FieldByName("BasePortalRequest")
 	if basePortal.Kind() != reflect.Invalid {
 		basePortal.Set(reflect.ValueOf(basePortalRequest))
 	}
 
 	baseApiRequest, _ := ctx.Values().Get(common.BaseApiRequest).(request.BaseApiRequest)
-	baseApi := object.Elem().FieldByName("BaseApiRequest")
+	baseApi := elem.FieldByName("BaseApiRequest")
 	if baseApi.Kind() != reflect.Invalid {
 		baseApi.Set(reflect.ValueOf(baseApiRequest))
 	}
 }
 
-func GetBaseRequest(ctx iris.Context) request.BasePortalRequest {
-	baseRequest, _ := ctx.Values().Get(common.BaseRequest).(request.BasePortalRequest)
-	return baseRequest
+func GetBaseRequest(ctx iris.Context) (request.BasePortalRequest, bool) {
+	baseRequest, flag := ctx.Values().Get(common.BaseRequest).(request.BasePortalRequest)
+	return baseRequest, flag
 }
 
-func GetBaseApiRequest(ctx iris.Context) request.BaseApiRequest {
-	baseApiRequest, _ := ctx.Values().Get(common.BaseApiRequest).(request.BaseApiRequest)
-	return baseApiRequest
+func GetBaseApiRequest(ctx iris.Context) (request.BaseApiRequest, bool) {
+	baseApiRequest, flag := ctx.Values().Get(common.BaseApiRequest).(request.BaseApiRequest)
+	return baseApiRequest, flag
+}
+func GetBasePortalRequest(ctx iris.Context) (request.BasePortalRequest, bool) {
+	basePortalRequest, flag := ctx.Values().Get(common.BasePortalRequest).(request.BasePortalRequest)
+	return basePortalRequest, flag
 }

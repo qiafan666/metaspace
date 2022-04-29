@@ -448,7 +448,7 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 
 		var res *proto.SigResponse
 
-		ctx, cancel := context.WithTimeout(info.Ctx, common.GrpcTimeoutInSec)
+		ctx, cancel := context.WithTimeout(info.Ctx, common.GrpcTimeoutIn)
 		defer cancel()
 		res, err = grpc.SignGrpc.SignClient.Sign(ctx, req)
 		if err != nil {

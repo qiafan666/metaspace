@@ -1,7 +1,10 @@
 package middleware
 
 import (
+	"github.com/blockfishio/metaspace-backend/common/function"
+	"github.com/blockfishio/metaspace-backend/pojo/inner"
 	"github.com/blockfishio/metaspace-backend/services/common"
+	"github.com/jau1jz/cornus/commons"
 	"github.com/kataras/iris/v12"
 	"sync"
 )
@@ -17,17 +20,21 @@ func Logger(ctx iris.Context) {
 	logMidOnce.Do(func() {
 		logService = common.NewSignInstance()
 	})
-	//baseRequest := function.GetBaseRequest(ctx)
-	//baseApiRequest := function.GetBaseApiRequest(ctx)
-	//ctx.Values().Get()
+	var UserID, ThirdPartyID uint64
+	if base, flag := function.GetBasePortalRequest(ctx); flag == true {
+		UserID = base.BaseUserID
+	}
+	//if base, flag := function.GetBaseApiRequest(ctx); flag == true {
+	//	//ThirdPartyID = base.ApiKey
+	//}
 	//check white list
 	if _, ok := logList[ctx.Request().RequestURI]; ok {
-		//logService.Write(inner.LogWriteRequest{
-		//	Uri:          ctx.Request().RequestURI,
-		//	UserID:       baseRequest.BaseUserID,
-		//	ThirdPartyID: baseApiRequest.BaseUUID,
-		//	Parameter:    nil,
-		//})
+		logService.Write(inner.LogWriteRequest{
+			Uri:          ctx.Request().RequestURI,
+			UserID:       UserID,
+			ThirdPartyID: ThirdPartyID,
+			Parameter:    ctx.Request().Header.Get(commons.CtxValueParameter),
+		})
 	}
 	ctx.Next()
 }

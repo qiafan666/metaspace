@@ -8,7 +8,6 @@ import (
 	"github.com/blockfishio/metaspace-backend/services/api"
 	"github.com/jau1jz/cornus/commons"
 	"github.com/kataras/iris/v12"
-	"net/http"
 	"strconv"
 	"sync"
 )
@@ -35,28 +34,11 @@ func CheckSignAuth(ctx iris.Context) {
 		return
 	}
 
-	var parameter []byte
+	parameter := ctx.Request().Header.Get(commons.CtxValueParameter)
 	var apiKey, rand, url string
 	apiKey = ctx.Request().Header.Get("api_key")
 	rand = ctx.Request().Header.Get("rand")
 	url = ctx.Request().RequestURI
-
-	if ctx.Request().Method == http.MethodPost {
-
-		body, err := ctx.Request().GetBody()
-		if err != nil {
-			_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage))
-			return
-		}
-		_, err = body.Read(parameter)
-		if err != nil {
-			_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage))
-			return
-		}
-	} else if ctx.Request().Method == http.MethodGet {
-		_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage))
-		return
-	}
 
 	flag, _, _ := signService.VerifySign(inner.VerifySignRequest{
 		Sign:      sign,

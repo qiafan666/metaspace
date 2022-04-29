@@ -76,12 +76,12 @@ const (
 )
 
 const (
-	SignGrpc_CONNECT_BEFORE = 1
-	SignGrpc_CONNECTING     = 2
-	SignGrpc_CONNECTED      = 3
+	SignGrpcConnectBefore = 1
+	SignGrpcConnecting    = 2
+	SignGrpcConnected     = 3
 )
 
-const GrpcTimeoutInSec = 5 * time.Second
+const GrpcTimeoutIn = 5 * time.Second
 
 const (
 	OrderStatusActive = 1
@@ -90,6 +90,7 @@ const (
 	OrderStatusFinish = 4
 )
 
+//ctx value enum
 const (
 	BaseRequest       = "base_request"
 	BasePortalRequest = "base_portal_request"
