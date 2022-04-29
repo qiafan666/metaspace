@@ -14,14 +14,13 @@ type LoginApiController struct {
 	SignService api.SignService
 }
 
-func (receiver *LoginApiController) PostCreateAuthcode() {
+func (receiver *LoginApiController) PostLoginAuthcode() {
 	input := request.CreateAuthCode{}
-	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "LoginApiController PostCreateAuthcode"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "LoginApiController PostLoginAuthcode"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
 	function.BindBaseRequest(&input, receiver.Ctx)
-	input.ApiKey = receiver.Ctx.Request().Header.Get("api-key")
 	if out, code, err := receiver.SignService.CreateAuthCode(input); err != nil {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
 	} else {

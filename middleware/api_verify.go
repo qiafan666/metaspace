@@ -7,7 +7,6 @@ import (
 	"github.com/blockfishio/metaspace-backend/pojo/inner"
 	"github.com/blockfishio/metaspace-backend/pojo/request"
 	"github.com/blockfishio/metaspace-backend/services/api"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/jau1jz/cornus/commons"
 	"github.com/kataras/iris/v12"
 	"net/http"
@@ -19,7 +18,8 @@ var signService api.SignService
 var signMidOnce sync.Once
 
 var apiWitheList = map[string]string{
-	"/metaspace/api/create/authcode": "",
+	"/metaspace/api/login/authcode": "",
+	"/metaspace/api/login":          "",
 }
 
 func CheckSignAuth(ctx iris.Context) {
@@ -74,6 +74,10 @@ func CheckSignAuth(ctx iris.Context) {
 	}
 
 	ctx.Values().Set(commons.CtxValueParameter, parameter)
+	ctx.Values().Set(common.BaseApiRequest, request.BaseApiRequest{
+		ApiKey: apiKey,
+	})
+
 	ctx.Next()
 }
 
@@ -82,7 +86,7 @@ func CheckApiAuth(ctx iris.Context) {
 		signService = api.NewSignInstance()
 	})
 
-	var language, uuid, email, apiKey string
+	var language, uuid, email string
 	//get language
 	language = ctx.Request().Header.Get("Language")
 	if language == "" {
@@ -90,32 +94,14 @@ func CheckApiAuth(ctx iris.Context) {
 	}
 	//check white list
 	if _, ok := apiWitheList[ctx.Request().RequestURI]; !ok {
-		//find parameter in request
-		//check jwt
-		parseToken, err := jwt.Parse(ctx.Request().Header.Get("Authorization"), func(token *jwt.Token) (interface{}, error) {
-			return []byte(jwtConfig.JWT.Secret), nil
-		})
-		if err != nil {
-			_, _ = ctx.JSON(commons.BuildFailed(commons.TokenError, language))
-			return
-		}
 
-		if claims, ok := parseToken.Claims.(jwt.MapClaims); ok && parseToken.Valid {
-			uuid, _ = claims["uuid"].(string)
-			email, _ = claims["email"].(string)
-			apiKey, _ = claims["api_key"].(string)
-		} else {
-			_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, language))
-			return
-		}
 	}
 
-	ctx.Values().Set(common.BaseApiRequest, request.BaseApiRequest{
+	ctx.Values().Set(common.BaseRequest, request.BaseRequest{
 		Ctx:       ctx.Values().Get("ctx").(context.Context),
 		Language:  language,
 		BaseUUID:  uuid,
 		BaseEmail: email,
-		ApiKey:    apiKey,
 	})
 
 	ctx.Next()

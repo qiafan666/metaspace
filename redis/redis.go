@@ -30,6 +30,15 @@ type Dao interface {
 	SetAuthCode(ctx context.Context, publicKey inner.AuthCode, expire time.Duration) (err error)
 	GetAuthCode(ctx context.Context, apiKey string) (out inner.AuthCode, err error)
 	DelAuthCode(ctx context.Context, apiKey string) (err error)
+
+	////userid : token
+	//SetUserToken(ctx context.Context, publicKey inner.AuthCode, expire time.Duration) (err error)
+	//GetUserToken(ctx context.Context, apiKey string) (out inner.AuthCode, err error)
+	//DelUserToken(ctx context.Context, apiKey string) (err error)
+	//
+	//SetTokenUser(ctx context.Context, publicKey inner.AuthCode, expire time.Duration) (err error)
+	//GetTokenUser(ctx context.Context, apiKey string) (out inner.AuthCode, err error)
+	//DelTokenUser(ctx context.Context, apiKey string) (err error)
 }
 
 type Imp struct {

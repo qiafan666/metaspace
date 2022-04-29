@@ -12,8 +12,6 @@ import (
 	"github.com/blockfishio/metaspace-backend/pojo/request"
 	"github.com/blockfishio/metaspace-backend/pojo/response"
 	"github.com/blockfishio/metaspace-backend/redis"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/jau1jz/cornus"
 	"github.com/jau1jz/cornus/commons"
 	slog "github.com/jau1jz/cornus/commons/log"
 	"github.com/jau1jz/cornus/commons/utils"
@@ -22,16 +20,6 @@ import (
 	"sync"
 	"time"
 )
-
-var signConfig struct {
-	JWT struct {
-		Secret string `yaml:"secret"`
-	} `yaml:"jwt"`
-}
-
-func init() {
-	cornus.GetCornusInstance().LoadCustomizeConfig(&signConfig)
-}
 
 // SignService service layer interface
 type SignService interface {
@@ -169,28 +157,24 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 
 func (s SignServiceImp) CreateAuthCode(info request.CreateAuthCode) (out response.CreateAuthCode, code commons.ResponseCode, err error) {
 
-	if len(info.BaseApiRequest.ApiKey) > 0 {
-		uuid := utils.GenerateUUID()
-		err = s.redis.SetAuthCode(info.Ctx, inner.AuthCode{
-			ApiKey: info.BaseApiRequest.ApiKey,
-			Uuid:   uuid,
-		}, time.Minute*3)
-		if err != nil {
-			slog.Slog.ErrorF(nil, "SignServiceImp SetRand error %s", err.Error())
-			return out, 0, err
-		}
-
-		out.AuthCode = uuid
-		return
+	uuid := utils.GenerateUUID()
+	err = s.redis.SetAuthCode(info.Ctx, inner.AuthCode{
+		ApiKey: info.ApiKey,
+		Uuid:   uuid,
+	}, time.Minute*3)
+	if err != nil {
+		slog.Slog.ErrorF(nil, "SignServiceImp SetRand error %s", err.Error())
+		return out, 0, err
 	}
-	slog.Slog.ErrorF(nil, "SignServiceImp CreateAuthCode apiKey not be nil", nil)
-	return out, 0, err
+
+	out.AuthCode = uuid
+	return
 
 }
 
 func (s SignServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, err error) {
 
-	_, err = s.redis.GetAuthCode(info.Ctx, info.BaseApiRequest.ApiKey)
+	_, err = s.redis.GetAuthCode(info.Ctx, info.ApiKey)
 	if err != nil && err.Error() != redis.Nil.Error() {
 		slog.Slog.InfoF(info.Ctx, "SignServiceImp ThirdPartyLogin error %s", err.Error())
 		return out, 0, err
@@ -263,20 +247,8 @@ func (s SignServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out respo
 				return out, common.PasswordOrAccountError, errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, info.Language))
 			}
 		}
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"email":   user.Email,
-			"uuid":    user.UUID,
-			"api_key": info.BaseApiRequest.ApiKey,
-			"iss":     "metaspace",
-			"iat":     time.Now().Unix(),
-			"exp":     time.Now().Add(24 * time.Hour).Unix(),
-		})
-		signedString, err := token.SignedString([]byte(signConfig.JWT.Secret))
-		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "portalServiceImp Login SignedString error %s", err.Error())
-			return out, 0, err
-		}
-		out.JwtToken = signedString
+
+		//
 
 	}
 	return
