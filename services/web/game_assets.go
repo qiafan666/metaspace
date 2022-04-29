@@ -53,7 +53,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 
 	var user model.User
 	err = p.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.WalletAddress}, map[string]interface{}{
-		model.UserColumns.UUID: info.BaseRequest.BaseUUID,
+		model.UserColumns.UUID: info.BasePortalRequest.BaseUUID,
 	}, nil, &user)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp failed to fetch UUID. Error: %s", err.Error())

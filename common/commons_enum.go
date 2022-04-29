@@ -91,6 +91,7 @@ const (
 )
 
 const (
-	BaseRequest    = "base_request"
-	BaseApiRequest = "base_api_request"
+	BaseRequest       = "base_request"
+	BasePortalRequest = "base_portal_request"
+	BaseApiRequest    = "base_api_request"
 )

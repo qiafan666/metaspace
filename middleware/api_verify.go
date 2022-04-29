@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/pojo/inner"
@@ -97,9 +96,7 @@ func CheckApiAuth(ctx iris.Context) {
 
 	}
 
-	ctx.Values().Set(common.BaseRequest, request.BaseRequest{
-		Ctx:       ctx.Values().Get("ctx").(context.Context),
-		Language:  language,
+	ctx.Values().Set(common.BasePortalRequest, request.BasePortalRequest{
 		BaseUUID:  uuid,
 		BaseEmail: email,
 	})

@@ -16,6 +16,7 @@ func RegisterRouter(ctx *iris.Application) {
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"*"},
 	})
+	ctx.Use(middleware.Common)
 	//web router
 	mvc.Configure(ctx.Party("/metaspace/web", crs).AllowMethods(iris.MethodOptions),
 		func(application *mvc.Application) {
