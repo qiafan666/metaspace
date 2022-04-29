@@ -1,6 +1,17 @@
 package request
 
-import "github.com/blockfishio/metaspace-backend/common"
+import (
+	"context"
+	"github.com/blockfishio/metaspace-backend/common"
+)
+
+type BaseApiRequest struct {
+	Ctx       context.Context `json:"ctx"`
+	BaseUUID  string          `json:"base_uuid"`
+	BaseEmail string          `json:"base_email"`
+	Language  string          `json:"language"`
+	ApiKey    string          `json:"api_key"`
+}
 
 type CreateAuthCode struct {
 	BaseApiRequest

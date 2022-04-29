@@ -12,14 +12,6 @@ type BaseRequest struct {
 	Language  string          `json:"language"`
 }
 
-type BaseApiRequest struct {
-	Ctx       context.Context `json:"ctx"`
-	BaseUUID  string          `json:"base_uuid"`
-	BaseEmail string          `json:"base_email"`
-	Language  string          `json:"language"`
-	ApiKey    string          `json:"api_key"`
-}
-
 type UserLogin struct {
 	BaseRequest
 	Account  string           `json:"account" validate:"required,max=192,min=6"`
