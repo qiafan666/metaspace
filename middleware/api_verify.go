@@ -40,47 +40,48 @@ func CheckSignAuth(ctx iris.Context) {
 	rand = ctx.Request().Header.Get("rand")
 	url = ctx.Request().RequestURI
 
-	flag, _, _ := signService.VerifySign(inner.VerifySignRequest{
+	result, _, _ := signService.VerifySign(inner.VerifySignRequest{
 		Sign:      sign,
 		ApiKey:    apiKey,
 		Timestamp: timestamp,
 		Rand:      rand,
 		Uri:       url,
-		Parameter: string(parameter),
+		Parameter: parameter,
 	})
 
-	if flag.Result != false {
+	if result.Flag != false {
 		_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))
 		return
 	}
 
 	ctx.Values().Set(commons.CtxValueParameter, parameter)
-	ctx.Values().Set(common.BaseApiRequest, request.BaseApiRequest{
-		ApiKey: apiKey,
-	})
 
-	ctx.Next()
-}
-
-func CheckApiAuth(ctx iris.Context) {
-	signMidOnce.Do(func() {
-		signService = api.NewSignInstance()
-	})
-
-	var language, uuid, email string
-	//get language
-	language = ctx.Request().Header.Get("Language")
-	if language == "" {
-		language = commons.DefualtLanguage
-	}
+	var uuid, email string
+	var userId uint64
 	//check white list
 	if _, ok := apiWitheList[ctx.Request().RequestURI]; !ok {
+		//查询redis
+		thirdPartyToken, err := signService.GetThirdPartyToken(ctx, result.ThirdPartyId)
+		if err != nil {
+			_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))
+			return
+		}
 
+		tokenUser, err := signService.GetTokenUser(ctx, thirdPartyToken.Token)
+		if err != nil {
+			_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))
+			return
+		}
+		uuid = tokenUser.Uuid
+		email = tokenUser.Email
+		userId = tokenUser.UserId
 	}
 
-	ctx.Values().Set(common.BasePortalRequest, request.BasePortalRequest{
-		BaseUUID:  uuid,
-		BaseEmail: email,
+	ctx.Values().Set(common.BaseApiRequest, request.BaseApiRequest{
+		BaseUUID:     uuid,
+		BaseEmail:    email,
+		BaseUserID:   userId,
+		ThirdPartyId: result.ThirdPartyId,
 	})
 
 	ctx.Next()

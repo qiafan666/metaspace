@@ -31,18 +31,21 @@ type Dao interface {
 	GetAuthCode(ctx context.Context, apiKey string) (out inner.AuthCode, err error)
 	DelAuthCode(ctx context.Context, apiKey string) (err error)
 
-	////userid : token
-	//SetUserToken(ctx context.Context, publicKey inner.AuthCode, expire time.Duration) (err error)
-	//GetUserToken(ctx context.Context, apiKey string) (out inner.AuthCode, err error)
-	//DelUserToken(ctx context.Context, apiKey string) (err error)
-	//
-	//SetTokenUser(ctx context.Context, publicKey inner.AuthCode, expire time.Duration) (err error)
-	//GetTokenUser(ctx context.Context, apiKey string) (out inner.AuthCode, err error)
-	//DelTokenUser(ctx context.Context, apiKey string) (err error)
+	SetThirdPartyToken(ctx context.Context, thirdPartyToken inner.ThirdPartyToken, expire time.Duration) (err error)
+	GetThirdPartyToken(ctx context.Context, thirdPartyId string) (out inner.ThirdPartyToken, err error)
+	DelThirdPartyToken(ctx context.Context, thirdPartyId string) (err error)
+
+	SetTokenUser(ctx context.Context, TokenUser inner.TokenUser, expire time.Duration) (err error)
+	GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, err error)
+	DelTokenUser(ctx context.Context, token string) (err error)
 }
 
 type Imp struct {
 	redis *redis.Client
+}
+
+func Instance() Dao {
+	return &Imp{redis: cornus.GetCornusInstance().Redis("metaspace")}
 }
 
 func (i Imp) GetNonce(ctx context.Context, address string) (out inner.Nonce, err error) {
@@ -64,10 +67,6 @@ func (i Imp) SetNonce(ctx context.Context, nonce inner.Nonce, expire time.Durati
 
 func (i Imp) DelNonce(ctx context.Context, uuid string) (err error) {
 	return i.redis.Del(ctx, fmt.Sprintf(common.UserNonce, uuid)).Err()
-}
-
-func Instance() Dao {
-	return &Imp{redis: cornus.GetCornusInstance().Redis("metaspace")}
 }
 
 func (i Imp) GetPublicKey(ctx context.Context, apiKey string) (out inner.PublicKey, err error) {
@@ -126,9 +125,51 @@ func (i Imp) SetAuthCode(ctx context.Context, publicKey inner.AuthCode, expire t
 	if err != nil {
 		return err
 	}
-	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, publicKey.ApiKey), marshal, expire).Err()
+	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, publicKey.ThirdPartyPublicId), marshal, expire).Err()
 }
 
 func (i Imp) DelAuthCode(ctx context.Context, apiKey string) (err error) {
 	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, apiKey)).Err()
+}
+
+func (i Imp) GetThirdPartyToken(ctx context.Context, thirdPartyId string) (out inner.ThirdPartyToken, err error) {
+	result := i.redis.Get(ctx, fmt.Sprintf(common.ThirdPartyToken, thirdPartyId))
+	if result.Err() != nil {
+		return out, result.Err()
+	}
+	err = json.Unmarshal([]byte(result.Val()), &out)
+	return
+}
+
+func (i Imp) SetThirdPartyToken(ctx context.Context, thirdPartyToken inner.ThirdPartyToken, expire time.Duration) (err error) {
+	marshal, err := json.Marshal(thirdPartyToken)
+	if err != nil {
+		return err
+	}
+	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyToken, thirdPartyToken.ThirdPartyPublicId), marshal, expire).Err()
+}
+
+func (i Imp) DelThirdPartyToken(ctx context.Context, thirdPartyId string) (err error) {
+	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyToken, thirdPartyId)).Err()
+}
+
+func (i Imp) GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, err error) {
+	result := i.redis.Get(ctx, fmt.Sprintf(common.ThirdPartyTokenUser, token))
+	if result.Err() != nil {
+		return out, result.Err()
+	}
+	err = json.Unmarshal([]byte(result.Val()), &out)
+	return
+}
+
+func (i Imp) SetTokenUser(ctx context.Context, tokenUser inner.TokenUser, expire time.Duration) (err error) {
+	marshal, err := json.Marshal(tokenUser)
+	if err != nil {
+		return err
+	}
+	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyTokenUser, tokenUser.Token), marshal, expire).Err()
+}
+
+func (i Imp) DelTokenUser(ctx context.Context, token string) (err error) {
+	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyTokenUser, token)).Err()
 }

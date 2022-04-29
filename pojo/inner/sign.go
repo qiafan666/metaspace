@@ -21,5 +21,6 @@ type VerifySignRequest struct {
 	Parameter string   `json:"parameter"`
 }
 type VerifySignResponse struct {
-	Result bool `json:"result"`
+	ThirdPartyId uint64 `json:"third_party_id"`
+	Flag         bool   `json:"flag"`
 }

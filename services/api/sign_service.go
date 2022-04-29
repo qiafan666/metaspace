@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"github.com/blockfishio/metaspace-backend/common"
@@ -16,6 +17,7 @@ import (
 	slog "github.com/jau1jz/cornus/commons/log"
 	"github.com/jau1jz/cornus/commons/utils"
 	"gorm.io/gorm"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -27,6 +29,8 @@ type SignService interface {
 	VerifySign(info inner.VerifySignRequest) (out inner.VerifySignResponse, code commons.ResponseCode, err error)
 	CreateAuthCode(info request.CreateAuthCode) (out response.CreateAuthCode, code commons.ResponseCode, err error)
 	ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, err error)
+	GetThirdPartyToken(ctx context.Context, thirdPartyId uint64) (out inner.ThirdPartyToken, err error)
+	GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, err error)
 }
 
 var SignServiceIns *SignServiceImp
@@ -58,7 +62,7 @@ func (s SignServiceImp) Sign(info inner.SignRequest) (out inner.SignResponse, co
 		slog.Slog.InfoF(nil, "SignServiceImp sign GetPublicKey error %s", err.Error())
 
 		var thirdPartySystem model.ThirdPartySystem
-		err = s.dao.First([]string{model.ThirdPartySystemColumns.ThirdPartyPublicKey}, map[string]interface{}{
+		err = s.dao.First([]string{model.ThirdPartySystemColumns.ThirdPartyPublicKey, model.ThirdPartySystemColumns.ID}, map[string]interface{}{
 			model.ThirdPartySystemColumns.APIkey: info.ApiKey,
 		}, nil, &thirdPartySystem)
 
@@ -69,6 +73,7 @@ func (s SignServiceImp) Sign(info inner.SignRequest) (out inner.SignResponse, co
 		thirdPartyPublicKey = thirdPartySystem.ThirdPartyPublicKey
 
 		err = s.redis.SetPublicKey(nil, inner.PublicKey{
+			Id:                  thirdPartySystem.ID,
 			ApiKey:              info.ApiKey,
 			ThirdPartyPublicKey: thirdPartySystem.ThirdPartyPublicKey,
 		}, 0)
@@ -122,6 +127,7 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 	}
 
 	var thirdPartyPublicKey string
+	var third_party_id uint64
 	publicKey, err := s.redis.GetPublicKey(nil, info.ApiKey)
 	if err != nil && err.Error() != redis.Nil.Error() {
 		slog.Slog.InfoF(nil, "SignServiceImp sign VerifySign error %s", err.Error())
@@ -129,7 +135,7 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 	} else if err != nil && err.Error() == redis.Nil.Error() {
 
 		var thirdPartySystem model.ThirdPartySystem
-		err = s.dao.First([]string{model.ThirdPartySystemColumns.ThirdPartyPublicKey}, map[string]interface{}{
+		err = s.dao.First([]string{model.ThirdPartySystemColumns.ThirdPartyPublicKey, model.ThirdPartySystemColumns.ID}, map[string]interface{}{
 			model.ThirdPartySystemColumns.APIkey: info.ApiKey,
 		}, nil, &thirdPartySystem)
 
@@ -138,8 +144,10 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 			return out, 0, err
 		}
 		thirdPartyPublicKey = thirdPartySystem.ThirdPartyPublicKey
+		third_party_id = publicKey.Id
 	} else {
 		thirdPartyPublicKey = publicKey.ThirdPartyPublicKey
+		third_party_id = publicKey.Id
 	}
 
 	data := fmt.Sprintf("%s%s%s%s%s", info.ApiKey, info.Uri, info.Timestamp, info.Parameter, info.Rand)
@@ -147,11 +155,12 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 	bufferString := bytes.NewBufferString(data)
 	err = utils.Rsa2VerifySign(info.Sign, bufferString.Bytes(), []byte(thirdPartyPublicKey))
 	if err != nil {
-		out.Result = false
+		out.Flag = false
 		slog.Slog.InfoF(nil, "SignServiceImp Verify Rsa2Sign failed")
 		return out, common.VerifyThirdPartySignError, errors.New(commons.GetCodeAndMsg(common.VerifyThirdPartySignError, commons.DefualtLanguage))
 	}
-	out.Result = true
+	out.ThirdPartyId = third_party_id
+	out.Flag = true
 	return
 }
 
@@ -159,8 +168,8 @@ func (s SignServiceImp) CreateAuthCode(info request.CreateAuthCode) (out respons
 
 	uuid := utils.GenerateUUID()
 	err = s.redis.SetAuthCode(info.Ctx, inner.AuthCode{
-		ApiKey: info.ApiKey,
-		Uuid:   uuid,
+		ThirdPartyPublicId: strconv.FormatUint(info.ThirdPartyId, 10),
+		AuthCode:           uuid,
 	}, time.Minute*3)
 	if err != nil {
 		slog.Slog.ErrorF(nil, "SignServiceImp SetRand error %s", err.Error())
@@ -174,7 +183,7 @@ func (s SignServiceImp) CreateAuthCode(info request.CreateAuthCode) (out respons
 
 func (s SignServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, err error) {
 
-	_, err = s.redis.GetAuthCode(info.Ctx, info.ApiKey)
+	_, err = s.redis.GetAuthCode(info.Ctx, strconv.FormatUint(info.ThirdPartyId, 10))
 	if err != nil && err.Error() != redis.Nil.Error() {
 		slog.Slog.InfoF(info.Ctx, "SignServiceImp ThirdPartyLogin error %s", err.Error())
 		return out, 0, err
@@ -248,8 +257,52 @@ func (s SignServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out respo
 			}
 		}
 
-		//
+		token := utils.GenerateUUID()
+		err = s.redis.SetThirdPartyToken(info.Ctx, inner.ThirdPartyToken{
+			ThirdPartyPublicId: strconv.FormatUint(info.ThirdPartyId, 10),
+			Token:              token,
+		}, time.Second*30)
+		if err != nil {
+			slog.Slog.ErrorF(nil, "SignServiceImp SetThirdPartyToken error %s", err.Error())
+			return out, 0, err
+		}
 
+		err = s.redis.SetTokenUser(info.Ctx, inner.TokenUser{
+			Token:  token,
+			Uuid:   user.UUID,
+			UserId: user.ID,
+			Email:  user.Email,
+		}, time.Second*30)
+		if err != nil {
+			slog.Slog.ErrorF(nil, "SignServiceImp SetTokenUser error %s", err.Error())
+			return out, 0, err
+		}
+		out.JwtToken = token
 	}
+
 	return
+}
+
+func (s SignServiceImp) GetThirdPartyToken(ctx context.Context, thirdPartyId uint64) (out inner.ThirdPartyToken, err error) {
+
+	result, err := s.redis.GetThirdPartyToken(ctx, strconv.FormatUint(thirdPartyId, 10))
+	if err != nil && err.Error() != redis.Nil.Error() {
+		slog.Slog.ErrorF(nil, "SignServiceImp GetThirdPartyToken error %s", err.Error())
+		return
+	}
+	out = result
+	return
+
+}
+
+func (s SignServiceImp) GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, err error) {
+
+	result, err := s.redis.GetTokenUser(ctx, token)
+	if err != nil {
+		slog.Slog.ErrorF(nil, "SignServiceImp GetThirdPartyToken error %s", err.Error())
+		return
+	}
+	out = result
+	return
+
 }

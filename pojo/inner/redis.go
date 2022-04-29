@@ -6,6 +6,7 @@ type Nonce struct {
 }
 
 type PublicKey struct {
+	Id                  uint64 `json:"id"`
 	ApiKey              string `json:"api_key"`
 	ThirdPartyPublicKey string `json:"third_party_public_key"`
 }
@@ -16,6 +17,18 @@ type Rand struct {
 }
 
 type AuthCode struct {
-	ApiKey string `json:"api_key"`
+	ThirdPartyPublicId string `json:"third_party_public_id"`
+	AuthCode           string `json:"auth_code"`
+}
+
+type ThirdPartyToken struct {
+	ThirdPartyPublicId string `json:"third_party_public_id"`
+	Token              string `json:"token"`
+}
+
+type TokenUser struct {
+	Token  string `json:"token"`
+	UserId uint64 `json:"user_id"`
+	Email  string `json:"email"`
 	Uuid   string `json:"uuid"`
 }
