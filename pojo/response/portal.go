@@ -80,3 +80,11 @@ type OrdersDetail struct {
 type OrderCancel struct {
 	OrderId uint64 `json:"order_id"`
 }
+
+type CreateAuthCode struct {
+	AuthCode string `json:"auth_code"`
+}
+
+type ThirdPartyLogin struct {
+	JwtToken string `json:"jwt_token"`
+}

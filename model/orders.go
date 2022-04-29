@@ -7,14 +7,14 @@ import (
 /******sql******
 CREATE TABLE `orders` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `seller` varchar(192) NOT NULL,
-  `buyer` varchar(192) DEFAULT NULL,
+  `seller` varchar(192) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_ci NOT NULL,
+  `buyer` varchar(192) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `signature` varchar(192) NOT NULL,
   `status` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '1:active 2:expire 3:canceled 4:finished',
   `created_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   `updated_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 ******sql******/
 // Orders [...]
 type Orders struct {

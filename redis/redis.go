@@ -22,6 +22,14 @@ type Dao interface {
 	SetPublicKey(ctx context.Context, publicKey inner.PublicKey, expire time.Duration) (err error)
 	GetPublicKey(ctx context.Context, apiKey string) (out inner.PublicKey, err error)
 	DelPublicKey(ctx context.Context, apiKey string) (err error)
+
+	SetRand(ctx context.Context, publicKey inner.Rand, expire time.Duration) (err error)
+	GetRand(ctx context.Context, apiKey string) (out inner.Rand, err error)
+	DelRand(ctx context.Context, apiKey string) (err error)
+
+	SetAuthCode(ctx context.Context, publicKey inner.AuthCode, expire time.Duration) (err error)
+	GetAuthCode(ctx context.Context, apiKey string) (out inner.AuthCode, err error)
+	DelAuthCode(ctx context.Context, apiKey string) (err error)
 }
 
 type Imp struct {
@@ -54,7 +62,7 @@ func Instance() Dao {
 }
 
 func (i Imp) GetPublicKey(ctx context.Context, apiKey string) (out inner.PublicKey, err error) {
-	result := i.redis.Get(ctx, fmt.Sprintf(common.UserSign, apiKey))
+	result := i.redis.Get(ctx, fmt.Sprintf(common.ThirdPartyPublicKey, apiKey))
 	if result.Err() != nil {
 		return out, result.Err()
 	}
@@ -67,9 +75,51 @@ func (i Imp) SetPublicKey(ctx context.Context, publicKey inner.PublicKey, expire
 	if err != nil {
 		return err
 	}
-	return i.redis.SetNX(ctx, fmt.Sprintf(common.UserSign, publicKey.ApiKey), marshal, expire).Err()
+	return i.redis.SetNX(ctx, fmt.Sprintf(common.ThirdPartyPublicKey, publicKey.ApiKey), marshal, expire).Err()
 }
 
 func (i Imp) DelPublicKey(ctx context.Context, apiKey string) (err error) {
-	return i.redis.Del(ctx, fmt.Sprintf(common.UserSign, apiKey)).Err()
+	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyPublicKey, apiKey)).Err()
+}
+
+func (i Imp) GetRand(ctx context.Context, apiKey string) (out inner.Rand, err error) {
+	result := i.redis.Get(ctx, fmt.Sprintf(common.ThirdPartyRand, apiKey))
+	if result.Err() != nil {
+		return out, result.Err()
+	}
+	err = json.Unmarshal([]byte(result.Val()), &out)
+	return
+}
+
+func (i Imp) SetRand(ctx context.Context, publicKey inner.Rand, expire time.Duration) (err error) {
+	marshal, err := json.Marshal(publicKey)
+	if err != nil {
+		return err
+	}
+	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyRand, publicKey.ApiKey), marshal, expire).Err()
+}
+
+func (i Imp) DelRand(ctx context.Context, apiKey string) (err error) {
+	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyRand, apiKey)).Err()
+}
+
+func (i Imp) GetAuthCode(ctx context.Context, apiKey string) (out inner.AuthCode, err error) {
+	result := i.redis.Get(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, apiKey))
+	if result.Err() != nil {
+		return out, result.Err()
+	}
+	err = json.Unmarshal([]byte(result.Val()), &out)
+	return
+}
+
+func (i Imp) SetAuthCode(ctx context.Context, publicKey inner.AuthCode, expire time.Duration) (err error) {
+	marshal, err := json.Marshal(publicKey)
+	if err != nil {
+		return err
+	}
+	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, publicKey.ApiKey), marshal, expire).Err()
+}
+
+func (i Imp) DelAuthCode(ctx context.Context, apiKey string) (err error) {
+	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, apiKey)).Err()
 }

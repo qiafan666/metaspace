@@ -1,18 +1,80 @@
 package middleware
 
 import (
+	"context"
+	"github.com/blockfishio/metaspace-backend/common"
+	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/pojo/inner"
+	"github.com/blockfishio/metaspace-backend/pojo/request"
 	"github.com/blockfishio/metaspace-backend/services/api"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/jau1jz/cornus/commons"
 	"github.com/kataras/iris/v12"
+	"net/http"
+	"strconv"
 	"sync"
 )
 
 var signService api.SignService
 var signMidOnce sync.Once
 
-var signWitheList = map[string]string{
-	"/metaspace/api/test": "",
+var apiWitheList = map[string]string{
+	"/metaspace/api/create/authcode": "",
+}
+
+func CheckSignAuth(ctx iris.Context) {
+
+	signMidOnce.Do(func() {
+		signService = api.NewSignInstance()
+	})
+
+	sign := function.Byte2([]byte(ctx.Request().Header.Get("sign")))
+
+	timestamp, err := strconv.ParseInt(ctx.Request().Header.Get("timestamp"), 10, 64)
+	if err != nil {
+		_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage))
+		return
+	}
+
+	var parameter []byte
+	var apiKey, rand, url string
+	apiKey = ctx.Request().Header.Get("api_key")
+	rand = ctx.Request().Header.Get("rand")
+	url = ctx.Request().RequestURI
+
+	if ctx.Request().Method == http.MethodPost {
+
+		body, err := ctx.Request().GetBody()
+		if err != nil {
+			_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage))
+			return
+		}
+		_, err = body.Read(parameter)
+		if err != nil {
+			_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage))
+			return
+		}
+	} else if ctx.Request().Method == http.MethodGet {
+		_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage))
+		return
+	}
+
+	flag, _, _ := signService.VerifySign(inner.VerifySignRequest{
+		Sign:      sign,
+		ApiKey:    apiKey,
+		Timestamp: timestamp,
+		Rand:      rand,
+		Uri:       url,
+		Parameter: string(parameter),
+	})
+
+	if flag.Result != false {
+		_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))
+		return
+	}
+
+	ctx.Values().Set(commons.CtxValueParameter, parameter)
+	ctx.Next()
 }
 
 func CheckApiAuth(ctx iris.Context) {
@@ -20,27 +82,41 @@ func CheckApiAuth(ctx iris.Context) {
 		signService = api.NewSignInstance()
 	})
 
-	var language string
+	var language, uuid, email, apiKey string
 	//get language
 	language = ctx.Request().Header.Get("Language")
 	if language == "" {
 		language = commons.DefualtLanguage
 	}
-
 	//check white list
-	if _, ok := signWitheList[ctx.Request().RequestURI]; !ok {
+	if _, ok := apiWitheList[ctx.Request().RequestURI]; !ok {
 		//find parameter in request
-		sign, _, _ := signService.VerifySign(inner.VerifySignRequest{
-			Sign:      ctx.Request().Header.Get("sign"),
-			ApiKey:    ctx.Request().Header.Get("api-key"),
-			Timestamp: ctx.Request().Header.Get("timestamp"),
-			Rand:      ctx.Request().Header.Get("rand"),
-			Uri:       ctx.Request().RequestURI,
-			Parameter: "",
+		//check jwt
+		parseToken, err := jwt.Parse(ctx.Request().Header.Get("Authorization"), func(token *jwt.Token) (interface{}, error) {
+			return []byte(jwtConfig.JWT.Secret), nil
 		})
-		if sign.Result != false {
+		if err != nil {
+			_, _ = ctx.JSON(commons.BuildFailed(commons.TokenError, language))
+			return
+		}
+
+		if claims, ok := parseToken.Claims.(jwt.MapClaims); ok && parseToken.Valid {
+			uuid, _ = claims["uuid"].(string)
+			email, _ = claims["email"].(string)
+			apiKey, _ = claims["api_key"].(string)
+		} else {
+			_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, language))
 			return
 		}
 	}
+
+	ctx.Values().Set(common.BaseApiRequest, request.BaseApiRequest{
+		Ctx:       ctx.Values().Get("ctx").(context.Context),
+		Language:  language,
+		BaseUUID:  uuid,
+		BaseEmail: email,
+		ApiKey:    apiKey,
+	})
+
 	ctx.Next()
 }

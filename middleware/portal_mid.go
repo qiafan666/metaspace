@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"github.com/blockfishio/metaspace-backend/common"
 
 	"github.com/blockfishio/metaspace-backend/pojo/request"
 	"github.com/dgrijalva/jwt-go"
@@ -56,7 +57,7 @@ func CheckPortalAuth(ctx iris.Context) {
 			return
 		}
 	}
-	ctx.Values().Set("base_request", request.BaseRequest{
+	ctx.Values().Set(common.BaseRequest, request.BaseRequest{
 		Ctx:       ctx.Values().Get("ctx").(context.Context),
 		Language:  language,
 		BaseUUID:  uuid,

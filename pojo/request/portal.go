@@ -12,6 +12,14 @@ type BaseRequest struct {
 	Language  string          `json:"language"`
 }
 
+type BaseApiRequest struct {
+	Ctx       context.Context `json:"ctx"`
+	BaseUUID  string          `json:"base_uuid"`
+	BaseEmail string          `json:"base_email"`
+	Language  string          `json:"language"`
+	ApiKey    string          `json:"api_key"`
+}
+
 type UserLogin struct {
 	BaseRequest
 	Account  string           `json:"account" validate:"required,max=192,min=6"`
@@ -78,4 +86,16 @@ type Orders struct {
 type OrderCancel struct {
 	BaseRequest
 	OrderId uint64 `json:"order_id,string" validate:"required,max=192"`
+}
+
+type CreateAuthCode struct {
+	BaseApiRequest
+}
+
+type ThirdPartyLogin struct {
+	BaseApiRequest
+	AuthCode string           `json:"auth_code" validate:"required,max=192"`
+	Account  string           `json:"account" validate:"required,max=192,min=6"`
+	Password string           `json:"password" validate:"required,max=192,min=8"`
+	Type     common.LoginType `json:"type" validate:"required,max=2"`
 }

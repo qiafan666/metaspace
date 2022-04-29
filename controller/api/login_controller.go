@@ -3,25 +3,42 @@ package api
 import (
 	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/pojo/request"
+	"github.com/blockfishio/metaspace-backend/services/api"
 	"github.com/jau1jz/cornus/commons"
 	"github.com/jau1jz/cornus/commons/utils"
 	"github.com/kataras/iris/v12"
 )
 
 type LoginApiController struct {
-	Ctx iris.Context
+	Ctx         iris.Context
+	SignService api.SignService
 }
 
-func (receiver *LoginApiController) PostLogin() {
-	input := request.UserLogin{}
-	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "LoginApiController PostLogin"); code != commons.OK {
+func (receiver *LoginApiController) PostCreateAuthcode() {
+	input := request.CreateAuthCode{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "LoginApiController PostCreateAuthcode"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
-	function.BindBaseRequest(&input, receiver.Ctx)
-	//if out, code, err := receiver.PortalService.Login(input); err != nil {
-	//	_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
-	//} else {
-	//	_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
-	//}
+	function.BindApiBaseRequest(&input, receiver.Ctx)
+	input.ApiKey = receiver.Ctx.Request().Header.Get("api-key")
+	if out, code, err := receiver.SignService.CreateAuthCode(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
+func (receiver *LoginApiController) PostLogin() {
+	input := request.ThirdPartyLogin{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "LoginApiController PostLogin"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindApiBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.SignService.ThirdPartyLogin(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
 }

@@ -31,6 +31,9 @@ const (
 	IdentityError                = 100013
 	ThirdPartySignError          = 100014
 	VerifyThirdPartySignError    = 100015
+	VerifyThirdPartySignTimeOut  = 100016
+	FrequentVerifyThirdPartySign = 100017
+	AuthCodeAlreadyExpired       = 100018
 )
 
 // EnglishCodeMsg local code and msg
@@ -51,6 +54,9 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	IdentityError:                "Identity check failed",
 	ThirdPartySignError:          "Third_Party Sign failed",
 	VerifyThirdPartySignError:    "Verify Third_Party Sign failed",
+	VerifyThirdPartySignTimeOut:  "Verify Third_Party Sign timeout",
+	FrequentVerifyThirdPartySign: "Frequent Verify Third_Party Sign",
+	AuthCodeAlreadyExpired:       "AuthCode is already expired",
 }
 
 // login type
@@ -63,8 +69,10 @@ const (
 
 // redis key
 const (
-	UserNonce = "user/nonce/%s"
-	UserSign  = "user/sign/%s"
+	UserNonce           = "user/nonce/%s"
+	ThirdPartyPublicKey = "third_party/publicKey/%s"
+	ThirdPartyRand      = "third_party/rand/%s"
+	ThirdPartyAuthCode  = "third_party/auth_code/%s"
 )
 
 const (
@@ -80,4 +88,9 @@ const (
 	OrderStatusExpire = 2
 	OrderStatusCancel = 3
 	OrderStatusFinish = 4
+)
+
+const (
+	BaseRequest    = "base_request"
+	BaseApiRequest = "base_api_request"
 )
