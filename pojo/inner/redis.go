@@ -27,8 +27,9 @@ type ThirdPartyToken struct {
 }
 
 type TokenUser struct {
-	Token  string `json:"token"`
-	UserId uint64 `json:"user_id"`
-	Email  string `json:"email"`
-	Uuid   string `json:"uuid"`
+	ThirdPartyPublicId string `json:"third_party_public_id"`
+	Token              string `json:"token"`
+	UserId             uint64 `json:"user_id"`
+	Email              string `json:"email"`
+	Uuid               string `json:"uuid"`
 }

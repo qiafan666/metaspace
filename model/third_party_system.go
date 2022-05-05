@@ -8,7 +8,7 @@ import (
 CREATE TABLE `third_party_system` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT 'pk',
   `name` varchar(192) NOT NULL COMMENT 'third party name',
-  `apikey` varchar(32) NOT NULL COMMENT 'system create',
+  `apikey` varchar(192) NOT NULL COMMENT 'system create',
   `third_party_public_key` varchar(4096) NOT NULL COMMENT 'rsa public key',
   `callback_address` varchar(192) NOT NULL COMMENT 'call back adress',
   `status` tinyint unsigned NOT NULL COMMENT '1 active 2 inactive',

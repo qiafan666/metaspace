@@ -13,12 +13,12 @@ type SignResponse struct {
 }
 
 type VerifySignRequest struct {
-	Sign      [32]byte `json:"sign"`
-	ApiKey    string   `json:"api_key"`
-	Timestamp string   `json:"timestamp"`
-	Rand      string   `json:"rand"`
-	Uri       string   `json:"uri"`
-	Parameter []byte   `json:"parameter"`
+	Sign      string `json:"sign"`
+	ApiKey    string `json:"api_key"`
+	Timestamp string `json:"timestamp"`
+	Rand      string `json:"rand"`
+	Uri       string `json:"uri"`
+	Parameter []byte `json:"parameter"`
 }
 type VerifySignResponse struct {
 	ThirdPartyId uint64 `json:"third_party_id"`

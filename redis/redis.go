@@ -36,7 +36,7 @@ type Dao interface {
 	DelThirdPartyToken(ctx context.Context, thirdPartyId string) (err error)
 
 	SetTokenUser(ctx context.Context, TokenUser inner.TokenUser, expire time.Duration) (err error)
-	GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, err error)
+	GetTokenUser(ctx context.Context, thirdPartyLoginId string, token string) (out inner.TokenUser, err error)
 	DelTokenUser(ctx context.Context, token string) (err error)
 }
 
@@ -153,8 +153,8 @@ func (i Imp) DelThirdPartyToken(ctx context.Context, thirdPartyId string) (err e
 	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyToken, thirdPartyId)).Err()
 }
 
-func (i Imp) GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, err error) {
-	result := i.redis.Get(ctx, fmt.Sprintf(common.ThirdPartyTokenUser, token))
+func (i Imp) GetTokenUser(ctx context.Context, thirdPartyLoginId string, token string) (out inner.TokenUser, err error) {
+	result := i.redis.HGet(ctx, thirdPartyLoginId, fmt.Sprintf(common.ThirdPartyTokenUser, token))
 	if result.Err() != nil {
 		return out, result.Err()
 	}
@@ -167,7 +167,11 @@ func (i Imp) SetTokenUser(ctx context.Context, tokenUser inner.TokenUser, expire
 	if err != nil {
 		return err
 	}
-	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyTokenUser, tokenUser.Token), marshal, expire).Err()
+	err = i.redis.Expire(ctx, tokenUser.ThirdPartyPublicId, expire).Err()
+	if err != nil {
+		return err
+	}
+	return i.redis.HSet(ctx, tokenUser.ThirdPartyPublicId, fmt.Sprintf(common.ThirdPartyTokenUser, tokenUser.Token), tokenUser.UserId, marshal).Err()
 }
 
 func (i Imp) DelTokenUser(ctx context.Context, token string) (err error) {

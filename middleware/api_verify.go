@@ -2,12 +2,12 @@ package middleware
 
 import (
 	"github.com/blockfishio/metaspace-backend/common"
-	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/pojo/inner"
 	"github.com/blockfishio/metaspace-backend/pojo/request"
 	"github.com/blockfishio/metaspace-backend/services/api"
 	"github.com/jau1jz/cornus/commons"
 	"github.com/kataras/iris/v12"
+	"strconv"
 	"sync"
 )
 
@@ -25,14 +25,12 @@ func CheckSignAuth(ctx iris.Context) {
 		signService = api.NewSignInstance()
 	})
 
-	sign := function.Byte2([]byte(ctx.Request().Header.Get("sign")))
-
 	verifyResult, _, _ := signService.VerifySign(inner.VerifySignRequest{
-		Sign:      sign,
+		Sign:      ctx.Request().Header.Get("sign"),
 		ApiKey:    ctx.Request().Header.Get("api_key"),
 		Timestamp: ctx.Request().Header.Get("timestamp"),
 		Rand:      ctx.Request().Header.Get("rand"),
-		Uri:       ctx.Request().Header.Get("rand"),
+		Uri:       ctx.Request().Header.Get("url"),
 		Parameter: ctx.Values().Get(commons.CtxValueParameter).([]byte),
 	})
 
@@ -46,13 +44,14 @@ func CheckSignAuth(ctx iris.Context) {
 	//check white list
 	if _, ok := apiWitheList[ctx.Request().RequestURI]; !ok {
 		//查询redis
-		thirdPartyToken, err := signService.GetThirdPartyToken(ctx, verifyResult.ThirdPartyId)
+		_, err := signService.GetThirdPartyToken(ctx, verifyResult.ThirdPartyId)
 		if err != nil {
 			_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))
 			return
 		}
 
-		tokenUser, err := signService.GetTokenUser(ctx, thirdPartyToken.Token)
+		token := ctx.Request().Header.Get("Authorization")
+		tokenUser, err := signService.GetTokenUser(ctx, token, strconv.FormatUint(verifyResult.ThirdPartyId, 10))
 		if err != nil {
 			_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))
 			return
