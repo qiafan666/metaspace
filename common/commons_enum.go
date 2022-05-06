@@ -98,3 +98,8 @@ const (
 	BasePortalRequest = "base_portal_request"
 	BaseApiRequest    = "base_api_request"
 )
+
+//url
+const (
+	UrlCallbackLogin = "/metaspace/callback/login"
+)

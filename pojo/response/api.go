@@ -5,5 +5,6 @@ type CreateAuthCode struct {
 }
 
 type ThirdPartyLogin struct {
-	JwtToken string `json:"jwt_token"`
+	JwtToken    string `json:"jwt_token"`
+	CallBackUrl string `json:"call_back_url"`
 }

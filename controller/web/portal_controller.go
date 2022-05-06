@@ -7,6 +7,7 @@ import (
 	"github.com/jau1jz/cornus/commons"
 	"github.com/jau1jz/cornus/commons/utils"
 	"github.com/kataras/iris/v12"
+	"net/http"
 )
 
 type PortalWebController struct {
@@ -14,6 +15,21 @@ type PortalWebController struct {
 	PortalService     web.PortalService
 	GameAssetsService web.GameAssetsService
 	MarketService     web.MarketService
+}
+
+func (receiver *PortalWebController) PostLoginThird() {
+	input := request.ThirdPartyLogin{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "LoginApiController PostLoginThird"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.PortalService.ThirdPartyLogin(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+		receiver.Ctx.Redirect(out.CallBackUrl, http.StatusSeeOther)
+	}
 }
 
 func (receiver *PortalWebController) PostLogin() {

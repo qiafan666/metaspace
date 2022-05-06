@@ -19,6 +19,7 @@ type Rand struct {
 type AuthCode struct {
 	ThirdPartyPublicId string `json:"third_party_public_id"`
 	AuthCode           string `json:"auth_code"`
+	CallbackUrl        string `json:"callback_url"`
 }
 
 type ThirdPartyToken struct {

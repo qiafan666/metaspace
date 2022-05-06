@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/blockfishio/metaspace-backend/common"
-	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/dao"
 	"github.com/blockfishio/metaspace-backend/model"
 	"github.com/blockfishio/metaspace-backend/pojo/inner"
@@ -18,9 +17,7 @@ import (
 	"github.com/jau1jz/cornus/commons"
 	slog "github.com/jau1jz/cornus/commons/log"
 	"github.com/jau1jz/cornus/commons/utils"
-	"gorm.io/gorm"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -30,7 +27,6 @@ type SignService interface {
 	Sign(info inner.SignRequest) (out inner.SignResponse, code commons.ResponseCode, err error)
 	VerifySign(info inner.VerifySignRequest) (out inner.VerifySignResponse, code commons.ResponseCode, err error)
 	CreateAuthCode(info request.CreateAuthCode) (out response.CreateAuthCode, code commons.ResponseCode, err error)
-	ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, err error)
 	GetThirdPartyToken(ctx context.Context, thirdPartyId uint64) (out inner.ThirdPartyToken, err error)
 	GetTokenUser(ctx context.Context, token string, thirdPartyLogin string) (out inner.TokenUser, err error)
 }
@@ -55,13 +51,14 @@ type SignServiceImp struct {
 
 func (s SignServiceImp) Sign(info inner.SignRequest) (out inner.SignResponse, code commons.ResponseCode, err error) {
 
+	ctx := context.Background()
 	var thirdPartyPublicKey string
-	publicKey, err := s.redis.GetPublicKey(nil, info.ApiKey)
+	publicKey, err := s.redis.GetPublicKey(ctx, info.ApiKey)
 	if err != nil && err.Error() != redis.Nil.Error() {
-		slog.Slog.InfoF(nil, "SignServiceImp sign GetPublicKey error %s", err.Error())
+		slog.Slog.InfoF(ctx, "SignServiceImp sign GetPublicKey error %s", err.Error())
 		return out, 0, err
 	} else if err != nil && err.Error() == redis.Nil.Error() {
-		slog.Slog.InfoF(nil, "SignServiceImp sign GetPublicKey error %s", err.Error())
+		slog.Slog.InfoF(ctx, "SignServiceImp sign GetPublicKey error %s", err.Error())
 
 		var thirdPartySystem model.ThirdPartySystem
 		err = s.dao.First([]string{model.ThirdPartySystemColumns.ThirdPartyPublicKey, model.ThirdPartySystemColumns.ID}, map[string]interface{}{
@@ -69,18 +66,18 @@ func (s SignServiceImp) Sign(info inner.SignRequest) (out inner.SignResponse, co
 		}, nil, &thirdPartySystem)
 
 		if err != nil {
-			slog.Slog.ErrorF(nil, "SignServiceImp thirdPartySystem First error %s", err.Error())
+			slog.Slog.ErrorF(ctx, "SignServiceImp thirdPartySystem First error %s", err.Error())
 			return out, 0, err
 		}
 		thirdPartyPublicKey = thirdPartySystem.ThirdPartyPublicKey
 
-		err = s.redis.SetPublicKey(nil, inner.PublicKey{
+		err = s.redis.SetPublicKey(ctx, inner.PublicKey{
 			Id:                  thirdPartySystem.ID,
 			ApiKey:              info.ApiKey,
 			ThirdPartyPublicKey: thirdPartySystem.ThirdPartyPublicKey,
 		}, 0)
 		if err != nil {
-			slog.Slog.ErrorF(nil, "SignServiceImp SetPublicKey error %s", err.Error())
+			slog.Slog.ErrorF(ctx, "SignServiceImp SetPublicKey error %s", err.Error())
 			return out, 0, err
 		}
 	} else {
@@ -91,7 +88,7 @@ func (s SignServiceImp) Sign(info inner.SignRequest) (out inner.SignResponse, co
 	bufferString := bytes.NewBufferString(data)
 	sign, err := utils.Rsa2Sign(bufferString.Bytes(), []byte(thirdPartyPublicKey), utils.PKCS_8)
 	if err != nil {
-		slog.Slog.InfoF(nil, "SignServiceImp Rsa2Sign failed")
+		slog.Slog.InfoF(ctx, "SignServiceImp Rsa2Sign failed")
 		return out, common.ThirdPartySignError, errors.New(commons.GetCodeAndMsg(common.ThirdPartySignError, commons.DefualtLanguage))
 	}
 
@@ -108,36 +105,37 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 		return out, 0, err
 	}
 	tm := time.Unix(parseInt, 0)
-	if tm.Add(time.Second * 30).Before(time.Now()) {
+	if tm.Add(time.Second*30).Before(time.Now()) && common.DebugFlag == false {
 		slog.Slog.InfoF(nil, "SignServiceImp sign VerifySign error %s", err.Error())
 		return out, common.VerifyThirdPartySignTimeOut, errors.New(commons.GetCodeAndMsg(common.VerifyThirdPartySignTimeOut, commons.DefualtLanguage))
 	}
 
 	//check rand
-	_, err = s.redis.GetRand(nil, info.ApiKey)
+	ctx := context.Background()
+	_, err = s.redis.GetRand(ctx, info.ApiKey)
 	if err != nil && err.Error() != redis.Nil.Error() {
-		slog.Slog.InfoF(nil, "SignServiceImp sign VerifySign error %s", err.Error())
+		slog.Slog.InfoF(ctx, "SignServiceImp sign VerifySign error %s", err.Error())
 		return out, 0, err
 	} else if err != nil && err.Error() == redis.Nil.Error() {
 
-		err = s.redis.SetRand(nil, inner.Rand{
+		err = s.redis.SetRand(ctx, inner.Rand{
 			ApiKey: info.ApiKey,
 			Rand:   info.Rand,
-		}, time.Second*30)
+		}, time.Second*10)
 		if err != nil {
-			slog.Slog.ErrorF(nil, "SignServiceImp SetRand error %s", err.Error())
+			slog.Slog.ErrorF(ctx, "SignServiceImp SetRand error %s", err.Error())
 			return out, 0, err
 		}
 	} else {
-		slog.Slog.InfoF(nil, "SignServiceImp frequent VerifySign error %s", nil)
+		slog.Slog.InfoF(ctx, "SignServiceImp frequent VerifySign error %s", nil)
 		return out, common.FrequentVerifyThirdPartySign, errors.New(commons.GetCodeAndMsg(common.FrequentVerifyThirdPartySign, commons.DefualtLanguage))
 	}
 
 	var thirdPartyPublicKey string
 	var thirdPartyId uint64
-	publicKey, err := s.redis.GetPublicKey(nil, info.ApiKey)
+	publicKey, err := s.redis.GetPublicKey(ctx, info.ApiKey)
 	if err != nil && err.Error() != redis.Nil.Error() {
-		slog.Slog.InfoF(nil, "SignServiceImp sign VerifySign error %s", err.Error())
+		slog.Slog.InfoF(ctx, "SignServiceImp sign VerifySign error %s", err.Error())
 		return out, 0, err
 	} else if err != nil && err.Error() == redis.Nil.Error() {
 
@@ -162,14 +160,14 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 
 	decode, err := hex.DecodeString(info.Sign)
 	if err != nil {
-		slog.Slog.ErrorF(nil, "SignServiceImp VerifySign Sign DecodeString error %s", err.Error())
+		slog.Slog.ErrorF(ctx, "SignServiceImp VerifySign Sign DecodeString error %s", err.Error())
 		return out, 0, err
 	}
 	thirdPartyPublicKeyBufferString := bytes.NewBufferString(thirdPartyPublicKey)
 	err = utils.Rsa2VerifySign(sha256.Sum256(bufferString.Bytes()), decode, thirdPartyPublicKeyBufferString.Bytes())
 	if err != nil {
 		out.Flag = false
-		slog.Slog.InfoF(nil, "SignServiceImp Verify Rsa2Sign failed")
+		slog.Slog.InfoF(ctx, "SignServiceImp Verify Rsa2Sign failed")
 		return out, common.VerifyThirdPartySignError, errors.New(commons.GetCodeAndMsg(common.VerifyThirdPartySignError, commons.DefualtLanguage))
 	}
 	out.ThirdPartyId = thirdPartyId
@@ -180,9 +178,21 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 func (s SignServiceImp) CreateAuthCode(info request.CreateAuthCode) (out response.CreateAuthCode, code commons.ResponseCode, err error) {
 
 	uuid := utils.GenerateUUID()
+
+	var thirdPartySystem model.ThirdPartySystem
+	err = s.dao.First([]string{model.ThirdPartySystemColumns.CallbackAddress}, map[string]interface{}{
+		model.ThirdPartySystemColumns.ID: info.BaseThirdPartyId,
+	}, nil, &thirdPartySystem)
+
+	if err != nil {
+		slog.Slog.ErrorF(nil, "SignServiceImp CreateAuthCode thirdPartySystem First error %s", err.Error())
+		return out, 0, err
+	}
+
 	err = s.redis.SetAuthCode(info.Ctx, inner.AuthCode{
 		ThirdPartyPublicId: strconv.FormatUint(info.BaseThirdPartyId, 10),
 		AuthCode:           uuid,
+		CallbackUrl:        thirdPartySystem.CallbackAddress,
 	}, time.Minute*3)
 	if err != nil {
 		slog.Slog.ErrorF(nil, "SignServiceImp SetRand error %s", err.Error())
@@ -192,112 +202,6 @@ func (s SignServiceImp) CreateAuthCode(info request.CreateAuthCode) (out respons
 	out.AuthCode = uuid
 	return
 
-}
-
-func (s SignServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, err error) {
-
-	_, err = s.redis.GetAuthCode(info.Ctx, strconv.FormatUint(info.BaseThirdPartyId, 10))
-	if err != nil && err.Error() != redis.Nil.Error() {
-		slog.Slog.InfoF(info.Ctx, "SignServiceImp ThirdPartyLogin error %s", err.Error())
-		return out, 0, err
-	} else if err != nil && err.Error() == redis.Nil.Error() {
-
-		slog.Slog.InfoF(info.Ctx, "SignServiceImp ThirdPartyLogin auth_code is expired  error %s", err.Error())
-		return out, common.AuthCodeAlreadyExpired, errors.New(commons.GetCodeAndMsg(common.AuthCodeAlreadyExpired, commons.DefualtLanguage))
-	} else {
-
-		var user model.User
-
-		vWalletAddress := strings.ToLower(info.Account)
-
-		if info.Type == common.LoginTypeWallet {
-			////check sign hex add hex prefix
-			if strings.HasPrefix(info.Password, "0x") == false {
-				info.Password = "0x" + info.Password
-			}
-
-			//check sign len
-			nonce, err := s.redis.GetNonce(info.Ctx, vWalletAddress)
-			if err != nil && err.Error() != redis.Nil.Error() {
-				slog.Slog.InfoF(info.Ctx, "SignServiceImp sign GetNonce error %s", err.Error())
-				return out, 0, err
-			} else if err != nil && err.Error() == redis.Nil.Error() {
-				slog.Slog.InfoF(info.Ctx, "SignServiceImp sign GetNonce error %s", err.Error())
-				return out, common.NonceExpireOrNull, err
-			}
-			if err = function.VerifySig(vWalletAddress, info.Password, nonce.Nonce); err != nil && common.DebugFlag == false {
-				slog.Slog.InfoF(info.Ctx, "SignServiceImp sign verify error %s", err.Error())
-				return out, common.SignatureVerificationError, err
-			}
-			if err = s.redis.DelNonce(info.Ctx, user.UUID); err != nil {
-				slog.Slog.InfoF(info.Ctx, "SignServiceImp DelNonce error %s", err.Error())
-				return out, 0, err
-			}
-			//if wallet address does not register,then register
-			err = s.dao.First([]string{model.UserColumns.UUID}, map[string]interface{}{
-				model.UserColumns.WalletAddress: vWalletAddress,
-			}, nil, &user)
-			if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
-				slog.Slog.ErrorF(info.Ctx, "SignServiceImp First error %s", err.Error())
-				return out, 0, err
-			} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
-				//register
-				user = model.User{
-					UUID:          utils.GenerateUUID(),
-					WalletAddress: vWalletAddress,
-				}
-				if err := s.dao.Create(&user); err != nil {
-					slog.Slog.InfoF(info.Ctx, "SignServiceImp Create error %s", err.Error())
-					return out, 0, err
-				}
-			}
-		} else {
-			var AccountType string
-			if info.Type == common.LoginTypeEmail {
-				AccountType = model.UserColumns.Email
-			}
-			err = s.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.Email}, map[string]interface{}{
-				AccountType:                info.Account,
-				model.UserColumns.Password: utils.StringToSha256(info.Password),
-			}, nil, &user)
-
-			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-				slog.Slog.ErrorF(info.Ctx, "SignServiceImp Login Count error %s", err.Error())
-				return out, 0, err
-			} else if errors.Is(err, gorm.ErrRecordNotFound) {
-				slog.Slog.InfoF(info.Ctx, "SignServiceImp Register account or password error")
-				return out, common.PasswordOrAccountError, errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, info.Language))
-			}
-		}
-
-		var token string
-		token = utils.GenerateUUID()
-		err = s.redis.SetTokenUser(info.Ctx, inner.TokenUser{
-			ThirdPartyPublicId: strconv.FormatUint(info.BaseThirdPartyId, 10),
-			Token:              utils.GenerateUUID(),
-			Uuid:               user.UUID,
-			UserId:             user.ID,
-			Email:              user.Email,
-		}, time.Second*30)
-		if err != nil {
-			slog.Slog.ErrorF(nil, "SignServiceImp SetTokenUser error %s", err.Error())
-			return out, 0, err
-		}
-
-		err = s.redis.SetThirdPartyToken(info.Ctx, inner.ThirdPartyToken{
-			ThirdPartyPublicId: strconv.FormatUint(info.BaseThirdPartyId, 10),
-			Token:              utils.GenerateUUID(),
-		}, time.Second*30)
-		if err != nil {
-			slog.Slog.ErrorF(nil, "SignServiceImp ThirdPartyLogin SetThirdPartyToken error %s", err.Error())
-			return out, 0, err
-		}
-
-		out.JwtToken = token
-
-	}
-
-	return
 }
 
 func (s SignServiceImp) GetThirdPartyToken(ctx context.Context, thirdPartyId uint64) (out inner.ThirdPartyToken, err error) {

@@ -28,8 +28,8 @@ type Dao interface {
 	DelRand(ctx context.Context, apiKey string) (err error)
 
 	SetAuthCode(ctx context.Context, publicKey inner.AuthCode, expire time.Duration) (err error)
-	GetAuthCode(ctx context.Context, apiKey string) (out inner.AuthCode, err error)
-	DelAuthCode(ctx context.Context, apiKey string) (err error)
+	GetAuthCode(ctx context.Context, authCode string) (out inner.AuthCode, err error)
+	DelAuthCode(ctx context.Context, authCode string) (err error)
 
 	SetThirdPartyToken(ctx context.Context, thirdPartyToken inner.ThirdPartyToken, expire time.Duration) (err error)
 	GetThirdPartyToken(ctx context.Context, thirdPartyId string) (out inner.ThirdPartyToken, err error)
@@ -111,8 +111,8 @@ func (i Imp) DelRand(ctx context.Context, apiKey string) (err error) {
 	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyRand, apiKey)).Err()
 }
 
-func (i Imp) GetAuthCode(ctx context.Context, apiKey string) (out inner.AuthCode, err error) {
-	result := i.redis.Get(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, apiKey))
+func (i Imp) GetAuthCode(ctx context.Context, authCode string) (out inner.AuthCode, err error) {
+	result := i.redis.Get(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, authCode))
 	if result.Err() != nil {
 		return out, result.Err()
 	}
@@ -125,11 +125,11 @@ func (i Imp) SetAuthCode(ctx context.Context, publicKey inner.AuthCode, expire t
 	if err != nil {
 		return err
 	}
-	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, publicKey.ThirdPartyPublicId), marshal, expire).Err()
+	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, publicKey.AuthCode), marshal, expire).Err()
 }
 
-func (i Imp) DelAuthCode(ctx context.Context, apiKey string) (err error) {
-	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, apiKey)).Err()
+func (i Imp) DelAuthCode(ctx context.Context, authCode string) (err error) {
+	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, authCode)).Err()
 }
 
 func (i Imp) GetThirdPartyToken(ctx context.Context, thirdPartyId string) (out inner.ThirdPartyToken, err error) {

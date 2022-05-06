@@ -16,7 +16,6 @@ var signMidOnce sync.Once
 
 var apiWitheList = map[string]string{
 	"/metaspace/api/login/third/code": "",
-	"/metaspace/api/login":            "",
 }
 
 func CheckSignAuth(ctx iris.Context) {

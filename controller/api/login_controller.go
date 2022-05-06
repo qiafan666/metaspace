@@ -27,17 +27,3 @@ func (receiver *LoginApiController) PostLoginThirdCode() {
 		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
 	}
 }
-
-func (receiver *LoginApiController) PostLogin() {
-	input := request.ThirdPartyLogin{}
-	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "LoginApiController PostLogin"); code != commons.OK {
-		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
-		return
-	}
-	function.BindBaseRequest(&input, receiver.Ctx)
-	if out, code, err := receiver.SignService.ThirdPartyLogin(input); err != nil {
-		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
-	} else {
-		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
-	}
-}
