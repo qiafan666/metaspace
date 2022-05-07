@@ -1,8 +1,11 @@
 package web
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/blockfishio/metaspace-backend/contract/bridgecontract"
@@ -35,7 +38,7 @@ import (
 
 // PortalService service layer interface
 type PortalService interface {
-	ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, err error)
+	ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, url string, err error)
 	//Login support email and wallet login api
 	Login(info request.UserLogin) (out response.UserLogin, code commons.ResponseCode, err error)
 	//GetNonce client get new nonce from server
@@ -80,16 +83,15 @@ type portalServiceImp struct {
 	redis redis.Dao
 }
 
-func (s portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, err error) {
+func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, url string, err error) {
 
-	authCode, err := s.redis.GetAuthCode(info.Ctx, info.AuthCode)
+	authCode, err := p.redis.GetAuthCode(info.Ctx, info.AuthCode)
 	if err != nil && err.Error() != redis.Nil.Error() {
 		slog.Slog.InfoF(info.Ctx, "SignServiceImp ThirdPartyLogin error %s", err.Error())
-		return out, 0, err
+		return out, 0, "", err
 	} else if err != nil && err.Error() == redis.Nil.Error() {
-
 		slog.Slog.InfoF(info.Ctx, "SignServiceImp ThirdPartyLogin auth_code is expired  error %s", err.Error())
-		return out, common.AuthCodeAlreadyExpired, errors.New(commons.GetCodeAndMsg(common.AuthCodeAlreadyExpired, commons.DefualtLanguage))
+		return out, common.PasswordOrAccountError, "", errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, commons.DefualtLanguage))
 	} else {
 
 		var user model.User
@@ -103,38 +105,38 @@ func (s portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 			}
 
 			//check sign len
-			nonce, err := s.redis.GetNonce(info.Ctx, vWalletAddress)
+			nonce, err := p.redis.GetNonce(info.Ctx, vWalletAddress)
 			if err != nil && err.Error() != redis.Nil.Error() {
 				slog.Slog.InfoF(info.Ctx, "SignServiceImp sign GetNonce error %s", err.Error())
-				return out, 0, err
+				return out, 0, "", err
 			} else if err != nil && err.Error() == redis.Nil.Error() {
 				slog.Slog.InfoF(info.Ctx, "SignServiceImp sign GetNonce error %s", err.Error())
-				return out, common.NonceExpireOrNull, err
+				return out, common.NonceExpireOrNull, "", err
 			}
 			if err = function.VerifySig(vWalletAddress, info.Password, nonce.Nonce); err != nil && common.DebugFlag == false {
 				slog.Slog.InfoF(info.Ctx, "SignServiceImp sign verify error %s", err.Error())
-				return out, common.SignatureVerificationError, err
+				return out, common.SignatureVerificationError, "", err
 			}
-			if err = s.redis.DelNonce(info.Ctx, user.UUID); err != nil {
+			if err = p.redis.DelNonce(info.Ctx, user.UUID); err != nil {
 				slog.Slog.InfoF(info.Ctx, "SignServiceImp DelNonce error %s", err.Error())
-				return out, 0, err
+				return out, 0, "", err
 			}
 			//if wallet address does not register,then register
-			err = s.dao.First([]string{model.UserColumns.UUID}, map[string]interface{}{
+			err = p.dao.First([]string{model.UserColumns.UUID}, map[string]interface{}{
 				model.UserColumns.WalletAddress: vWalletAddress,
 			}, nil, &user)
 			if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
 				slog.Slog.ErrorF(info.Ctx, "SignServiceImp First error %s", err.Error())
-				return out, 0, err
+				return out, 0, "", err
 			} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
 				//register
 				user = model.User{
 					UUID:          utils.GenerateUUID(),
 					WalletAddress: vWalletAddress,
 				}
-				if err := s.dao.Create(&user); err != nil {
+				if err := p.dao.Create(&user); err != nil {
 					slog.Slog.InfoF(info.Ctx, "SignServiceImp Create error %s", err.Error())
-					return out, 0, err
+					return out, 0, "", err
 				}
 			}
 		} else {
@@ -142,23 +144,23 @@ func (s portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 			if info.Type == common.LoginTypeEmail {
 				AccountType = model.UserColumns.Email
 			}
-			err = s.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.Email}, map[string]interface{}{
+			err = p.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.Email}, map[string]interface{}{
 				AccountType:                info.Account,
 				model.UserColumns.Password: utils.StringToSha256(info.Password),
 			}, nil, &user)
 
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				slog.Slog.ErrorF(info.Ctx, "SignServiceImp Login Count error %s", err.Error())
-				return out, 0, err
+				return out, 0, "", err
 			} else if errors.Is(err, gorm.ErrRecordNotFound) {
 				slog.Slog.InfoF(info.Ctx, "SignServiceImp Register account or password error")
-				return out, common.PasswordOrAccountError, errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, info.Language))
+				return out, common.PasswordOrAccountError, "", errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, info.Language))
 			}
 		}
 
 		var token string
 		token = utils.GenerateUUID()
-		err = s.redis.SetTokenUser(info.Ctx, inner.TokenUser{
+		err = p.redis.SetTokenUser(info.Ctx, inner.TokenUser{
 			ThirdPartyPublicId: authCode.ThirdPartyPublicId,
 			Token:              utils.GenerateUUID(),
 			Uuid:               user.UUID,
@@ -167,22 +169,47 @@ func (s portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 		}, time.Second*30)
 		if err != nil {
 			slog.Slog.ErrorF(nil, "SignServiceImp SetTokenUser error %s", err.Error())
-			return out, 0, err
+			return out, 0, "", err
 		}
 
-		err = s.redis.SetThirdPartyToken(info.Ctx, inner.ThirdPartyToken{
+		err = p.redis.SetThirdPartyToken(info.Ctx, inner.ThirdPartyToken{
 			ThirdPartyPublicId: authCode.ThirdPartyPublicId,
 			Token:              utils.GenerateUUID(),
 		}, time.Second*30)
 		if err != nil {
 			slog.Slog.ErrorF(nil, "SignServiceImp ThirdPartyLogin SetThirdPartyToken error %s", err.Error())
-			return out, 0, err
+			return out, 0, "", err
 		}
 
-		out.JwtToken = token
+		out.Token = token
+		out.Uuid = user.UUID
+		out.WalletAddress = user.WalletAddress
+		out.Email = user.Email
 
 	}
-	out.CallBackUrl = fmt.Sprintf("%s%s", authCode.CallbackUrl, common.UrlCallbackLogin)
+	marshal, err := json.Marshal(out)
+	if err != nil {
+		slog.Slog.ErrorF(nil, "SignServiceImp ThirdPartyLogin jsonMarshal out error %s", err.Error())
+		return out, 0, "", err
+	}
+
+	var thirdPartySystem model.ThirdPartySystem
+	err = p.dao.First([]string{model.ThirdPartySystemColumns.ThirdPartyPublicKey, model.ThirdPartySystemColumns.ID}, map[string]interface{}{
+		model.ThirdPartySystemColumns.ID: authCode.ThirdPartyPublicId,
+	}, nil, &thirdPartySystem)
+
+	if err != nil {
+		slog.Slog.ErrorF(nil, "SignServiceImp ThirdPartyLogin thirdPartySystem First error %s", err.Error())
+		return out, 0, "", err
+	}
+
+	publicKeyBuffer := bytes.NewBufferString(thirdPartySystem.ThirdPartyPublicKey)
+	encrypt, err := utils.RsaEncrypt(marshal, publicKeyBuffer.Bytes())
+	if err != nil {
+		slog.Slog.ErrorF(nil, "SignServiceImp ThirdPartyLogin jsonMarshal out error %s", err.Error())
+		return out, 0, "", err
+	}
+	url = fmt.Sprintf("%s%s?value=%s", thirdPartySystem.CallbackAddress, common.UrlCallbackLogin, base64.StdEncoding.EncodeToString(encrypt))
 	return
 }
 

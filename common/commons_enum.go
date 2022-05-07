@@ -103,3 +103,12 @@ const (
 const (
 	UrlCallbackLogin = "/metaspace/callback/login"
 )
+
+//third login
+const (
+	BaseRequestSign      = "sign"
+	BaseRequestApiKey    = "api_key"
+	BaseRequestTimestamp = "timestamp"
+	BaseRequestRand      = "rand"
+	BaseRequestUri       = "url"
+)

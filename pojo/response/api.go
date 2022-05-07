@@ -1,10 +1,7 @@
 package response
 
 type CreateAuthCode struct {
-	AuthCode string `json:"auth_code"`
-}
-
-type ThirdPartyLogin struct {
-	JwtToken    string `json:"jwt_token"`
-	CallBackUrl string `json:"call_back_url"`
+	AuthCode               string `json:"auth_code"`
+	ThirdPartyLoginAddress string `json:"third_party_login_address"`
+	ThirdPartyLoginUrl     string `json:"third_party_login_url"`
 }

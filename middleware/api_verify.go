@@ -25,11 +25,11 @@ func CheckSignAuth(ctx iris.Context) {
 	})
 
 	verifyResult, _, _ := signService.VerifySign(inner.VerifySignRequest{
-		Sign:      ctx.Request().Header.Get("sign"),
-		ApiKey:    ctx.Request().Header.Get("api_key"),
-		Timestamp: ctx.Request().Header.Get("timestamp"),
-		Rand:      ctx.Request().Header.Get("rand"),
-		Uri:       ctx.Request().Header.Get("url"),
+		Sign:      ctx.Request().Header.Get(common.BaseRequestSign),
+		ApiKey:    ctx.Request().Header.Get(common.BaseRequestApiKey),
+		Timestamp: ctx.Request().Header.Get(common.BaseRequestTimestamp),
+		Rand:      ctx.Request().Header.Get(common.BaseRequestRand),
+		Uri:       ctx.Request().Header.Get(common.BaseRequestUri),
 		Parameter: ctx.Values().Get(commons.CtxValueParameter).([]byte),
 	})
 

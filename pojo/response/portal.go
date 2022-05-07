@@ -1,5 +1,12 @@
 package response
 
+type ThirdPartyLogin struct {
+	Token         string `json:"token"`
+	Email         string `json:"email"`
+	Uuid          string `json:"uuid"`
+	WalletAddress string `json:"wallet_address"`
+}
+
 type UserLogin struct {
 	JwtToken string `json:"jwt_token"`
 }

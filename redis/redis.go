@@ -120,12 +120,12 @@ func (i Imp) GetAuthCode(ctx context.Context, authCode string) (out inner.AuthCo
 	return
 }
 
-func (i Imp) SetAuthCode(ctx context.Context, publicKey inner.AuthCode, expire time.Duration) (err error) {
-	marshal, err := json.Marshal(publicKey)
+func (i Imp) SetAuthCode(ctx context.Context, authCode inner.AuthCode, expire time.Duration) (err error) {
+	marshal, err := json.Marshal(authCode)
 	if err != nil {
 		return err
 	}
-	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, publicKey.AuthCode), marshal, expire).Err()
+	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, authCode.AuthCode), marshal, expire).Err()
 }
 
 func (i Imp) DelAuthCode(ctx context.Context, authCode string) (err error) {
