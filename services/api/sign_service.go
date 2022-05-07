@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -174,13 +175,13 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 	bufferString.Write(info.Parameter)
 	bufferString.WriteString(info.Rand)
 
-	decode, err := hex.DecodeString(info.Sign)
+	decodeString, err := base64.StdEncoding.DecodeString(info.Sign)
 	if err != nil {
 		slog.Slog.ErrorF(ctx, "SignServiceImp VerifySign Sign DecodeString error %s", err.Error())
 		return out, 0, err
 	}
 	thirdPartyPublicKeyBufferString := bytes.NewBufferString(thirdPartyPublicKey)
-	err = utils.Rsa2VerifySign(sha256.Sum256(bufferString.Bytes()), decode, thirdPartyPublicKeyBufferString.Bytes())
+	err = utils.Rsa2VerifySign(sha256.Sum256(bufferString.Bytes()), decodeString, thirdPartyPublicKeyBufferString.Bytes())
 	if err != nil {
 		out.Flag = false
 		slog.Slog.InfoF(ctx, "SignServiceImp Verify Rsa2Sign failed")
