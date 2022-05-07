@@ -49,7 +49,7 @@ func CheckSignAuth(ctx iris.Context) {
 			return
 		}
 
-		token := ctx.Request().Header.Get("Authorization")
+		token := ctx.Request().Header.Get(common.BaseRequestAuthorization)
 		tokenUser, err := signService.GetTokenUser(ctx, token, strconv.FormatUint(verifyResult.ThirdPartyId, 10))
 		if err != nil {
 			_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))

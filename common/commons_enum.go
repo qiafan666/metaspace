@@ -106,9 +106,10 @@ const (
 
 //third login
 const (
-	BaseRequestSign      = "sign"
-	BaseRequestApiKey    = "api_key"
-	BaseRequestTimestamp = "timestamp"
-	BaseRequestRand      = "rand"
-	BaseRequestUri       = "url"
+	BaseRequestSign          = "Sign"
+	BaseRequestApiKey        = "Api-key"
+	BaseRequestTimestamp     = "Timestamp"
+	BaseRequestRand          = "Rand"
+	BaseRequestUri           = "Url"
+	BaseRequestAuthorization = "Authorization"
 )
