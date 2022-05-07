@@ -110,6 +110,6 @@ const (
 	BaseRequestApiKey        = "Api-key"
 	BaseRequestTimestamp     = "Timestamp"
 	BaseRequestRand          = "Rand"
-	BaseRequestUri           = "Url"
+	BaseRequestUrl           = "Url"
 	BaseRequestAuthorization = "Authorization"
 )
