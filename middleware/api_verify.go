@@ -29,7 +29,7 @@ func CheckSignAuth(ctx iris.Context) {
 		ApiKey:    ctx.Request().Header.Get(common.BaseRequestApiKey),
 		Timestamp: ctx.Request().Header.Get(common.BaseRequestTimestamp),
 		Rand:      ctx.Request().Header.Get(common.BaseRequestRand),
-		Uri:       ctx.Request().Header.Get(common.BaseRequestUrl),
+		Uri:       ctx.Request().RequestURI,
 		Parameter: ctx.Values().Get(commons.CtxValueParameter).([]byte),
 	})
 
