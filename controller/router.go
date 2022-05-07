@@ -4,6 +4,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/controller/api"
 	"github.com/blockfishio/metaspace-backend/controller/web"
 	"github.com/blockfishio/metaspace-backend/middleware"
+	api2 "github.com/blockfishio/metaspace-backend/services/api"
 	web2 "github.com/blockfishio/metaspace-backend/services/web"
 	"github.com/iris-contrib/middleware/cors"
 	"github.com/kataras/iris/v12"
@@ -31,6 +32,8 @@ func RegisterRouter(ctx *iris.Application) {
 	mvc.Configure(ctx.Party("/metaspace/api"),
 		func(application *mvc.Application) {
 			application.Router.Use(middleware.CheckSignAuth)
-			application.Handle(&api.LoginApiController{})
+			application.Handle(&api.LoginApiController{
+				LoginService: api2.NewLoginInstance(),
+			})
 		})
 }

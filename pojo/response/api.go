@@ -1,7 +1,7 @@
 package response
 
 type CreateAuthCode struct {
-	AuthCode               string `json:"auth_code"`
-	ThirdPartyLoginAddress string `json:"third_party_login_address"`
-	ThirdPartyLoginUrl     string `json:"third_party_login_url"`
+	AuthCode     string `json:"auth_code"`
+	LoginAddress string `json:"login_address"`
+	LoginUrl     string `json:"login_url"`
 }

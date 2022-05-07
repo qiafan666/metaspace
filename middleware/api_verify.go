@@ -33,7 +33,7 @@ func CheckSignAuth(ctx iris.Context) {
 		Parameter: ctx.Values().Get(commons.CtxValueParameter).([]byte),
 	})
 
-	if verifyResult.Flag != false {
+	if verifyResult.Flag == false {
 		_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))
 		return
 	}

@@ -12,10 +12,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/dao"
 	"github.com/blockfishio/metaspace-backend/model"
 	"github.com/blockfishio/metaspace-backend/pojo/inner"
-	"github.com/blockfishio/metaspace-backend/pojo/request"
-	"github.com/blockfishio/metaspace-backend/pojo/response"
 	"github.com/blockfishio/metaspace-backend/redis"
-	"github.com/jau1jz/cornus"
 	"github.com/jau1jz/cornus/commons"
 	slog "github.com/jau1jz/cornus/commons/log"
 	"github.com/jau1jz/cornus/commons/utils"
@@ -28,19 +25,8 @@ import (
 type SignService interface {
 	Sign(info inner.SignRequest) (out inner.SignResponse, code commons.ResponseCode, err error)
 	VerifySign(info inner.VerifySignRequest) (out inner.VerifySignResponse, code commons.ResponseCode, err error)
-	CreateAuthCode(info request.CreateAuthCode) (out response.CreateAuthCode, code commons.ResponseCode, err error)
 	GetThirdPartyToken(ctx context.Context, thirdPartyId uint64) (out inner.ThirdPartyToken, err error)
 	GetTokenUser(ctx context.Context, token string, thirdPartyLogin string) (out inner.TokenUser, err error)
-}
-
-var ThirdLoginConfig struct {
-	ThirdLogin struct {
-		ThirdLoginAddress string `yaml:"third_login_address"`
-	} `yaml:"thirdLogin"`
-}
-
-func init() {
-	cornus.GetCornusInstance().LoadCustomizeConfig(&ThirdLoginConfig)
 }
 
 var SignServiceIns *SignServiceImp
@@ -163,6 +149,16 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 		}
 		thirdPartyPublicKey = thirdPartySystem.ThirdPartyPublicKey
 		thirdPartyId = publicKey.Id
+
+		err = s.redis.SetPublicKey(ctx, inner.PublicKey{
+			Id:                  thirdPartySystem.ID,
+			ApiKey:              info.ApiKey,
+			ThirdPartyPublicKey: thirdPartySystem.ThirdPartyPublicKey,
+		}, 0)
+		if err != nil {
+			slog.Slog.ErrorF(ctx, "SignServiceImp SetPublicKey error %s", err.Error())
+			return out, 0, err
+		}
 	} else {
 		thirdPartyPublicKey = publicKey.ThirdPartyPublicKey
 		thirdPartyId = publicKey.Id
@@ -190,37 +186,6 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 	out.ThirdPartyId = thirdPartyId
 	out.Flag = true
 	return
-}
-
-func (s SignServiceImp) CreateAuthCode(info request.CreateAuthCode) (out response.CreateAuthCode, code commons.ResponseCode, err error) {
-
-	authCode := utils.GenerateUUID()
-
-	var thirdPartySystem model.ThirdPartySystem
-	err = s.dao.First([]string{model.ThirdPartySystemColumns.CallbackAddress}, map[string]interface{}{
-		model.ThirdPartySystemColumns.ID: info.BaseThirdPartyId,
-	}, nil, &thirdPartySystem)
-
-	if err != nil {
-		slog.Slog.ErrorF(nil, "SignServiceImp CreateAuthCode thirdPartySystem First error %s", err.Error())
-		return out, 0, err
-	}
-
-	err = s.redis.SetAuthCode(info.Ctx, inner.AuthCode{
-		ThirdPartyPublicId: strconv.FormatUint(info.BaseThirdPartyId, 10),
-		AuthCode:           authCode,
-		CallbackUrl:        thirdPartySystem.CallbackAddress,
-	}, time.Minute*3)
-	if err != nil {
-		slog.Slog.ErrorF(nil, "SignServiceImp SetRand error %s", err.Error())
-		return out, 0, err
-	}
-
-	out.AuthCode = authCode
-	out.ThirdPartyLoginAddress = ThirdLoginConfig.ThirdLogin.ThirdLoginAddress
-	out.ThirdPartyLoginUrl = fmt.Sprintf("%s?authCode=%s", ThirdLoginConfig.ThirdLogin.ThirdLoginAddress, authCode)
-	return
-
 }
 
 func (s SignServiceImp) GetThirdPartyToken(ctx context.Context, thirdPartyId uint64) (out inner.ThirdPartyToken, err error) {

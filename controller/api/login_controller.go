@@ -10,8 +10,8 @@ import (
 )
 
 type LoginApiController struct {
-	Ctx         iris.Context
-	SignService api.SignService
+	Ctx          iris.Context
+	LoginService api.LoginService
 }
 
 func (receiver *LoginApiController) PostLoginThirdCode() {
@@ -21,7 +21,7 @@ func (receiver *LoginApiController) PostLoginThirdCode() {
 		return
 	}
 	function.BindBaseRequest(&input, receiver.Ctx)
-	if out, code, err := receiver.SignService.CreateAuthCode(input); err != nil {
+	if out, code, err := receiver.LoginService.CreateAuthCode(input); err != nil {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
 	} else {
 		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
