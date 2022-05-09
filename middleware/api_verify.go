@@ -7,7 +7,6 @@ import (
 	"github.com/blockfishio/metaspace-backend/services/api"
 	"github.com/jau1jz/cornus/commons"
 	"github.com/kataras/iris/v12"
-	"strconv"
 	"sync"
 )
 
@@ -43,14 +42,9 @@ func CheckSignAuth(ctx iris.Context) {
 	//check white list
 	if _, ok := apiWitheList[ctx.Request().RequestURI]; !ok {
 		//查询redis
-		_, err := signService.GetThirdPartyToken(ctx, verifyResult.ThirdPartyId)
-		if err != nil {
-			_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))
-			return
-		}
 
 		token := ctx.Request().Header.Get(common.BaseRequestAuthorization)
-		tokenUser, err := signService.GetTokenUser(ctx, token, strconv.FormatUint(verifyResult.ThirdPartyId, 10))
+		tokenUser, err := signService.GetTokenUser(ctx, token)
 		if err != nil {
 			_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))
 			return

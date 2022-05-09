@@ -22,9 +22,9 @@ type AuthCode struct {
 	CallbackUrl        string `json:"callback_url"`
 }
 
-type ThirdPartyToken struct {
-	ThirdPartyPublicId string `json:"third_party_public_id"`
-	Token              string `json:"token"`
+type UserToken struct {
+	Token  string `json:"token"`
+	UserId string `json:"user_id"`
 }
 
 type TokenUser struct {

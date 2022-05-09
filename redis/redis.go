@@ -31,13 +31,13 @@ type Dao interface {
 	GetAuthCode(ctx context.Context, authCode string) (out inner.AuthCode, err error)
 	DelAuthCode(ctx context.Context, authCode string) (err error)
 
-	SetThirdPartyToken(ctx context.Context, thirdPartyToken inner.ThirdPartyToken, expire time.Duration) (err error)
-	GetThirdPartyToken(ctx context.Context, thirdPartyId string) (out inner.ThirdPartyToken, err error)
-	DelThirdPartyToken(ctx context.Context, thirdPartyId string) (err error)
-
-	SetTokenUser(ctx context.Context, TokenUser inner.TokenUser, expire time.Duration) (err error)
-	GetTokenUser(ctx context.Context, thirdPartyLoginId string, token string) (out inner.TokenUser, err error)
+	SetTokenUser(ctx context.Context, tokenUser inner.TokenUser, expire time.Duration) (err error)
+	GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, err error)
 	DelTokenUser(ctx context.Context, token string) (err error)
+
+	SetUserToken(ctx context.Context, userToken inner.UserToken) (err error)
+	GetUserToken(ctx context.Context, userId string) (out inner.UserToken, err error)
+	DelUserToken(ctx context.Context, userId string) (err error)
 }
 
 type Imp struct {
@@ -132,29 +132,9 @@ func (i Imp) DelAuthCode(ctx context.Context, authCode string) (err error) {
 	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyAuthCode, authCode)).Err()
 }
 
-func (i Imp) GetThirdPartyToken(ctx context.Context, thirdPartyId string) (out inner.ThirdPartyToken, err error) {
-	result := i.redis.Get(ctx, fmt.Sprintf(common.ThirdPartyToken, thirdPartyId))
-	if result.Err() != nil {
-		return out, result.Err()
-	}
-	err = json.Unmarshal([]byte(result.Val()), &out)
-	return
-}
+func (i Imp) GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, err error) {
 
-func (i Imp) SetThirdPartyToken(ctx context.Context, thirdPartyToken inner.ThirdPartyToken, expire time.Duration) (err error) {
-	marshal, err := json.Marshal(thirdPartyToken)
-	if err != nil {
-		return err
-	}
-	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyToken, thirdPartyToken.ThirdPartyPublicId), marshal, expire).Err()
-}
-
-func (i Imp) DelThirdPartyToken(ctx context.Context, thirdPartyId string) (err error) {
-	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyToken, thirdPartyId)).Err()
-}
-
-func (i Imp) GetTokenUser(ctx context.Context, thirdPartyLoginId string, token string) (out inner.TokenUser, err error) {
-	result := i.redis.HGet(ctx, thirdPartyLoginId, fmt.Sprintf(common.ThirdPartyTokenUser, token))
+	result := i.redis.Get(ctx, fmt.Sprintf(common.ThirdPartyTokenUser, token))
 	if result.Err() != nil {
 		return out, result.Err()
 	}
@@ -163,17 +143,39 @@ func (i Imp) GetTokenUser(ctx context.Context, thirdPartyLoginId string, token s
 }
 
 func (i Imp) SetTokenUser(ctx context.Context, tokenUser inner.TokenUser, expire time.Duration) (err error) {
+
 	marshal, err := json.Marshal(tokenUser)
 	if err != nil {
 		return err
 	}
-	err = i.redis.Expire(ctx, tokenUser.ThirdPartyPublicId, expire).Err()
-	if err != nil {
-		return err
-	}
-	return i.redis.HSet(ctx, tokenUser.ThirdPartyPublicId, fmt.Sprintf(common.ThirdPartyTokenUser, tokenUser.Token), tokenUser.UserId, marshal).Err()
+	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyTokenUser, tokenUser.Token), marshal, expire).Err()
+
 }
 
 func (i Imp) DelTokenUser(ctx context.Context, token string) (err error) {
 	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyTokenUser, token)).Err()
+}
+
+func (i Imp) GetUserToken(ctx context.Context, userId string) (out inner.UserToken, err error) {
+
+	result := i.redis.HGet(ctx, userId, fmt.Sprintf(common.ThirdPartyUserToken, userId))
+	if result.Err() != nil {
+		return out, result.Err()
+	}
+	err = json.Unmarshal([]byte(result.Val()), &out)
+	return
+}
+
+func (i Imp) SetUserToken(ctx context.Context, userToken inner.UserToken) (err error) {
+
+	marshal, err := json.Marshal(userToken)
+	if err != nil {
+		return err
+	}
+	return i.redis.HSet(ctx, userToken.UserId, fmt.Sprintf(common.ThirdPartyUserToken, userToken.UserId, userToken.Token), marshal).Err()
+
+}
+
+func (i Imp) DelUserToken(ctx context.Context, user string) (err error) {
+	return i.redis.Del(ctx, user).Err()
 }

@@ -73,7 +73,7 @@ const (
 	ThirdPartyPublicKey = "third_party/publicKey/%s"
 	ThirdPartyRand      = "third_party/rand/%s"
 	ThirdPartyAuthCode  = "third_party/auth_code/%s"
-	ThirdPartyToken     = "third_party/token/%s"
+	ThirdPartyUserToken = "third_party/user_token/%s/%s"
 	ThirdPartyTokenUser = "third_party/token_user/%s"
 )
 

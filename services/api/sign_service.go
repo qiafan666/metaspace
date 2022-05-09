@@ -25,8 +25,7 @@ import (
 type SignService interface {
 	Sign(info inner.SignRequest) (out inner.SignResponse, code commons.ResponseCode, err error)
 	VerifySign(info inner.VerifySignRequest) (out inner.VerifySignResponse, code commons.ResponseCode, err error)
-	GetThirdPartyToken(ctx context.Context, thirdPartyId uint64) (out inner.ThirdPartyToken, err error)
-	GetTokenUser(ctx context.Context, token string, thirdPartyLogin string) (out inner.TokenUser, err error)
+	GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, err error)
 }
 
 var SignServiceIns *SignServiceImp
@@ -188,21 +187,9 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 	return
 }
 
-func (s SignServiceImp) GetThirdPartyToken(ctx context.Context, thirdPartyId uint64) (out inner.ThirdPartyToken, err error) {
+func (s SignServiceImp) GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, err error) {
 
-	result, err := s.redis.GetThirdPartyToken(ctx, strconv.FormatUint(thirdPartyId, 10))
-	if err != nil && err.Error() != redis.Nil.Error() {
-		slog.Slog.ErrorF(nil, "SignServiceImp GetThirdPartyToken error %s", err.Error())
-		return
-	}
-	out = result
-	return
-
-}
-
-func (s SignServiceImp) GetTokenUser(ctx context.Context, thirdPartyLoginId string, token string) (out inner.TokenUser, err error) {
-
-	result, err := s.redis.GetTokenUser(ctx, thirdPartyLoginId, token)
+	result, err := s.redis.GetTokenUser(ctx, token)
 	if err != nil {
 		slog.Slog.ErrorF(nil, "SignServiceImp GetThirdPartyToken error %s", err.Error())
 		return

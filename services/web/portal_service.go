@@ -91,7 +91,7 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 		return out, 0, "", err
 	} else if err != nil && err.Error() == redis.Nil.Error() {
 		slog.Slog.InfoF(info.Ctx, "portalServiceImp ThirdPartyLogin auth_code is expired  error %s", err.Error())
-		return out, common.PasswordOrAccountError, "", errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, commons.DefualtLanguage))
+		return out, common.AuthCodeAlreadyExpired, "", errors.New(commons.GetCodeAndMsg(common.AuthCodeAlreadyExpired, commons.DefualtLanguage))
 	} else {
 
 		err = p.redis.DelAuthCode(info.Ctx, info.AuthCode)
@@ -177,13 +177,19 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetTokenUser error %s", err.Error())
 			return out, 0, "", err
 		}
-
-		err = p.redis.SetThirdPartyToken(info.Ctx, inner.ThirdPartyToken{
-			ThirdPartyPublicId: authCode.ThirdPartyPublicId,
-			Token:              utils.GenerateUUID(),
-		}, time.Second*30)
+		//del userToken
+		err = p.redis.DelUserToken(info.Ctx, strconv.FormatUint(user.ID, 10))
 		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "portalServiceImp ThirdPartyLogin SetThirdPartyToken error %s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp DelUserToken error %s", err.Error())
+			return out, 0, "", err
+		}
+		//set userToken
+		err = p.redis.SetUserToken(info.Ctx, inner.UserToken{
+			Token:  token,
+			UserId: strconv.FormatUint(user.ID, 10),
+		})
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetUserToken error %s", err.Error())
 			return out, 0, "", err
 		}
 
@@ -195,7 +201,7 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 	}
 
 	var thirdPartySystem model.ThirdPartySystem
-	err = p.dao.First([]string{model.ThirdPartySystemColumns.ThirdPartyPublicKey, model.ThirdPartySystemColumns.ID}, map[string]interface{}{
+	err = p.dao.First([]string{model.ThirdPartySystemColumns.ThirdPartyPublicKey, model.ThirdPartySystemColumns.CallbackAddress, model.ThirdPartySystemColumns.ID}, map[string]interface{}{
 		model.ThirdPartySystemColumns.ID: authCode.ThirdPartyPublicId,
 	}, nil, &thirdPartySystem)
 
