@@ -94,6 +94,12 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 		return out, common.PasswordOrAccountError, "", errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, commons.DefualtLanguage))
 	} else {
 
+		err = p.redis.DelAuthCode(info.Ctx, info.AuthCode)
+		if err != nil {
+			slog.Slog.InfoF(info.Ctx, "portalServiceImp DelAuthCode error %s", err.Error())
+			return out, 0, "", err
+		}
+
 		var user model.User
 
 		vWalletAddress := strings.ToLower(info.Account)
@@ -168,7 +174,7 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 			Email:              user.Email,
 		}, time.Second*30)
 		if err != nil {
-			slog.Slog.ErrorF(nil, "portalServiceImp SetTokenUser error %s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetTokenUser error %s", err.Error())
 			return out, 0, "", err
 		}
 
@@ -177,7 +183,7 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 			Token:              utils.GenerateUUID(),
 		}, time.Second*30)
 		if err != nil {
-			slog.Slog.ErrorF(nil, "portalServiceImp ThirdPartyLogin SetThirdPartyToken error %s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp ThirdPartyLogin SetThirdPartyToken error %s", err.Error())
 			return out, 0, "", err
 		}
 
@@ -194,30 +200,27 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 	}, nil, &thirdPartySystem)
 
 	if err != nil {
-		slog.Slog.ErrorF(nil, "portalServiceImp ThirdPartyLogin thirdPartySystem First error %s", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp ThirdPartyLogin thirdPartySystem First error %s", err.Error())
 		return out, 0, "", err
 	}
 
 	url = dataCallBack(out, common.UrlCallbackLogin, thirdPartySystem)
 
 	if len(url) <= 0 {
-		slog.Slog.ErrorF(nil, "portalServiceImp thirdSign dataCallBack error %s", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp thirdSign dataCallBack error %s", err.Error())
 		return out, 0, "", err
 	}
 	return
 }
 
 func dataCallBack(out interface{}, enumeration string, thirdPartySystem model.ThirdPartySystem) string {
-
 	marshal, err := json.Marshal(out)
 	if err != nil {
-		slog.Slog.ErrorF(nil, "portalServiceImp ThirdPartyLogin jsonMarshal out error %s", err.Error())
 		return ""
 	}
 	publicKeyBuffer := bytes.NewBufferString(thirdPartySystem.ThirdPartyPublicKey)
 	encrypt, err := utils.RsaEncrypt(marshal, publicKeyBuffer.Bytes())
 	if err != nil {
-		slog.Slog.ErrorF(nil, "portalServiceImp ThirdPartyLogin jsonMarshal out error %s", err.Error())
 		return ""
 	}
 	return fmt.Sprintf("%s%s?value=%s", thirdPartySystem.CallbackAddress, enumeration, base64.StdEncoding.EncodeToString(encrypt))
