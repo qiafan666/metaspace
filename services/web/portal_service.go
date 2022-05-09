@@ -87,10 +87,10 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 
 	authCode, err := p.redis.GetAuthCode(info.Ctx, info.AuthCode)
 	if err != nil && err.Error() != redis.Nil.Error() {
-		slog.Slog.InfoF(info.Ctx, "SignServiceImp ThirdPartyLogin error %s", err.Error())
+		slog.Slog.InfoF(info.Ctx, "portalServiceImp ThirdPartyLogin error %s", err.Error())
 		return out, 0, "", err
 	} else if err != nil && err.Error() == redis.Nil.Error() {
-		slog.Slog.InfoF(info.Ctx, "SignServiceImp ThirdPartyLogin auth_code is expired  error %s", err.Error())
+		slog.Slog.InfoF(info.Ctx, "portalServiceImp ThirdPartyLogin auth_code is expired  error %s", err.Error())
 		return out, common.PasswordOrAccountError, "", errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, commons.DefualtLanguage))
 	} else {
 
@@ -107,18 +107,18 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 			//check sign len
 			nonce, err := p.redis.GetNonce(info.Ctx, vWalletAddress)
 			if err != nil && err.Error() != redis.Nil.Error() {
-				slog.Slog.InfoF(info.Ctx, "SignServiceImp sign GetNonce error %s", err.Error())
+				slog.Slog.InfoF(info.Ctx, "portalServiceImp sign GetNonce error %s", err.Error())
 				return out, 0, "", err
 			} else if err != nil && err.Error() == redis.Nil.Error() {
-				slog.Slog.InfoF(info.Ctx, "SignServiceImp sign GetNonce error %s", err.Error())
+				slog.Slog.InfoF(info.Ctx, "portalServiceImp sign GetNonce error %s", err.Error())
 				return out, common.NonceExpireOrNull, "", err
 			}
 			if err = function.VerifySig(vWalletAddress, info.Password, nonce.Nonce); err != nil && common.DebugFlag == false {
-				slog.Slog.InfoF(info.Ctx, "SignServiceImp sign verify error %s", err.Error())
+				slog.Slog.InfoF(info.Ctx, "portalServiceImp sign verify error %s", err.Error())
 				return out, common.SignatureVerificationError, "", err
 			}
 			if err = p.redis.DelNonce(info.Ctx, user.UUID); err != nil {
-				slog.Slog.InfoF(info.Ctx, "SignServiceImp DelNonce error %s", err.Error())
+				slog.Slog.InfoF(info.Ctx, "portalServiceImp DelNonce error %s", err.Error())
 				return out, 0, "", err
 			}
 			//if wallet address does not register,then register
@@ -126,7 +126,7 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 				model.UserColumns.WalletAddress: vWalletAddress,
 			}, nil, &user)
 			if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
-				slog.Slog.ErrorF(info.Ctx, "SignServiceImp First error %s", err.Error())
+				slog.Slog.ErrorF(info.Ctx, "portalServiceImp First error %s", err.Error())
 				return out, 0, "", err
 			} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
 				//register
@@ -135,7 +135,7 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 					WalletAddress: vWalletAddress,
 				}
 				if err := p.dao.Create(&user); err != nil {
-					slog.Slog.InfoF(info.Ctx, "SignServiceImp Create error %s", err.Error())
+					slog.Slog.InfoF(info.Ctx, "portalServiceImp Create error %s", err.Error())
 					return out, 0, "", err
 				}
 			}
@@ -150,10 +150,10 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 			}, nil, &user)
 
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-				slog.Slog.ErrorF(info.Ctx, "SignServiceImp Login Count error %s", err.Error())
+				slog.Slog.ErrorF(info.Ctx, "portalServiceImp Login Count error %s", err.Error())
 				return out, 0, "", err
 			} else if errors.Is(err, gorm.ErrRecordNotFound) {
-				slog.Slog.InfoF(info.Ctx, "SignServiceImp Register account or password error")
+				slog.Slog.InfoF(info.Ctx, "portalServiceImp Register account or password error")
 				return out, common.PasswordOrAccountError, "", errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, info.Language))
 			}
 		}
@@ -168,7 +168,7 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 			Email:              user.Email,
 		}, time.Second*30)
 		if err != nil {
-			slog.Slog.ErrorF(nil, "SignServiceImp SetTokenUser error %s", err.Error())
+			slog.Slog.ErrorF(nil, "portalServiceImp SetTokenUser error %s", err.Error())
 			return out, 0, "", err
 		}
 
@@ -177,7 +177,7 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 			Token:              utils.GenerateUUID(),
 		}, time.Second*30)
 		if err != nil {
-			slog.Slog.ErrorF(nil, "SignServiceImp ThirdPartyLogin SetThirdPartyToken error %s", err.Error())
+			slog.Slog.ErrorF(nil, "portalServiceImp ThirdPartyLogin SetThirdPartyToken error %s", err.Error())
 			return out, 0, "", err
 		}
 
@@ -187,11 +187,6 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 		out.Email = user.Email
 
 	}
-	marshal, err := json.Marshal(out)
-	if err != nil {
-		slog.Slog.ErrorF(nil, "SignServiceImp ThirdPartyLogin jsonMarshal out error %s", err.Error())
-		return out, 0, "", err
-	}
 
 	var thirdPartySystem model.ThirdPartySystem
 	err = p.dao.First([]string{model.ThirdPartySystemColumns.ThirdPartyPublicKey, model.ThirdPartySystemColumns.ID}, map[string]interface{}{
@@ -199,18 +194,33 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 	}, nil, &thirdPartySystem)
 
 	if err != nil {
-		slog.Slog.ErrorF(nil, "SignServiceImp ThirdPartyLogin thirdPartySystem First error %s", err.Error())
+		slog.Slog.ErrorF(nil, "portalServiceImp ThirdPartyLogin thirdPartySystem First error %s", err.Error())
 		return out, 0, "", err
 	}
 
+	url = dataCallBack(out, common.UrlCallbackLogin, thirdPartySystem)
+
+	if len(url) <= 0 {
+		slog.Slog.ErrorF(nil, "portalServiceImp thirdSign dataCallBack error %s", err.Error())
+		return out, 0, "", err
+	}
+	return
+}
+
+func dataCallBack(out interface{}, enumeration string, thirdPartySystem model.ThirdPartySystem) string {
+
+	marshal, err := json.Marshal(out)
+	if err != nil {
+		slog.Slog.ErrorF(nil, "portalServiceImp ThirdPartyLogin jsonMarshal out error %s", err.Error())
+		return ""
+	}
 	publicKeyBuffer := bytes.NewBufferString(thirdPartySystem.ThirdPartyPublicKey)
 	encrypt, err := utils.RsaEncrypt(marshal, publicKeyBuffer.Bytes())
 	if err != nil {
-		slog.Slog.ErrorF(nil, "SignServiceImp ThirdPartyLogin jsonMarshal out error %s", err.Error())
-		return out, 0, "", err
+		slog.Slog.ErrorF(nil, "portalServiceImp ThirdPartyLogin jsonMarshal out error %s", err.Error())
+		return ""
 	}
-	url = fmt.Sprintf("%s%s?value=%s", thirdPartySystem.CallbackAddress, common.UrlCallbackLogin, base64.StdEncoding.EncodeToString(encrypt))
-	return
+	return fmt.Sprintf("%s%s?value=%s", thirdPartySystem.CallbackAddress, enumeration, base64.StdEncoding.EncodeToString(encrypt))
 }
 
 func (p portalServiceImp) GetNonce(info request.GetNonce) (out response.GetNonce, code commons.ResponseCode, err error) {
