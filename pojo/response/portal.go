@@ -5,6 +5,7 @@ type ThirdPartyLogin struct {
 	Email         string `json:"email"`
 	Uuid          string `json:"uuid"`
 	WalletAddress string `json:"wallet_address"`
+	Url           string `json:"url"`
 }
 
 type UserLogin struct {

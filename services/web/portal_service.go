@@ -11,7 +11,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/contract/bridgecontract"
 	"github.com/blockfishio/metaspace-backend/grpc"
 	"github.com/blockfishio/metaspace-backend/grpc/proto"
-	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
 	"strconv"
@@ -38,7 +38,7 @@ import (
 
 // PortalService service layer interface
 type PortalService interface {
-	ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, url string, err error)
+	ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, err error)
 	//Login support email and wallet login api
 	Login(info request.UserLogin) (out response.UserLogin, code commons.ResponseCode, err error)
 	//GetNonce client get new nonce from server
@@ -83,21 +83,21 @@ type portalServiceImp struct {
 	redis redis.Dao
 }
 
-func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, url string, err error) {
+func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, err error) {
 
 	authCode, err := p.redis.GetAuthCode(info.Ctx, info.AuthCode)
 	if err != nil && err.Error() != redis.Nil.Error() {
 		slog.Slog.InfoF(info.Ctx, "portalServiceImp ThirdPartyLogin error %s", err.Error())
-		return out, 0, "", err
+		return out, 0, err
 	} else if err != nil && err.Error() == redis.Nil.Error() {
 		slog.Slog.InfoF(info.Ctx, "portalServiceImp ThirdPartyLogin auth_code is expired  error %s", err.Error())
-		return out, common.AuthCodeAlreadyExpired, "", errors.New(commons.GetCodeAndMsg(common.AuthCodeAlreadyExpired, commons.DefualtLanguage))
+		return out, common.AuthCodeAlreadyExpired, errors.New(commons.GetCodeAndMsg(common.AuthCodeAlreadyExpired, commons.DefualtLanguage))
 	} else {
 
 		err = p.redis.DelAuthCode(info.Ctx, info.AuthCode)
 		if err != nil {
 			slog.Slog.InfoF(info.Ctx, "portalServiceImp DelAuthCode error %s", err.Error())
-			return out, 0, "", err
+			return out, 0, err
 		}
 
 		var user model.User
@@ -114,18 +114,18 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 			nonce, err := p.redis.GetNonce(info.Ctx, vWalletAddress)
 			if err != nil && err.Error() != redis.Nil.Error() {
 				slog.Slog.InfoF(info.Ctx, "portalServiceImp sign GetNonce error %s", err.Error())
-				return out, 0, "", err
+				return out, 0, err
 			} else if err != nil && err.Error() == redis.Nil.Error() {
 				slog.Slog.InfoF(info.Ctx, "portalServiceImp sign GetNonce error %s", err.Error())
-				return out, common.NonceExpireOrNull, "", err
+				return out, common.NonceExpireOrNull, err
 			}
 			if err = function.VerifySig(vWalletAddress, info.Password, nonce.Nonce); err != nil && common.DebugFlag == false {
 				slog.Slog.InfoF(info.Ctx, "portalServiceImp sign verify error %s", err.Error())
-				return out, common.SignatureVerificationError, "", err
+				return out, common.SignatureVerificationError, err
 			}
 			if err = p.redis.DelNonce(info.Ctx, user.UUID); err != nil {
 				slog.Slog.InfoF(info.Ctx, "portalServiceImp DelNonce error %s", err.Error())
-				return out, 0, "", err
+				return out, 0, err
 			}
 			//if wallet address does not register,then register
 			err = p.dao.First([]string{model.UserColumns.UUID}, map[string]interface{}{
@@ -133,7 +133,7 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 			}, nil, &user)
 			if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
 				slog.Slog.ErrorF(info.Ctx, "portalServiceImp First error %s", err.Error())
-				return out, 0, "", err
+				return out, 0, err
 			} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
 				//register
 				user = model.User{
@@ -142,7 +142,7 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 				}
 				if err := p.dao.Create(&user); err != nil {
 					slog.Slog.InfoF(info.Ctx, "portalServiceImp Create error %s", err.Error())
-					return out, 0, "", err
+					return out, 0, err
 				}
 			}
 		} else {
@@ -157,10 +157,10 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				slog.Slog.ErrorF(info.Ctx, "portalServiceImp Login Count error %s", err.Error())
-				return out, 0, "", err
+				return out, 0, err
 			} else if errors.Is(err, gorm.ErrRecordNotFound) {
 				slog.Slog.InfoF(info.Ctx, "portalServiceImp Register account or password error")
-				return out, common.PasswordOrAccountError, "", errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, info.Language))
+				return out, common.PasswordOrAccountError, errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, info.Language))
 			}
 		}
 
@@ -175,13 +175,13 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 		}, time.Second*30)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetTokenUser error %s", err.Error())
-			return out, 0, "", err
+			return out, 0, err
 		}
 		//del userToken
 		err = p.redis.DelUserToken(info.Ctx, strconv.FormatUint(user.ID, 10))
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp DelUserToken error %s", err.Error())
-			return out, 0, "", err
+			return out, 0, err
 		}
 		//set userToken
 		err = p.redis.SetUserToken(info.Ctx, inner.UserToken{
@@ -190,7 +190,7 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 		})
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetUserToken error %s", err.Error())
-			return out, 0, "", err
+			return out, 0, err
 		}
 
 		out.Token = token
@@ -207,14 +207,14 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp ThirdPartyLogin thirdPartySystem First error %s", err.Error())
-		return out, 0, "", err
+		return out, 0, err
 	}
 
-	url = dataCallBack(out, common.UrlCallbackLogin, thirdPartySystem)
+	out.Url = dataCallBack(out, common.UrlCallbackLogin, thirdPartySystem)
 
-	if len(url) <= 0 {
+	if len(out.Url) == 0 {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp thirdSign dataCallBack error %s", err.Error())
-		return out, 0, "", err
+		return out, 0, err
 	}
 	return
 }
@@ -229,7 +229,7 @@ func dataCallBack(out interface{}, enumeration string, thirdPartySystem model.Th
 	if err != nil {
 		return ""
 	}
-	return fmt.Sprintf("%s%s?value=%s", thirdPartySystem.CallbackAddress, enumeration, base64.StdEncoding.EncodeToString(encrypt))
+	return fmt.Sprintf("%s%s?value=%s", thirdPartySystem.CallbackAddress, enumeration, base64.URLEncoding.EncodeToString(encrypt))
 }
 
 func (p portalServiceImp) GetNonce(info request.GetNonce) (out response.GetNonce, code commons.ResponseCode, err error) {
@@ -537,7 +537,7 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 		return out, 0, err
 	}
 
-	address := ethcommon.HexToAddress(portalConfig.Contract.NftAddress)
+	address := ethCommon.HexToAddress(portalConfig.Contract.NftAddress)
 	instance, err := bridgecontract.NewContracts(address, client)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign NewContracts error")
@@ -581,7 +581,7 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 			return out, 0, err
 		}
 
-		userAddress := ethcommon.HexToAddress(user.WalletAddress)
+		userAddress := ethCommon.HexToAddress(user.WalletAddress)
 		//_category
 		category := big.NewInt(vAssets.Category)
 		//_subcategory
@@ -590,7 +590,7 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 		rarity := big.NewInt(vAssets.Rarity)
 
 		var message [32]byte
-		message, err = instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, userAddress, category, subCategory, rarity)
+		message, err = instance.GetMessageHash(nil, ethCommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, userAddress, category, subCategory, rarity)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign GetMessageHash error:%s", err.Error())
 			return out, 0, err

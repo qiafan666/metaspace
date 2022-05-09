@@ -24,11 +24,10 @@ func (receiver *PortalWebController) PostLoginThird() {
 		return
 	}
 	function.BindBaseRequest(&input, receiver.Ctx)
-	if out, code, url, err := receiver.PortalService.ThirdPartyLogin(input); err != nil {
+	if out, code, err := receiver.PortalService.ThirdPartyLogin(input); err != nil {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
 	} else {
-		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
-		receiver.Ctx.Redirect(url, http.StatusFound)
+		receiver.Ctx.Redirect(out.Url, http.StatusFound)
 	}
 }
 
