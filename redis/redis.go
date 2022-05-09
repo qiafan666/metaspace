@@ -36,7 +36,7 @@ type Dao interface {
 	DelTokenUser(ctx context.Context, token string) (err error)
 
 	SetUserToken(ctx context.Context, userToken inner.UserToken) (err error)
-	GetUserToken(ctx context.Context, userId string) (out inner.UserToken, err error)
+	GetUserToken(ctx context.Context, userId string, token string) (out inner.UserToken, err error)
 	DelUserToken(ctx context.Context, userId string) (err error)
 }
 
@@ -156,9 +156,9 @@ func (i Imp) DelTokenUser(ctx context.Context, token string) (err error) {
 	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyTokenUser, token)).Err()
 }
 
-func (i Imp) GetUserToken(ctx context.Context, userId string) (out inner.UserToken, err error) {
+func (i Imp) GetUserToken(ctx context.Context, userId string, token string) (out inner.UserToken, err error) {
 
-	result := i.redis.HGet(ctx, userId, fmt.Sprintf(common.ThirdPartyUserToken, userId))
+	result := i.redis.HGet(ctx, userId, fmt.Sprintf(common.ThirdPartyUserToken, userId, token))
 	if result.Err() != nil {
 		return out, result.Err()
 	}
