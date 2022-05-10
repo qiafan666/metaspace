@@ -192,7 +192,7 @@ func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out res
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetUserToken error %s", err.Error())
 			return out, 0, err
 		}
-
+		out.ExpireTime = time.Now().Add(time.Second * 30)
 		out.Token = token
 		out.Uuid = user.UUID
 		out.WalletAddress = user.WalletAddress
