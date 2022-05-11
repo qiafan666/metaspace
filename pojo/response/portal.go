@@ -1,5 +1,16 @@
 package response
 
+import "time"
+
+type ThirdPartyLogin struct {
+	Token         string    `json:"token"`
+	Email         string    `json:"email"`
+	Uuid          string    `json:"uuid"`
+	WalletAddress string    `json:"wallet_address"`
+	Url           string    `json:"url,omitempty"`
+	ExpireTime    time.Time `json:"expire_time"`
+}
+
 type UserLogin struct {
 	JwtToken string `json:"jwt_token"`
 }

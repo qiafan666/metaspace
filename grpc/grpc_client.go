@@ -29,20 +29,20 @@ type SignStatus struct {
 
 func SignPrepare() {
 	SignGrpc = &SignStatus{
-		Status: common.SignGrpc_CONNECT_BEFORE,
+		Status: common.SignGrpcConnectBefore,
 	}
 	SignGrpc.Connect()
 }
 
 func (ds *SignStatus) Connect() {
-	if ds.Status == common.SignGrpc_CONNECT_BEFORE {
-		ds.Status = common.SignGrpc_CONNECTING
+	if ds.Status == common.SignGrpcConnectBefore {
+		ds.Status = common.SignGrpcConnecting
 		//for {
 		conn, err := grpc.Dial(grpcConfig.GRPC.Host+":"+grpcConfig.GRPC.Port, grpc.WithInsecure())
 		if err == nil {
 
 			ds.SignClient = proto.NewDataControllerClient(conn)
-			ds.Status = common.SignGrpc_CONNECTED
+			ds.Status = common.SignGrpcConnected
 		} else {
 			slog.Slog.ErrorF(nil, "grpcClient connect failed")
 		}

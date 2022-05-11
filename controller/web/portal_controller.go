@@ -3,22 +3,37 @@ package web
 import (
 	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/pojo/request"
-	bizservice "github.com/blockfishio/metaspace-backend/services"
+	"github.com/blockfishio/metaspace-backend/services/web"
 	"github.com/jau1jz/cornus/commons"
 	"github.com/jau1jz/cornus/commons/utils"
 	"github.com/kataras/iris/v12"
+	"net/http"
 )
 
 type PortalWebController struct {
 	Ctx               iris.Context
-	PortalService     bizservice.PortalService
-	GameAssetsService bizservice.GameAssetsService
-	MarketService     bizservice.MarketService
+	PortalService     web.PortalService
+	GameAssetsService web.GameAssetsService
+	MarketService     web.MarketService
+}
+
+func (receiver *PortalWebController) PostLoginThird() {
+	input := request.ThirdPartyLogin{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "LoginApiController PostLoginThird"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.PortalService.ThirdPartyLogin(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		receiver.Ctx.Redirect(out.Url, http.StatusFound)
+	}
 }
 
 func (receiver *PortalWebController) PostLogin() {
 	input := request.UserLogin{}
-	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostLogin"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostLogin"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
@@ -31,7 +46,7 @@ func (receiver *PortalWebController) PostLogin() {
 }
 func (receiver *PortalWebController) PostLoginNonce() {
 	input := request.GetNonce{}
-	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostLoginNonce"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostLoginNonce"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
@@ -44,7 +59,7 @@ func (receiver *PortalWebController) PostLoginNonce() {
 }
 func (receiver *PortalWebController) PostRegister() {
 	input := request.RegisterUser{}
-	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostRegister"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostRegister"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
@@ -57,7 +72,7 @@ func (receiver *PortalWebController) PostRegister() {
 }
 func (receiver *PortalWebController) PostPasswordUpdate() {
 	input := request.PasswordUpdate{}
-	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostPasswordUpdate"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostPasswordUpdate"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
@@ -70,7 +85,7 @@ func (receiver *PortalWebController) PostPasswordUpdate() {
 }
 func (receiver *PortalWebController) PostUserAssets() {
 	input := request.GetGameAssets{}
-	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostUserAssets"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostUserAssets"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
@@ -83,7 +98,7 @@ func (receiver *PortalWebController) PostUserAssets() {
 }
 func (receiver *PortalWebController) PostSubscribeNewsletterEmail() {
 	input := request.SubscribeNewsletterEmail{}
-	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostSubscribeNewsletterEmail"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostSubscribeNewsletterEmail"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
@@ -96,7 +111,7 @@ func (receiver *PortalWebController) PostSubscribeNewsletterEmail() {
 }
 func (receiver *PortalWebController) PostTowerStatus() {
 	input := request.TowerStats{}
-	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostTowerStatus"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostTowerStatus"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
@@ -110,7 +125,7 @@ func (receiver *PortalWebController) PostTowerStatus() {
 
 func (receiver *PortalWebController) PostSign() {
 	input := request.Sign{}
-	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostSign"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostSign"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
@@ -124,7 +139,7 @@ func (receiver *PortalWebController) PostSign() {
 
 func (receiver *PortalWebController) PostOrderSign() {
 	input := request.ShelfSign{}
-	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostOrderSign"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostOrderSign"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
@@ -138,7 +153,7 @@ func (receiver *PortalWebController) PostOrderSign() {
 
 func (receiver *PortalWebController) PostOrderCreate() {
 	input := request.SellShelf{}
-	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostOrderCreate"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostOrderCreate"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
@@ -152,7 +167,7 @@ func (receiver *PortalWebController) PostOrderCreate() {
 
 func (receiver *PortalWebController) PostOrders() {
 	input := request.Orders{}
-	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostOrders"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostOrders"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
@@ -166,7 +181,7 @@ func (receiver *PortalWebController) PostOrders() {
 
 func (receiver *PortalWebController) PostUserOrders() {
 	input := request.Orders{}
-	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostUserOrders"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostUserOrders"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}
@@ -180,7 +195,7 @@ func (receiver *PortalWebController) PostUserOrders() {
 
 func (receiver *PortalWebController) PostOrderCancel() {
 	input := request.OrderCancel{}
-	if code, msg := utils.ValidateAndBindParameters(&input, receiver.Ctx, "PortalWebController PostOrderCancel"); code != commons.OK {
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostOrderCancel"); code != commons.OK {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
 		return
 	}

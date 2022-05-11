@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"context"
+	"github.com/blockfishio/metaspace-backend/common"
 
 	"github.com/blockfishio/metaspace-backend/pojo/request"
 	"github.com/dgrijalva/jwt-go"
@@ -27,15 +27,12 @@ var witheList = map[string]string{
 	"/metaspace/web/subscribe/newsletter/email": "",
 	"/metaspace/web/health":                     "",
 	"/metaspace/web/orders":                     "",
+	"/metaspace/web/login/third":                "",
+	"/metaspace/web/login/test":                 "",
 }
 
-func CheckAuth(ctx iris.Context) {
+func CheckPortalAuth(ctx iris.Context) {
 	var language, uuid, email string
-	//get language
-	language = ctx.Request().Header.Get("Language")
-	if language == "" {
-		language = commons.DefualtLanguage
-	}
 
 	//check white list
 	if _, ok := witheList[ctx.Request().RequestURI]; !ok {
@@ -56,9 +53,7 @@ func CheckAuth(ctx iris.Context) {
 			return
 		}
 	}
-	ctx.Values().Set("base_request", request.BaseRequest{
-		Ctx:       ctx.Values().Get("ctx").(context.Context),
-		Language:  language,
+	ctx.Values().Set(common.BasePortalRequest, request.BasePortalRequest{
 		BaseUUID:  uuid,
 		BaseEmail: email,
 	})

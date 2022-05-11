@@ -27,3 +27,6 @@ contract:
   nft_address: "0xc10641031430cF29579f829952b118f1d873bbc2"
   erc721_address: "0xe88A806D31de758762d93a0e6682042Ec1AFe6ac"
   market_address: "0x9A51589ce9e2B53245d20DbB3cc1B0cf07749D88"
+thirdLogin:
+ third_login_address: "127.0.0.7"
+

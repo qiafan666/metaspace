@@ -29,6 +29,11 @@ const (
 	OrderAlreadyCancel           = 100011
 	OrdersNotExist               = 100012
 	IdentityError                = 100013
+	ThirdPartySignError          = 100014
+	VerifyThirdPartySignError    = 100015
+	VerifyThirdPartySignTimeOut  = 100016
+	FrequentVerifyThirdPartySign = 100017
+	AuthCodeAlreadyExpired       = 100018
 )
 
 // EnglishCodeMsg local code and msg
@@ -47,6 +52,11 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	OrderAlreadyCancel:           "Order is already cancelled.",
 	OrdersNotExist:               "Order doesn't exist",
 	IdentityError:                "Identity check failed",
+	ThirdPartySignError:          "Third_Party Sign failed",
+	VerifyThirdPartySignError:    "Verify Third_Party Sign failed",
+	VerifyThirdPartySignTimeOut:  "Verify Third_Party Sign timeout",
+	FrequentVerifyThirdPartySign: "Frequent Verify Third_Party Sign",
+	AuthCodeAlreadyExpired:       "AuthCode is already expired",
 }
 
 // login type
@@ -59,20 +69,46 @@ const (
 
 // redis key
 const (
-	UserNonce = "user/nonce/%s"
+	UserNonce           = "user/nonce/%s"
+	ThirdPartyPublicKey = "third_party/publicKey/%s"
+	ThirdPartyRand      = "third_party/rand/%s"
+	ThirdPartyAuthCode  = "third_party/auth_code/%s"
+	ThirdPartyUserToken = "third_party/user_token/%s/%s"
+	ThirdPartyTokenUser = "third_party/token_user/%s"
 )
 
 const (
-	SignGrpc_CONNECT_BEFORE = 1
-	SignGrpc_CONNECTING     = 2
-	SignGrpc_CONNECTED      = 3
+	SignGrpcConnectBefore = 1
+	SignGrpcConnecting    = 2
+	SignGrpcConnected     = 3
 )
 
-const GrpcTimeoutInSec = 5 * time.Second
+const GrpcTimeoutIn = 5 * time.Second
 
 const (
 	OrderStatusActive = 1
 	OrderStatusExpire = 2
 	OrderStatusCancel = 3
 	OrderStatusFinish = 4
+)
+
+//ctx value enum
+const (
+	BaseRequest       = "base_request"
+	BasePortalRequest = "base_portal_request"
+	BaseApiRequest    = "base_api_request"
+)
+
+//url
+const (
+	UrlCallbackLogin = "/metaspace/callback/login"
+)
+
+//third login
+const (
+	BaseRequestSign          = "Sign"
+	BaseRequestApiKey        = "Api-key"
+	BaseRequestTimestamp     = "Timestamp"
+	BaseRequestRand          = "Rand"
+	BaseRequestAuthorization = "Authorization"
 )

@@ -1,4 +1,4 @@
-package bizservice
+package web
 
 import (
 	"encoding/hex"
@@ -169,7 +169,7 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 		return out, common.AccountAlreadyExists, errors.New(commons.GetCodeAndMsg(common.AccountAlreadyExists, info.Language))
 	}
 	orders := model.Orders{
-		Seller:      info.BaseRequest.BaseUUID,
+		Seller:      info.BasePortalRequest.BaseUUID,
 		Signature:   info.SignedMessage,
 		Status:      1,
 		CreatedTime: time.Now(),
@@ -233,7 +233,7 @@ func (m marketServiceImp) GetUserOrders(info request.Orders) (out response.Order
 
 	var ordersDetail []join.OrdersDetail
 	err = m.dao.Find([]string{"orders.id,orders.`status`,orders.signature,orders.id,orders.buyer,orders.seller,orders_detail.nft_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-		return db.Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").Where("orders.status=?", info.Status).Where("orders.seller=? or orders.buyer=?", info.BaseRequest.BaseUUID, info.BaseRequest.BaseUUID)
+		return db.Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").Where("orders.status=?", info.Status).Where("orders.seller=? or orders.buyer=?", info.BasePortalRequest.BaseUUID, info.BasePortalRequest.BaseUUID)
 	}, &ordersDetail)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetUserOrders detail error %s", err.Error())
@@ -283,7 +283,7 @@ func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.Or
 		return out, common.OrdersNotExist, errors.New(commons.GetCodeAndMsg(common.OrdersNotExist, info.Language))
 	}
 
-	if orders.Seller != info.BaseRequest.BaseUUID {
+	if orders.Seller != info.BasePortalRequest.BaseUUID {
 		slog.Slog.InfoF(info.Ctx, "marketServiceImp order seller")
 		return out, common.IdentityError, errors.New(commons.GetCodeAndMsg(common.IdentityError, info.Language))
 	}
