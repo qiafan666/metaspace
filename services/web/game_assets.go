@@ -2,10 +2,12 @@ package web
 
 import (
 	"encoding/json"
+	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/model/join"
 	"gorm.io/gorm"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/dao"
@@ -65,7 +67,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	vWalletAddress := strings.ToLower(user.WalletAddress)
 
 	var assetsOrders []join.AssetsOrders
-	err = p.dao.Find([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature,orders_detail.price,orders.`status`"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+	err = p.dao.Find([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature,orders_detail.price,orders_detail.expire_time,orders.`status`,orders.signature"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		return db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").Where("assets.is_nft=?", 2).Where("assets.uid=?", vWalletAddress)
 	}, &assetsOrders)
 	if err != nil {
@@ -73,6 +75,25 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		return out, 0, err
 	}
 	for _, vAsset := range assetsOrders {
+
+		//check expireTime
+		if vAsset.ExpireTime.Before(time.Now()) {
+			vAsset.Status = common.OrderStatusActive
+
+			//update order status
+			_, err = p.dao.WithContext(info.Ctx).Update(model.Orders{
+				Status: common.OrderStatusExpire,
+			}, map[string]interface{}{
+				model.OrdersColumns.Signature: vAsset.Signature,
+				model.OrdersColumns.Status:    common.OrderStatusActive,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp Update Order Status error %s", err.Error())
+				return out, 0, err
+			}
+
+		}
+
 		SubcategoryString, err := function.GetSubcategoryString(vAsset.Category, vAsset.Type)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp SubcategoryString Error: %s", err.Error())

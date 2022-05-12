@@ -156,42 +156,64 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 			_ = tx.Commit()
 		}
 	}()
-	//check account exists
-	count, err := m.dao.Count(model.Orders{}, map[string]interface{}{
+
+	var orders model.Orders
+	err = m.dao.First([]string{model.OrdersColumns.Status}, map[string]interface{}{
 		model.OrdersColumns.Signature: info.SignedMessage,
-	}, nil)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf Count error %s", err.Error())
-		return out, 0, err
-	}
-	if count > 0 {
-		slog.Slog.InfoF(info.Ctx, "marketServiceImp GetSellShelf account already exists")
-		return out, common.AccountAlreadyExists, errors.New(commons.GetCodeAndMsg(common.AccountAlreadyExists, info.Language))
-	}
-	orders := model.Orders{
-		Seller:      info.BasePortalRequest.BaseUUID,
-		Signature:   info.SignedMessage,
-		Status:      1,
-		CreatedTime: time.Now(),
-		UpdatedTime: time.Now(),
-	}
-	err = tx.WithContext(info.Ctx).Create(&orders)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Create error %s", err.Error())
-		return out, 0, err
-	}
+	}, nil, &orders)
 
-	ordersDetail := model.OrdersDetail{
-		OrderID:     orders.ID,
-		NftID:       strconv.FormatInt(vAssets.TokenId, 10),
-		CreatedTime: time.Now(),
-		UpdatedTime: time.Now(),
-	}
-
-	err = tx.WithContext(info.Ctx).Create(&ordersDetail)
 	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders detail Create error %s", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf get orders by signature error %s", err.Error())
 		return out, 0, err
+	} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		newOrders := model.Orders{
+			Seller:      info.BasePortalRequest.BaseUUID,
+			Signature:   info.SignedMessage,
+			Status:      1,
+			CreatedTime: time.Now(),
+			UpdatedTime: time.Now(),
+		}
+		err = tx.WithContext(info.Ctx).Create(&newOrders)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Create error %s", err.Error())
+			return out, 0, err
+		}
+
+		ordersDetail := model.OrdersDetail{
+			OrderID:     newOrders.ID,
+			NftID:       strconv.FormatInt(vAssets.TokenId, 10),
+			ExpireTime:  info.ExpireTime,
+			CreatedTime: time.Now(),
+			UpdatedTime: time.Now(),
+		}
+
+		err = tx.WithContext(info.Ctx).Create(&ordersDetail)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders detail Create error %s", err.Error())
+			return out, 0, err
+		}
+	} else {
+		//update order status
+		_, err = tx.WithContext(info.Ctx).Update(model.Orders{
+			Status: common.OrderStatusActive,
+		}, map[string]interface{}{
+			model.OrdersColumns.Signature: info.SignedMessage,
+		}, nil)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update Order Status error %s", err.Error())
+			return out, 0, err
+		}
+		//update orders_detail status
+		_, err = tx.WithContext(info.Ctx).Update(model.OrdersDetail{
+			ExpireTime: info.ExpireTime,
+		}, map[string]interface{}{
+			model.OrdersDetailColumns.OrderID: orders.ID,
+		}, nil)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update orders_detail expireTime error %s", err.Error())
+			return out, 0, err
+		}
+
 	}
 
 	return
@@ -209,7 +231,28 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 	}
 
 	out.Data = make([]response.OrdersDetail, 0, len(ordersDetail))
+
 	for _, v := range ordersDetail {
+
+		//check expireTime
+		if v.ExpireTime.Before(time.Now()) {
+
+			v.Status = common.OrderStatusActive
+
+			//update order status
+			_, err = m.dao.WithContext(info.Ctx).Update(model.Orders{
+				Status: common.OrderStatusExpire,
+			}, map[string]interface{}{
+				model.OrdersColumns.Signature: v.Signature,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update Order Status error %s", err.Error())
+				return out, 0, err
+			}
+
+			continue
+		}
+
 		out.Data = append(out.Data, response.OrdersDetail{
 			Id:          v.Id,
 			Seller:      v.Seller,

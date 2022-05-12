@@ -2,6 +2,7 @@ package request
 
 import (
 	"github.com/blockfishio/metaspace-backend/common"
+	"time"
 )
 
 type BasePortalRequest struct {
@@ -81,9 +82,11 @@ type ShelfSign struct {
 type SellShelf struct {
 	BaseRequest
 	BasePortalRequest
-	SignedMessage string `json:"signed_message" validate:"required,max=192"`
-	RawMessage    string `json:"raw_message" validate:"required,max=192"`
-	ItemId        string `json:"item_id" validate:"required,max=192"`
+	SignedMessage string    `json:"signed_message" validate:"required,max=192"`
+	RawMessage    string    `json:"raw_message" validate:"required,max=192"`
+	ItemId        string    `json:"item_id" validate:"required,max=192"`
+	Price         uint      `json:"price" validate:"required,max=192"`
+	ExpireTime    time.Time `json:"expire_time"`
 }
 
 type Orders struct {

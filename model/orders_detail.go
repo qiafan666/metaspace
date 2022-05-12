@@ -10,6 +10,7 @@ CREATE TABLE `orders_detail` (
   `order_id` bigint unsigned NOT NULL COMMENT 'orders id',
   `nft_id` varchar(192) NOT NULL,
   `price` int unsigned NOT NULL,
+  `expire_time` timestamp(3) NOT NULL,
   `created_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   `updated_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`),
@@ -22,6 +23,7 @@ type OrdersDetail struct {
 	OrderID     uint64    `gorm:"column:order_id" json:"order_id"` // orders id
 	NftID       string    `gorm:"column:nft_id" json:"nft_id"`
 	Price       uint      `gorm:"column:price" json:"price"`
+	ExpireTime  time.Time `gorm:"column:expire_time" json:"expire_time"`
 	CreatedTime time.Time `gorm:"column:created_time" json:"created_time"`
 	UpdatedTime time.Time `gorm:"column:updated_time" json:"updated_time"`
 }
@@ -37,6 +39,7 @@ var OrdersDetailColumns = struct {
 	OrderID     string
 	NftID       string
 	Price       string
+	ExpireTime  string
 	CreatedTime string
 	UpdatedTime string
 }{
@@ -44,6 +47,7 @@ var OrdersDetailColumns = struct {
 	OrderID:     "order_id",
 	NftID:       "nft_id",
 	Price:       "price",
+	ExpireTime:  "expire_time",
 	CreatedTime: "created_time",
 	UpdatedTime: "updated_time",
 }

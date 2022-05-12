@@ -1,5 +1,7 @@
 package join
 
+import "time"
+
 type AssetsOrders struct {
 	Id            int64  `gorm:"primaryKey;column:id" json:"id"`
 	Uid           string `gorm:"column:uid" json:"uid"`
@@ -17,10 +19,11 @@ type AssetsOrders struct {
 	MintSignature string `gorm:"column:mint_signature" json:"mint_signature"`
 	IsNft         uint8  `gorm:"column:is_nft" json:"is_nft"` // 1: is nft    2:not nft
 
-	Seller    string `gorm:"column:seller" json:"seller"`
-	Buyer     string `gorm:"column:buyer" json:"buyer"`
-	Signature string `gorm:"column:signature" json:"signature"`
-	Status    uint8  `gorm:"column:status" json:"status"` // 1:active 2:expire 3:canceled 4:finished
+	Seller     string    `gorm:"column:seller" json:"seller"`
+	Buyer      string    `gorm:"column:buyer" json:"buyer"`
+	Signature  string    `gorm:"column:signature" json:"signature"`
+	Status     uint8     `gorm:"column:status" json:"status"` // 1:active 2:expire 3:canceled 4:finished
+	ExpireTime time.Time `gorm:"column:expire_time" json:"expire_time"`
 
 	OrderID uint64 `gorm:"column:order_id" json:"order_id"` // orders id
 	NftID   string `gorm:"column:nft_id" json:"nft_id"`
