@@ -3,21 +3,20 @@ package web
 import (
 	"encoding/json"
 	"github.com/blockfishio/metaspace-backend/common"
-	"github.com/blockfishio/metaspace-backend/model/join"
-	"gorm.io/gorm"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/dao"
 	"github.com/blockfishio/metaspace-backend/model"
+	"github.com/blockfishio/metaspace-backend/model/join"
 	"github.com/blockfishio/metaspace-backend/pojo/inner"
 	"github.com/blockfishio/metaspace-backend/pojo/request"
 	"github.com/blockfishio/metaspace-backend/pojo/response"
 	"github.com/blockfishio/metaspace-backend/redis"
 	"github.com/jau1jz/cornus/commons"
 	slog "github.com/jau1jz/cornus/commons/log"
+	"gorm.io/gorm"
+	"strconv"
+	"strings"
+	"time"
 
 	// "gorm.io/gorm"
 	"sync"
@@ -77,8 +76,8 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	for _, vAsset := range assetsOrders {
 
 		//check expireTime
-		if vAsset.ExpireTime.Before(time.Now()) {
-			vAsset.Status = common.OrderStatusActive
+		if !vAsset.ExpireTime.IsZero() && vAsset.ExpireTime.Before(time.Now()) {
+			vAsset.Status = common.OrderStatusExpire
 
 			//update order status
 			_, err = p.dao.WithContext(info.Ctx).Update(model.Orders{
