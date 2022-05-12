@@ -31,7 +31,8 @@ type GetGameAssets struct {
 }
 
 type AssetBody struct {
-	IsNft           bool   `json:"is_nft"`
+	AssetsId        int64  `json:"assets_id"`
+	IsNft           uint8  `json:"is_nft"`
 	TokenId         string `json:"token_id"`
 	ContrainChain   string `json:"contract_chain"`
 	ContractAddress string `json:"contract_address"`
@@ -45,6 +46,8 @@ type AssetBody struct {
 	MintSignature   string `json:"mint_signature"`
 	Subcategory     string `json:"subcategory"`
 	SubcategoryId   int64  `json:"subcategory_id"`
+	Status          uint8  `json:"status"`
+	Price           uint   `json:"price"`
 }
 
 type SubscribeNewsletterEmail struct {

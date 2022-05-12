@@ -2,6 +2,8 @@ package web
 
 import (
 	"encoding/json"
+	"github.com/blockfishio/metaspace-backend/model/join"
+	"gorm.io/gorm"
 	"strconv"
 	"strings"
 
@@ -61,16 +63,16 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	}
 
 	vWalletAddress := strings.ToLower(user.WalletAddress)
-	// TODO: Find all ingame NFT assets (unmited assets)
-	var vAssets []model.Assets
-	err = p.dao.WithContext(info.Ctx).Find([]string{}, map[string]interface{}{
-		model.AssetsColumns.Uid: vWalletAddress,
-	}, nil, &vAssets)
+
+	var assetsOrders []join.AssetsOrders
+	err = p.dao.Find([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature,orders_detail.price,orders.`status`"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		return db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").Where("assets.is_nft=?", 2).Where("assets.uid=?", vWalletAddress)
+	}, &assetsOrders)
 	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find assets Error: %s", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find assetsOrders Error: %s", err.Error())
 		return out, 0, err
 	}
-	for _, vAsset := range vAssets {
+	for _, vAsset := range assetsOrders {
 		SubcategoryString, err := function.GetSubcategoryString(vAsset.Category, vAsset.Type)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp SubcategoryString Error: %s", err.Error())
@@ -78,7 +80,8 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		}
 
 		out.Assets = append(out.Assets, response.AssetBody{
-			IsNft:           false,
+			AssetsId:        vAsset.Id,
+			IsNft:           vAsset.IsNft,
 			TokenId:         strconv.FormatInt(vAsset.Id, 10),
 			ContractAddress: "0xxxxx",
 			ContrainChain:   "BSC",
@@ -92,6 +95,8 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			MintSignature:   vAsset.MintSignature,
 			SubcategoryId:   vAsset.Type,
 			Subcategory:     SubcategoryString,
+			Status:          vAsset.Status,
+			Price:           vAsset.Price,
 		})
 		assetsNum++
 	}
@@ -120,7 +125,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			return out, 0, err
 		}
 		out.Assets = append(out.Assets, response.AssetBody{
-			IsNft:           true,
+			IsNft:           2,
 			TokenId:         vNftDetail.Nft.TokenId,
 			ContractAddress: vNftDetail.Nft.ContractAddress,
 			ContrainChain:   "BSC",
