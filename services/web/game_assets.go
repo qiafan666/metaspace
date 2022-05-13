@@ -74,7 +74,9 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		return out, 0, err
 	}
 	for _, vAsset := range assetsOrders {
-
+		if vAsset.Id == 0 {
+			continue
+		}
 		//check expireTime
 		if !vAsset.ExpireTime.IsZero() && vAsset.ExpireTime.Before(time.Now()) {
 			vAsset.Status = common.OrderStatusExpire

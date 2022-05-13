@@ -139,7 +139,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		err = m.dao.Find([]string{"orders.id,orders.`status`,orders.signature,orders.seller,orders.buyer,orders_detail.nft_id,orders_detail.expire_time"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 			return db.Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").Where("orders.status=? and orders_detail.nft_id=?", common.OrderStatusActive, strconv.FormatInt(vAssets.TokenId, 10))
 		}, &ordersStatus)
-		if err == nil {
+		if err == nil && ordersStatus.Id != 0 {
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get orderDetail error")
 			return out, common.OrdersIsShelf, errors.New(commons.GetCodeAndMsg(common.OrdersIsShelf, commons.DefualtLanguage))
 		} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
@@ -293,7 +293,9 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 	out.Data = make([]response.OrdersDetail, 0, len(ordersDetail))
 
 	for _, v := range ordersDetail {
-
+		if v.Id == 0 {
+			continue
+		}
 		//check expireTime
 		if v.ExpireTime.Before(time.Now()) {
 
@@ -345,6 +347,9 @@ func (m marketServiceImp) GetUserOrders(info request.Orders) (out response.Order
 
 	out.Data = make([]response.OrdersDetail, 0, len(ordersDetail))
 	for _, v := range ordersDetail {
+		if v.Id == 0 {
+			continue
+		}
 		out.Data = append(out.Data, response.OrdersDetail{
 			Id:          v.Id,
 			Seller:      v.Seller,
