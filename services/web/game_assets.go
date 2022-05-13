@@ -85,8 +85,8 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			_, err = p.dao.WithContext(info.Ctx).Update(model.Orders{
 				Status: common.OrderStatusExpire,
 			}, map[string]interface{}{
-				model.OrdersColumns.Signature: vAsset.Signature,
-				model.OrdersColumns.Status:    common.OrderStatusActive,
+				model.OrdersColumns.ID:     vAsset.OrderID,
+				model.OrdersColumns.Status: common.OrderStatusActive,
 			}, nil)
 			if err != nil {
 				slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp Update Order Status error %s", err.Error())
