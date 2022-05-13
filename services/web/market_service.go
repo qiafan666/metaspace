@@ -89,6 +89,28 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		return out, 0, err
 	}
 	tokenId := big.NewInt(vAssets.TokenId)
+
+	if tokenId != nil {
+
+		// check is nft
+		addressOwner := ethcommon.HexToAddress(portalConfig.Contract.Erc721Address)
+		instanceOwner, err := assetscontract.NewContracts(addressOwner, client)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
+			return out, 0, err
+		}
+
+		of, err := instanceOwner.OwnerOf(nil, tokenId)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get walletAdress error")
+			return out, 0, err
+		}
+		if len(of.String()) >= 0 {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature find assets walletAdress in nft error")
+			return out, 0, err
+		}
+	}
+
 	//_price
 	atoi, err := strconv.Atoi(info.Price)
 	if err != nil {
@@ -157,15 +179,15 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 		}
 	}()
 
-	var orders model.Orders
-	err = m.dao.First([]string{model.OrdersColumns.Status}, map[string]interface{}{
-		model.OrdersColumns.Signature: info.SignedMessage,
-	}, nil, &orders)
-
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf get orders by signature error %s", err.Error())
+	var ordersDetail model.OrdersDetail
+	err = m.dao.First([]string{model.OrdersDetailColumns.OrderID}, map[string]interface{}{
+		model.OrdersDetailColumns.NftID: vAssets.TokenId,
+	}, nil, &ordersDetail)
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf get ordersDetail by tokenId error %s", err.Error())
 		return out, 0, err
-	} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+
+	} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
 		newOrders := model.Orders{
 			Seller:      info.BasePortalRequest.BaseUUID,
 			Signature:   info.SignedMessage,
@@ -179,15 +201,16 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 			return out, 0, err
 		}
 
-		ordersDetail := model.OrdersDetail{
+		newOrdersDetail := model.OrdersDetail{
 			OrderID:     newOrders.ID,
 			NftID:       strconv.FormatInt(vAssets.TokenId, 10),
+			Price:       info.Price,
 			ExpireTime:  info.ExpireTime,
 			CreatedTime: time.Now(),
 			UpdatedTime: time.Now(),
 		}
 
-		err = tx.WithContext(info.Ctx).Create(&ordersDetail)
+		err = tx.WithContext(info.Ctx).Create(&newOrdersDetail)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders detail Create error %s", err.Error())
 			return out, 0, err
@@ -197,7 +220,7 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 		_, err = tx.WithContext(info.Ctx).Update(model.Orders{
 			Status: common.OrderStatusActive,
 		}, map[string]interface{}{
-			model.OrdersColumns.Signature: info.SignedMessage,
+			model.OrdersColumns.ID: ordersDetail.OrderID,
 		}, nil)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update Order Status error %s", err.Error())
@@ -207,7 +230,7 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 		_, err = tx.WithContext(info.Ctx).Update(model.OrdersDetail{
 			ExpireTime: info.ExpireTime,
 		}, map[string]interface{}{
-			model.OrdersDetailColumns.OrderID: orders.ID,
+			model.OrdersDetailColumns.NftID: vAssets.TokenId,
 		}, nil)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update orders_detail expireTime error %s", err.Error())
