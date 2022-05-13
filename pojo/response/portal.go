@@ -48,6 +48,7 @@ type AssetBody struct {
 	SubcategoryId   int64  `json:"subcategory_id"`
 	Status          uint8  `json:"status"`
 	Price           uint   `json:"price"`
+	OrderId         int64  `json:"order_id"`
 }
 
 type SubscribeNewsletterEmail struct {

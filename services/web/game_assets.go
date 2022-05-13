@@ -66,7 +66,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	vWalletAddress := strings.ToLower(user.WalletAddress)
 
 	var assetsOrders []join.AssetsOrders
-	err = p.dao.Find([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature,orders_detail.price,orders_detail.expire_time,orders.`status`,orders.signature"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+	err = p.dao.Find([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature,orders_detail.price,orders_detail.order_id,orders_detail.expire_time,orders.`status`,orders.signature"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		return db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").Where("assets.is_nft=?", 2).Where("assets.uid=?", vWalletAddress)
 	}, &assetsOrders)
 	if err != nil {
@@ -119,6 +119,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			Subcategory:     SubcategoryString,
 			Status:          vAsset.Status,
 			Price:           vAsset.Price,
+			OrderId:         int64(vAsset.OrderID),
 		})
 		assetsNum++
 	}
