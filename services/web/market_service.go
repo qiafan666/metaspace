@@ -66,6 +66,17 @@ type marketServiceImp struct {
 
 func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out response.ShelfSign, code commons.ResponseCode, err error) {
 
+	var user model.User
+	err = m.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.WalletAddress}, map[string]interface{}{
+		model.UserColumns.UUID: info.BasePortalRequest.BaseUUID,
+	}, nil, &user)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp failed to fetch UUID. Error: %s", err.Error())
+		return out, 0, err
+	}
+
+	vWalletAddress := strings.ToLower(user.WalletAddress)
+
 	client, err := ethclient.Dial(portalConfig.Contract.EthClient)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature ethClient Dial error:%s", err.Error())
@@ -105,7 +116,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get walletAdress error")
 			return out, 0, err
 		}
-		if strings.ToLower(of.String()) != info.BaseUUID {
+		if strings.ToLower(of.String()) != vWalletAddress {
 			//update orders_detail status
 			if vAssets.Uid != strings.ToLower(of.String()) {
 				_, err = m.dao.WithContext(info.Ctx).Update(model.Assets{
