@@ -101,32 +101,32 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 	}
 	tokenId := big.NewInt(vAssets.TokenId)
 
-	if tokenId != nil {
+	if vAssets.TokenId > 0 {
 
 		// check is nft
 		addressOwner := ethcommon.HexToAddress(portalConfig.Contract.Erc721Address)
-		instanceOwner, err := assetscontract.NewContracts(addressOwner, client)
-		if err != nil {
+		instanceOwner, errs := assetscontract.NewContracts(addressOwner, client)
+		if errs != nil {
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
-			return out, 0, err
+			return out, 0, errs
 		}
 
-		of, err := instanceOwner.OwnerOf(nil, tokenId)
-		if err != nil {
+		of, errs := instanceOwner.OwnerOf(nil, tokenId)
+		if errs != nil {
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get walletAdress error")
-			return out, 0, err
+			return out, 0, errs
 		}
 		if strings.ToLower(of.String()) != vWalletAddress {
-			//update orders_detail status
+			//check assets owner
 			if vAssets.Uid != strings.ToLower(of.String()) {
-				_, err = m.dao.WithContext(info.Ctx).Update(model.Assets{
+				_, errs = m.dao.WithContext(info.Ctx).Update(model.Assets{
 					Uid: strings.ToLower(of.String()),
 				}, map[string]interface{}{
 					model.AssetsColumns.TokenId: vAssets.TokenId,
 				}, nil)
-				if err != nil {
+				if errs != nil {
 					slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets uid error %s", err.Error())
-					return out, 0, err
+					return out, 0, errs
 				}
 			}
 
@@ -135,12 +135,15 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 
 		}
 
-		var ordersDetail model.OrdersDetail
-		err = m.dao.WithContext(info.Ctx).First([]string{model.OrdersDetailColumns.OrderID}, map[string]interface{}{
-			model.OrdersDetailColumns.NftID: tokenId,
-		}, nil, &ordersDetail)
+		var ordersStatus join.OrdersStatus
+		err = m.dao.Find([]string{"orders.id,orders.`status`,orders.signature,orders.seller,orders.buyer,orders_detail.nft_id,orders_detail.expire_time"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			return db.Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").Where("orders.status=? and orders_detail.nft_id=?", common.OrderStatusActive, strconv.FormatInt(vAssets.TokenId, 10))
+		}, &ordersStatus)
 		if err == nil {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get orderDetail error:%s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get orderDetail error")
+			return out, common.OrdersIsShelf, errors.New(commons.GetCodeAndMsg(common.OrdersIsShelf, commons.DefualtLanguage))
+		} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get orderStatus error:%s", err.Error())
 			return out, 0, err
 		}
 	}

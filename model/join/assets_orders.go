@@ -2,6 +2,7 @@ package join
 
 import "time"
 
+//assets,orders table
 type AssetsOrders struct {
 	Id            int64  `gorm:"primaryKey;column:id" json:"id"`
 	Uid           string `gorm:"column:uid" json:"uid"`

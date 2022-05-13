@@ -34,6 +34,7 @@ const (
 	VerifyThirdPartySignTimeOut  = 100016
 	FrequentVerifyThirdPartySign = 100017
 	AuthCodeAlreadyExpired       = 100018
+	OrdersIsShelf                = 100019
 )
 
 // EnglishCodeMsg local code and msg
@@ -57,6 +58,7 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	VerifyThirdPartySignTimeOut:  "Verify Third_Party Sign timeout",
 	FrequentVerifyThirdPartySign: "Frequent Verify Third_Party Sign",
 	AuthCodeAlreadyExpired:       "AuthCode is already expired",
+	OrdersIsShelf:                "Orders is already shelf",
 }
 
 // login type
