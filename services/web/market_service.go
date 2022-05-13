@@ -105,13 +105,13 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get walletAdress error")
 			return out, 0, err
 		}
-		if of.String() != info.BaseUUID {
+		if strings.ToLower(of.String()) != info.BaseUUID {
 			//update orders_detail status
-			if vAssets.Uid != of.String() {
+			if vAssets.Uid != strings.ToLower(of.String()) {
 				_, err = m.dao.WithContext(info.Ctx).Update(model.Assets{
-					Uid: of.String(),
+					Uid: strings.ToLower(of.String()),
 				}, map[string]interface{}{
-					model.AssetsColumns.Uid: vAssets.Uid,
+					model.AssetsColumns.TokenId: vAssets.TokenId,
 				}, nil)
 				if err != nil {
 					slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets uid error %s", err.Error())
