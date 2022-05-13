@@ -105,8 +105,29 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get walletAdress error")
 			return out, 0, err
 		}
-		if len(of.String()) >= 0 {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature find assets walletAdress in nft error")
+		if of.String() != vAssets.Uid {
+			//update orders_detail status
+			_, err = m.dao.WithContext(info.Ctx).Update(model.Assets{
+				Uid: of.String(),
+			}, map[string]interface{}{
+				model.AssetsColumns.Uid: vAssets.Uid,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets uid error %s", err.Error())
+				return out, 0, err
+			}
+
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature find assets walletAdress Mismatch in db error")
+			return out, 0, err
+
+		}
+
+		var ordersDetail model.OrdersDetail
+		err = m.dao.WithContext(info.Ctx).First([]string{model.OrdersDetailColumns.OrderID}, map[string]interface{}{
+			model.OrdersDetailColumns.NftID: tokenId,
+		}, nil, &ordersDetail)
+		if err == nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get orderDetail error:%s", err.Error())
 			return out, 0, err
 		}
 	}
