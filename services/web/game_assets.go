@@ -120,6 +120,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			Status:          vAsset.Status,
 			Price:           vAsset.Price,
 			OrderId:         int64(vAsset.OrderID),
+			ExpireTime:      vAsset.ExpireTime,
 		})
 		assetsNum++
 	}
