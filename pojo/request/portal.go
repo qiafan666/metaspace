@@ -62,13 +62,13 @@ type SubscribeNewsletterEmail struct {
 type TowerStats struct {
 	BaseRequest
 	BasePortalRequest
-	Id string `json:"id" validate:"required,max=8"`
+	Id string `json:"id" validate:"required,max=192"`
 }
 
 type Sign struct {
 	BaseRequest
 	BasePortalRequest
-	TokenId string `json:"token_id"  validate:"required,max=8"`
+	TokenId string `json:"token_id"  validate:"required,max=192"`
 }
 
 type ShelfSign struct {
@@ -85,8 +85,8 @@ type SellShelf struct {
 	SignedMessage string    `json:"signed_message" validate:"required,max=192"`
 	RawMessage    string    `json:"raw_message" validate:"required,max=192"`
 	ItemId        string    `json:"item_id" validate:"required,max=192"`
-	Price         uint      `json:"price" validate:"required,max=192"`
-	ExpireTime    time.Time `json:"expire_time"`
+	Price         uint      `json:"price" validate:"required"`
+	ExpireTime    time.Time `json:"expire_time" validate:"required"`
 }
 
 type Orders struct {
@@ -98,5 +98,5 @@ type Orders struct {
 type OrderCancel struct {
 	BaseRequest
 	BasePortalRequest
-	OrderId uint64 `json:"order_id,string" validate:"required,max=192"`
+	OrderId uint64 `json:"order_id,string" validate:"required"`
 }
