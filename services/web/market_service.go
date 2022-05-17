@@ -255,7 +255,8 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 	} else {
 		//update order status
 		_, err = tx.WithContext(info.Ctx).Update(model.Orders{
-			Status: common.OrderStatusActive,
+			Status:    common.OrderStatusActive,
+			Signature: info.SignedMessage,
 		}, map[string]interface{}{
 			model.OrdersColumns.ID: ordersDetail.OrderID,
 		}, nil)
@@ -265,6 +266,7 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 		}
 		//update orders_detail status
 		_, err = tx.WithContext(info.Ctx).Update(model.OrdersDetail{
+			Price:      info.Price,
 			ExpireTime: info.ExpireTime,
 		}, map[string]interface{}{
 			model.OrdersDetailColumns.NftID: vAssets.TokenId,
