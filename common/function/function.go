@@ -19,7 +19,7 @@ func BindBaseRequest(entity interface{}, ctx iris.Context) {
 		base.Set(reflect.ValueOf(baseRequest))
 	}
 
-	basePortalRequest, _ := ctx.Values().Get(common.BaseRequest).(request.BasePortalRequest)
+	basePortalRequest, _ := ctx.Values().Get(common.BasePortalRequest).(request.BasePortalRequest)
 	basePortal := elem.FieldByName("BasePortalRequest")
 	if basePortal.Kind() != reflect.Invalid {
 		basePortal.Set(reflect.ValueOf(basePortalRequest))

@@ -22,6 +22,7 @@ type Assets struct {
 	TxHash        string    `gorm:"column:tx_hash" json:"tx_hash"`
 	Status        string    `gorm:"column:status" json:"status"`
 	MintSignature string    `gorm:"column:mint_signature" json:"mint_signature"`
+	IsNft         uint8     `gorm:"column:is_nft" json:"is_nft"` // 1: is nft    2:not nft
 	CreatedAt     time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt     time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
@@ -49,6 +50,7 @@ var AssetsColumns = struct {
 	TxHash        string
 	Status        string
 	MintSignature string
+	IsNft         string
 	CreatedAt     string
 	UpdatedAt     string
 }{

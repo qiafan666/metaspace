@@ -2,18 +2,21 @@ package web
 
 import (
 	"encoding/json"
-	"strconv"
-	"strings"
-
+	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/dao"
 	"github.com/blockfishio/metaspace-backend/model"
+	"github.com/blockfishio/metaspace-backend/model/join"
 	"github.com/blockfishio/metaspace-backend/pojo/inner"
 	"github.com/blockfishio/metaspace-backend/pojo/request"
 	"github.com/blockfishio/metaspace-backend/pojo/response"
 	"github.com/blockfishio/metaspace-backend/redis"
 	"github.com/jau1jz/cornus/commons"
 	slog "github.com/jau1jz/cornus/commons/log"
+	"gorm.io/gorm"
+	"strconv"
+	"strings"
+	"time"
 
 	// "gorm.io/gorm"
 	"sync"
@@ -61,16 +64,37 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	}
 
 	vWalletAddress := strings.ToLower(user.WalletAddress)
-	// TODO: Find all ingame NFT assets (unmited assets)
-	var vAssets []model.Assets
-	err = p.dao.WithContext(info.Ctx).Find([]string{}, map[string]interface{}{
-		model.AssetsColumns.Uid: vWalletAddress,
-	}, nil, &vAssets)
+
+	var assetsOrders []join.AssetsOrders
+	err = p.dao.Find([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature,orders_detail.price,orders_detail.order_id,orders_detail.expire_time,orders.`status`,orders.signature"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		return db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").Where("assets.is_nft=?", 2).Where("assets.uid=?", vWalletAddress)
+	}, &assetsOrders)
 	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find assets Error: %s", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find assetsOrders Error: %s", err.Error())
 		return out, 0, err
 	}
-	for _, vAsset := range vAssets {
+	for _, vAsset := range assetsOrders {
+		if vAsset.Id == 0 {
+			continue
+		}
+		//check expireTime
+		if !vAsset.ExpireTime.IsZero() && vAsset.ExpireTime.Before(time.Now()) {
+			vAsset.Status = common.OrderStatusExpire
+
+			//update order status
+			_, err = p.dao.WithContext(info.Ctx).Update(model.Orders{
+				Status: common.OrderStatusExpire,
+			}, map[string]interface{}{
+				model.OrdersColumns.ID:     vAsset.OrderID,
+				model.OrdersColumns.Status: common.OrderStatusActive,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp Update Order Status error %s", err.Error())
+				return out, 0, err
+			}
+
+		}
+
 		SubcategoryString, err := function.GetSubcategoryString(vAsset.Category, vAsset.Type)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp SubcategoryString Error: %s", err.Error())
@@ -78,7 +102,8 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		}
 
 		out.Assets = append(out.Assets, response.AssetBody{
-			IsNft:           false,
+			AssetsId:        vAsset.Id,
+			IsNft:           vAsset.IsNft,
 			TokenId:         strconv.FormatInt(vAsset.Id, 10),
 			ContractAddress: "0xxxxx",
 			ContrainChain:   "BSC",
@@ -92,6 +117,10 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			MintSignature:   vAsset.MintSignature,
 			SubcategoryId:   vAsset.Type,
 			Subcategory:     SubcategoryString,
+			Status:          vAsset.Status,
+			Price:           vAsset.Price,
+			OrderId:         int64(vAsset.OrderID),
+			ExpireTime:      vAsset.ExpireTime,
 		})
 		assetsNum++
 	}
@@ -120,7 +149,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			return out, 0, err
 		}
 		out.Assets = append(out.Assets, response.AssetBody{
-			IsNft:           true,
+			IsNft:           2,
 			TokenId:         vNftDetail.Nft.TokenId,
 			ContractAddress: vNftDetail.Nft.ContractAddress,
 			ContrainChain:   "BSC",

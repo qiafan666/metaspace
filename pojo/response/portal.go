@@ -31,20 +31,25 @@ type GetGameAssets struct {
 }
 
 type AssetBody struct {
-	IsNft           bool   `json:"is_nft"`
-	TokenId         string `json:"token_id"`
-	ContrainChain   string `json:"contract_chain"`
-	ContractAddress string `json:"contract_address"`
-	Name            string `json:"name"`
-	Image           string `json:"image"`
-	Description     string `json:"description"`
-	Category        string `json:"category"`
-	CategoryId      int64  `json:"category_id"`
-	Rarity          string `json:"rarity"`
-	RarityId        int64  `json:"rarity_id"`
-	MintSignature   string `json:"mint_signature"`
-	Subcategory     string `json:"subcategory"`
-	SubcategoryId   int64  `json:"subcategory_id"`
+	AssetsId        int64     `json:"assets_id"`
+	IsNft           uint8     `json:"is_nft"`
+	TokenId         string    `json:"token_id"`
+	ContrainChain   string    `json:"contract_chain"`
+	ContractAddress string    `json:"contract_address"`
+	Name            string    `json:"name"`
+	Image           string    `json:"image"`
+	Description     string    `json:"description"`
+	Category        string    `json:"category"`
+	CategoryId      int64     `json:"category_id"`
+	Rarity          string    `json:"rarity"`
+	RarityId        int64     `json:"rarity_id"`
+	MintSignature   string    `json:"mint_signature"`
+	Subcategory     string    `json:"subcategory"`
+	SubcategoryId   int64     `json:"subcategory_id"`
+	Status          uint8     `json:"status"`
+	Price           uint      `json:"price"`
+	OrderId         int64     `json:"order_id"`
+	ExpireTime      time.Time `json:"expire_time"`
 }
 
 type SubscribeNewsletterEmail struct {
