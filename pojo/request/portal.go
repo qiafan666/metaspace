@@ -52,6 +52,10 @@ type GetNonce struct {
 type GetGameAssets struct {
 	BaseRequest
 	BasePortalRequest
+	BasePagination
+	Category    *int `json:"category"`
+	Rarity      *int `json:"rarity"`
+	Subcategory *int `json:"subcategory"`
 }
 
 type SubscribeNewsletterEmail struct {
