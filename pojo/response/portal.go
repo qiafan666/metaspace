@@ -2,6 +2,12 @@ package response
 
 import "time"
 
+type BasePagination struct {
+	Total        int64 `json:"total"`
+	CurrentPage  int   `json:"currentPage"`
+	PrePageCount int   `json:"prePageCount"`
+}
+
 type ThirdPartyLogin struct {
 	Token         string    `json:"token"`
 	Email         string    `json:"email"`
@@ -26,8 +32,8 @@ type GetNonce struct {
 }
 
 type GetGameAssets struct {
-	AssetNum int         `json:"asset_number"`
-	Assets   []AssetBody `json:"assets"`
+	BasePagination
+	Assets []AssetBody `json:"assets"`
 }
 
 type AssetBody struct {
