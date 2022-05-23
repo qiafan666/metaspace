@@ -94,9 +94,9 @@ type OrdersDetail struct {
 	Signature   string `json:"signature"`
 	Status      uint8  `json:"status"` // 1:active 2:expire 3:canceled 4:finished
 	NftID       string `json:"nft_id"`
-	Category    int64  `json:"category"`
+	Category    int64  `json:"category_id"`
 	Type        int64  `json:"type"`
-	Rarity      int64  `json:"rarity"`
+	Rarity      int64  `json:"rarity_id"`
 	Image       string `json:"image"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
