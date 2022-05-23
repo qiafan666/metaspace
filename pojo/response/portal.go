@@ -1,6 +1,8 @@
 package response
 
-import "time"
+import (
+	"time"
+)
 
 type BasePagination struct {
 	Total        int64 `json:"total"`
@@ -81,7 +83,8 @@ type SellShelf struct {
 }
 
 type Orders struct {
-	Data []OrdersDetail `json:"orders_detail"`
+	BasePagination
+	Data []OrdersDetail `json:"orders_list"`
 }
 
 type OrdersDetail struct {
@@ -94,9 +97,10 @@ type OrdersDetail struct {
 	Category    int64  `json:"category"`
 	Type        int64  `json:"type"`
 	Rarity      int64  `json:"rarity"`
-	Image       string `son:"image"`
+	Image       string `json:"image"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	Price       uint   `json:"price"`
 }
 
 type OrderCancel struct {
