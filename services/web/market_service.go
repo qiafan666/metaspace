@@ -335,7 +335,15 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 		})
 	}
 
-	out.Total = int64(len(out.Data))
+	count, err := m.dao.WithContext(info.Ctx).Count(model.Orders{}, map[string]interface{}{
+		model.OrdersColumns.Status: common.OrderStatusActive,
+	}, nil)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Count error %s", err.Error())
+		return out, 0, err
+	}
+
+	out.Total = count
 	out.CurrentPage = info.CurrentPage
 	out.PrePageCount = info.PageCount
 	return
