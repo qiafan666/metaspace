@@ -320,18 +320,20 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 		}
 
 		out.Data = append(out.Data, response.OrdersDetail{
-			Id:          v.Id,
-			Seller:      v.Seller,
-			Buyer:       v.Buyer,
-			Signature:   v.Signature,
-			Status:      v.Status,
-			NftID:       v.NftID,
-			Category:    v.Category,
-			Type:        v.Type,
-			Rarity:      v.Rarity,
-			Image:       v.Image,
-			Name:        v.Name,
-			Description: v.Description,
+			Id:            v.Id,
+			Seller:        v.Seller,
+			Buyer:         v.Buyer,
+			Signature:     v.Signature,
+			Status:        v.Status,
+			NftID:         v.NftID,
+			Category:      v.Category,
+			Type:          v.Type,
+			Rarity:        v.Rarity,
+			Image:         v.Image,
+			Name:          v.Name,
+			Description:   v.Description,
+			Price:         v.Price,
+			ContractChain: "BSC",
 		})
 	}
 
