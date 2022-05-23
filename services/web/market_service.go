@@ -278,7 +278,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 
 	var ordersDetail []join.OrdersDetail
 	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.id,orders.buyer,orders.seller,orders_detail.nft_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-		db.Scopes(Paginate(info.CurrentPage, info.PrePageCount)).
+		db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 			Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").
 			Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").
 			Where("orders.status=?", common.OrderStatusActive)

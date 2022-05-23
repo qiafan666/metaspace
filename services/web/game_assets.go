@@ -78,7 +78,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	var assetsOrders []join.AssetsOrders
 	err = p.dao.WithContext(info.Ctx).Find([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature," +
 		"orders_detail.price,orders_detail.order_id,orders_detail.expire_time,orders.`status`,orders.signature"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-		db = db.Scopes(Paginate(info.CurrentPage, info.PrePageCount)).
+		db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 			Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
 			Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
 			Where("assets.uid=?", vWalletAddress)
@@ -151,7 +151,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	}
 	out.Total = count
 	out.CurrentPage = info.CurrentPage
-	out.PrePageCount = info.PrePageCount
+	out.PrePageCount = info.PageCount
 
 	return
 }
