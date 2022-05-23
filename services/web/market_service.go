@@ -14,11 +14,11 @@ import (
 	"github.com/blockfishio/metaspace-backend/pojo/response"
 	"github.com/blockfishio/metaspace-backend/redis"
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/jau1jz/cornus"
 	"github.com/jau1jz/cornus/commons"
 	slog "github.com/jau1jz/cornus/commons/log"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"math/big"
 	"math/rand"
 	"strconv"
@@ -30,7 +30,7 @@ import (
 // MarketService service layer interface
 type MarketService interface {
 	GetShelfSignature(info request.ShelfSign) (out response.ShelfSign, code commons.ResponseCode, err error)
-	GetSellShelf(info request.SellShelf) (out response.SellShelf, code commons.ResponseCode, err error)
+	SellShelf(info request.SellShelf) (out response.SellShelf, code commons.ResponseCode, err error)
 	GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error)
 	GetUserOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error)
 	OrderCancel(info request.OrderCancel) (out response.OrderCancel, code commons.ResponseCode, err error)
@@ -55,6 +55,7 @@ func NewMarketInstance() *marketServiceImp {
 			dao:   dao.Instance(),
 			redis: redis.Instance(),
 		}
+
 	})
 	return marketServiceIns
 }
@@ -77,14 +78,8 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 
 	vWalletAddress := strings.ToLower(user.WalletAddress)
 
-	client, err := ethclient.Dial(portalConfig.Contract.EthClient)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature ethClient Dial error:%s", err.Error())
-		return out, 0, err
-	}
-
 	address := ethcommon.HexToAddress(marketConfig.Contract.MarketAddress)
-	instance, err := marketcontract.NewContracts(address, client)
+	instance, err := marketcontract.NewContracts(address, ethClient)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
 		return out, 0, err
@@ -105,7 +100,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 
 		// check is nft
 		addressOwner := ethcommon.HexToAddress(portalConfig.Contract.Erc721Address)
-		instanceOwner, errs := assetscontract.NewContracts(addressOwner, client)
+		instanceOwner, errs := assetscontract.NewContracts(addressOwner, ethClient)
 		if errs != nil {
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
 			return out, 0, errs
@@ -167,8 +162,12 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 	return
 }
 
-func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.SellShelf, code commons.ResponseCode, err error) {
+func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellShelf, code commons.ResponseCode, err error) {
 
+	if info.ExpireTime.Before(time.Now()) {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp expireTime error:%s", err.Error())
+		return out, 0, err
+	}
 	//itemId
 	var vAssets model.Assets
 	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenId}, map[string]interface{}{
@@ -179,14 +178,8 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 		return out, 0, err
 	}
 
-	client, err := ethclient.Dial(portalConfig.Contract.EthClient)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature ethClient Dial error:%s", err.Error())
-		return out, 0, err
-	}
-
 	address := ethcommon.HexToAddress(portalConfig.Contract.Erc721Address)
-	instance, err := assetscontract.NewContracts(address, client)
+	instance, err := assetscontract.NewContracts(address, ethClient)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
 		return out, 0, err
@@ -228,7 +221,7 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 		newOrders := model.Orders{
 			Seller:      info.BasePortalRequest.BaseUUID,
 			Signature:   info.SignedMessage,
-			Status:      1,
+			Status:      common.OrderStatusActive,
 			CreatedTime: time.Now(),
 			UpdatedTime: time.Now(),
 		}
@@ -284,8 +277,19 @@ func (m marketServiceImp) GetSellShelf(info request.SellShelf) (out response.Sel
 func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
 
 	var ordersDetail []join.OrdersDetail
-	err = m.dao.Find([]string{"orders.id,orders.`status`,orders.signature,orders.id,orders.buyer,orders.seller,orders_detail.nft_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-		return db.Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").Where("orders.status=?", common.OrderStatusActive)
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.id,orders.buyer,orders.seller,orders_detail.nft_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		db.Scopes(Paginate(info.CurrentPage, info.PrePageCount)).
+			Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").
+			Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").
+			Where("orders.status=?", common.OrderStatusActive)
+
+		if info.Category != nil {
+			db = db.Where("assets.category=?", info.Category)
+		}
+		if info.Rarity != nil {
+			db = db.Where("assets.rarity=?", info.Rarity)
+		}
+		return db
 	}, &ordersDetail)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetOrders detail error %s", err.Error())
@@ -301,13 +305,11 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 		//check expireTime
 		if v.ExpireTime.Before(time.Now()) {
 
-			v.Status = common.OrderStatusActive
-
 			//update order status
 			_, err = m.dao.WithContext(info.Ctx).Update(model.Orders{
 				Status: common.OrderStatusExpire,
 			}, map[string]interface{}{
-				model.OrdersColumns.Signature: v.Signature,
+				model.OrdersColumns.ID: v.Id,
 			}, nil)
 			if err != nil {
 				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update Order Status error %s", err.Error())
@@ -339,7 +341,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 func (m marketServiceImp) GetUserOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
 
 	var ordersDetail []join.OrdersDetail
-	err = m.dao.Find([]string{"orders.id,orders.`status`,orders.signature,orders.id,orders.buyer,orders.seller,orders_detail.nft_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.id,orders.buyer,orders.seller,orders_detail.nft_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		return db.Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").Where("orders.status=?", info.Status).Where("orders.seller=? or orders.buyer=?", info.BasePortalRequest.BaseUUID, info.BasePortalRequest.BaseUUID)
 	}, &ordersDetail)
 	if err != nil {
@@ -384,9 +386,11 @@ func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.Or
 
 	var orders model.Orders
 
-	err = tx.First([]string{model.OrdersColumns.Status, model.OrdersColumns.Seller}, map[string]interface{}{
+	err = tx.WithContext(info.Ctx).First([]string{model.OrdersColumns.Status, model.OrdersColumns.Seller}, map[string]interface{}{
 		model.OrdersColumns.ID: info.OrderId,
-	}, nil, &orders)
+	}, func(db *gorm.DB) *gorm.DB {
+		return db.Clauses(clause.Locking{Strength: "UPDATE"})
+	}, &orders)
 
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders First error %s", err.Error())

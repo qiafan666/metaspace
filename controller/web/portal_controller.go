@@ -158,7 +158,7 @@ func (receiver *PortalWebController) PostOrderCreate() {
 		return
 	}
 	function.BindBaseRequest(&input, receiver.Ctx)
-	if out, code, err := receiver.MarketService.GetSellShelf(input); err != nil {
+	if out, code, err := receiver.MarketService.SellShelf(input); err != nil {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
 	} else {
 		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
