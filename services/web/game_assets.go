@@ -20,7 +20,7 @@ import (
 	"sync"
 )
 
-// PortalService service layer interface
+// GameAssetsService service layer interface
 type GameAssetsService interface {
 	GetGameAssets(info request.GetGameAssets) (out response.GetGameAssets, code commons.ResponseCode, err error)
 }
@@ -56,18 +56,29 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 
 	vWalletAddress := strings.ToLower(user.WalletAddress)
 
-	count, err := p.dao.Count(model.Assets{}, map[string]interface{}{
+	count, err := p.dao.WithContext(info.Ctx).Count(model.Assets{}, map[string]interface{}{
 		model.AssetsColumns.Uid: vWalletAddress,
-	}, nil)
+	}, func(db *gorm.DB) *gorm.DB {
+		if info.Category != nil {
+			db = db.Where("assets.category=?", info.Category)
+		}
+		if info.Subcategory != nil {
+			db = db.Where("assets.type=?", info.Subcategory)
+		}
+		if info.Rarity != nil {
+			db = db.Where("assets.rarity=?", info.Rarity)
+		}
+		return db
+	})
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp assets Count error %s", err.Error())
 		return out, 0, err
 	}
 
 	var assetsOrders []join.AssetsOrders
-	err = p.dao.Find([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature," +
+	err = p.dao.WithContext(info.Ctx).Find([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature," +
 		"orders_detail.price,orders_detail.order_id,orders_detail.expire_time,orders.`status`,orders.signature"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-		db = db.Scopes(Paginate(info.CurrentPage, info.PrePageCount)).
+		db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 			Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
 			Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
 			Where("assets.uid=?", vWalletAddress)
@@ -140,7 +151,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	}
 	out.Total = count
 	out.CurrentPage = info.CurrentPage
-	out.PrePageCount = info.PrePageCount
+	out.PrePageCount = info.PageCount
 
 	return
 }

@@ -67,6 +67,8 @@ func init() {
 
 var portalServiceIns *portalServiceImp
 var portalServiceInitOnce sync.Once
+var ethClient *ethclient.Client
+var portalErr error
 
 func NewPortalServiceInstance() *portalServiceImp {
 	portalServiceInitOnce.Do(func() {
@@ -75,6 +77,13 @@ func NewPortalServiceInstance() *portalServiceImp {
 			redis: redis.Instance(),
 		}
 	})
+
+	ethClient, portalErr = ethclient.Dial(portalConfig.Contract.EthClient)
+	if portalErr != nil {
+		s := portalErr.Error()
+		slog.Slog.InfoF(context.Background(), "eth client connect error %s", s)
+		panic(s)
+	}
 	return portalServiceIns
 }
 
@@ -531,14 +540,8 @@ func (p portalServiceImp) GetTowerStatus(info request.TowerStats) (out response.
 
 func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error) {
 
-	client, err := ethclient.Dial(portalConfig.Contract.EthClient)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign ethClient Dial error")
-		return out, 0, err
-	}
-
 	address := ethCommon.HexToAddress(portalConfig.Contract.NftAddress)
-	instance, err := bridgecontract.NewContracts(address, client)
+	instance, err := bridgecontract.NewContracts(address, ethClient)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign NewContracts error")
 		return out, 0, err

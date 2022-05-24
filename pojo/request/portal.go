@@ -95,8 +95,11 @@ type SellShelf struct {
 
 type Orders struct {
 	BaseRequest
+	BasePagination
 	BasePortalRequest
-	Status uint8 `json:"status,string" validate:"required,max=9"`
+	Status   uint8 `json:"status,string"`
+	Category *int  `json:"category"`
+	Rarity   *int  `json:"rarity"`
 }
 
 type OrderCancel struct {
