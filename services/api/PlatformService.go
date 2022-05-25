@@ -9,6 +9,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/redis"
 	"github.com/jau1jz/cornus/commons"
 	slog "github.com/jau1jz/cornus/commons/log"
+	"strings"
 	"sync"
 	"time"
 )
@@ -38,6 +39,8 @@ type PlatformServiceImp struct {
 
 func (p PlatformServiceImp) AddAssets(info request.AddAssets) (out response.AddAssets, code commons.ResponseCode, err error) {
 
+	walletAddress := strings.ToLower(info.WalletAdress)
+
 	tx := p.dao.Tx()
 	defer func() {
 		if err != nil {
@@ -48,7 +51,7 @@ func (p PlatformServiceImp) AddAssets(info request.AddAssets) (out response.AddA
 	}()
 
 	newAssets := model.Assets{
-		Uid:         info.Uid,
+		Uid:         walletAddress,
 		Category:    info.Category,
 		Type:        info.Type,
 		Rarity:      info.Rarity,
