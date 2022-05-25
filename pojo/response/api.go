@@ -5,3 +5,6 @@ type CreateAuthCode struct {
 	LoginAddress string `json:"login_address"`
 	LoginUrl     string `json:"login_url"`
 }
+
+type AddAssets struct {
+}

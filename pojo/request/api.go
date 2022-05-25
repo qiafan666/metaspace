@@ -11,3 +11,17 @@ type CreateAuthCode struct {
 	BaseRequest
 	BaseApiRequest
 }
+
+type AddAssets struct {
+	BaseRequest
+	BaseApiRequest
+	Uid         string `json:"uid"`
+	Category    int64  `json:"category"`
+	Type        int64  `json:"type"`
+	Rarity      int64  `json:"rarity"`
+	Image       string `json:"image"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Uri         string `json:"uri"`
+	UriContent  string `json:"uri_content"`
+}

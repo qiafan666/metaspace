@@ -53,9 +53,9 @@ type GetGameAssets struct {
 	BaseRequest
 	BasePortalRequest
 	BasePagination
-	Category    *int `json:"category"`
-	Rarity      *int `json:"rarity"`
-	Subcategory *int `json:"subcategory"`
+	Category *int `json:"category"`
+	Rarity   *int `json:"rarity"`
+	IsNft    *int `json:"is_nft"`
 }
 
 type SubscribeNewsletterEmail struct {

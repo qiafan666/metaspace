@@ -35,5 +35,8 @@ func RegisterRouter(ctx *iris.Application) {
 			application.Handle(&api.LoginApiController{
 				LoginService: api2.NewLoginInstance(),
 			})
+			application.Handle(&api.PlatformController{
+				PlatformService: api2.NewPlatformInstance(),
+			})
 		})
 }
