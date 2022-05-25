@@ -39,7 +39,7 @@ type PlatformServiceImp struct {
 
 func (p PlatformServiceImp) AddAssets(info request.AddAssets) (out response.AddAssets, code commons.ResponseCode, err error) {
 
-	walletAddress := strings.ToLower(info.WalletAdress)
+	walletAddress := strings.ToLower(info.WalletAddress)
 
 	tx := p.dao.Tx()
 	defer func() {
