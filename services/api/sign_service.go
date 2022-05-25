@@ -176,6 +176,7 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 		return out, 0, err
 	}
 	thirdPartyPublicKeyBufferString := bytes.NewBufferString(thirdPartyPublicKey)
+	slog.Slog.InfoF(ctx, "bufferString:%s", bufferString)
 	slog.Slog.InfoF(ctx, "bufferString:%s", decodeString)
 	err = utils.Rsa2VerifySign(sha256.Sum256(bufferString.Bytes()), decodeString, thirdPartyPublicKeyBufferString.Bytes())
 	if err != nil {
