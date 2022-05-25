@@ -170,12 +170,13 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 	bufferString.Write(info.Parameter)
 	bufferString.WriteString(info.Rand)
 
-	decodeString, err := base64.StdEncoding.DecodeString(info.Sign)
+	decodeString, err := base64.URLEncoding.DecodeString(info.Sign)
 	if err != nil {
 		slog.Slog.ErrorF(ctx, "SignServiceImp VerifySign Sign DecodeString error %s", err.Error())
 		return out, 0, err
 	}
 	thirdPartyPublicKeyBufferString := bytes.NewBufferString(thirdPartyPublicKey)
+	slog.Slog.InfoF(ctx, "bufferString:%s", thirdPartyPublicKeyBufferString)
 	err = utils.Rsa2VerifySign(sha256.Sum256(bufferString.Bytes()), decodeString, thirdPartyPublicKeyBufferString.Bytes())
 	if err != nil {
 		out.Flag = false
