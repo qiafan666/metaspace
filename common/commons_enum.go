@@ -114,3 +114,8 @@ const (
 	BaseRequestRand          = "Rand"
 	BaseRequestAuthorization = "Authorization"
 )
+
+const (
+	IsNft  = 1
+	NotNft = 2
+)

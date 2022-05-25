@@ -62,8 +62,8 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		if info.Category != nil {
 			db = db.Where("assets.category=?", info.Category)
 		}
-		if info.Subcategory != nil {
-			db = db.Where("assets.type=?", info.Subcategory)
+		if info.IsNft != nil {
+			db = db.Where("assets.is_nft=?", info.IsNft)
 		}
 		if info.Rarity != nil {
 			db = db.Where("assets.rarity=?", info.Rarity)
@@ -85,8 +85,8 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		if info.Category != nil {
 			db = db.Where("assets.category=?", info.Category)
 		}
-		if info.Subcategory != nil {
-			db = db.Where("assets.type=?", info.Subcategory)
+		if info.IsNft != nil {
+			db = db.Where("assets.is_nft=?", info.IsNft)
 		}
 		if info.Rarity != nil {
 			db = db.Where("assets.rarity=?", info.Rarity)
