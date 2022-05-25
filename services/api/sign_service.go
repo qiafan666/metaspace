@@ -179,7 +179,7 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 	err = utils.Rsa2VerifySign(sha256.Sum256(bufferString.Bytes()), decodeString, thirdPartyPublicKeyBufferString.Bytes())
 	if err != nil {
 		out.Flag = false
-		slog.Slog.InfoF(ctx, "SignServiceImp Verify Rsa2Sign failed")
+		slog.Slog.InfoF(ctx, "SignServiceImp Verify Rsa2Sign failed %s", err.Error())
 		return out, common.VerifyThirdPartySignError, errors.New(commons.GetCodeAndMsg(common.VerifyThirdPartySignError, commons.DefualtLanguage))
 	}
 	out.ThirdPartyId = thirdPartyId
