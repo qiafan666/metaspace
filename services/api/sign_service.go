@@ -110,22 +110,21 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 
 	//check rand
 	ctx := context.Background()
-	_, err = s.redis.GetRand(ctx, info.ApiKey)
+	_, err = s.redis.GetRand(ctx, info.Rand)
 	if err != nil && err.Error() != redis.Nil.Error() {
 		slog.Slog.InfoF(ctx, "SignServiceImp sign VerifySign error %s", err.Error())
 		return out, 0, err
 	} else if err != nil && err.Error() == redis.Nil.Error() {
 
 		err = s.redis.SetRand(ctx, inner.Rand{
-			ApiKey: info.ApiKey,
-			Rand:   info.Rand,
+			Rand: info.Rand,
 		}, time.Second*10)
 		if err != nil {
 			slog.Slog.ErrorF(ctx, "SignServiceImp SetRand error %s", err.Error())
 			return out, 0, err
 		}
 	} else {
-		slog.Slog.InfoF(ctx, "SignServiceImp frequent VerifySign error", nil)
+		slog.Slog.InfoF(ctx, "SignServiceImp frequent VerifySign error")
 		return out, common.FrequentVerifyThirdPartySign, errors.New(commons.GetCodeAndMsg(common.FrequentVerifyThirdPartySign, commons.DefualtLanguage))
 	}
 

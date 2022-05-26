@@ -333,6 +333,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 			Name:          v.Name,
 			Description:   v.Description,
 			Price:         v.Price,
+			ExpireTime:    v.ExpireTime,
 			ContractChain: "BSC",
 		})
 	}

@@ -12,8 +12,7 @@ type PublicKey struct {
 }
 
 type Rand struct {
-	ApiKey string `json:"api_key"`
-	Rand   string `json:"rand"`
+	Rand string `json:"rand"`
 }
 
 type AuthCode struct {
