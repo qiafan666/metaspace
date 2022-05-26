@@ -24,7 +24,7 @@ func CheckSignAuth(ctx iris.Context) {
 		signService = api.NewSignInstance()
 	})
 
-	verifyResult, _, _ := signService.VerifySign(inner.VerifySignRequest{
+	verifyResult, code, _ := signService.VerifySign(inner.VerifySignRequest{
 		Sign:      ctx.Request().Header.Get(common.BaseRequestSign),
 		ApiKey:    ctx.Request().Header.Get(common.BaseRequestApiKey),
 		Timestamp: ctx.Request().Header.Get(common.BaseRequestTimestamp),
@@ -34,7 +34,8 @@ func CheckSignAuth(ctx iris.Context) {
 	})
 
 	if verifyResult.Flag == false {
-		_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))
+		_, _ = ctx.JSON(commons.BuildFailed(code, commons.DefualtLanguage))
+
 		return
 	}
 
