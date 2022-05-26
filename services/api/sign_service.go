@@ -96,6 +96,7 @@ func (s SignServiceImp) Sign(info inner.SignRequest) (out inner.SignResponse, co
 
 func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.VerifySignResponse, code commons.ResponseCode, err error) {
 
+	out.Flag = false
 	//check time
 	parseInt, err := strconv.ParseInt(info.Timestamp, 10, 64)
 	if err != nil {
@@ -177,7 +178,6 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 	thirdPartyPublicKeyBufferString := bytes.NewBufferString(thirdPartyPublicKey)
 	err = utils.Rsa2VerifySign(sha256.Sum256(bufferString.Bytes()), decodeString, thirdPartyPublicKeyBufferString.Bytes())
 	if err != nil {
-		out.Flag = false
 		slog.Slog.InfoF(ctx, "SignServiceImp Verify Rsa2Sign failed %s", err.Error())
 		return out, common.VerifyThirdPartySignError, errors.New(commons.GetCodeAndMsg(common.VerifyThirdPartySignError, commons.DefualtLanguage))
 	}
