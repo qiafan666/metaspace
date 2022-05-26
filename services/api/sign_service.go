@@ -125,7 +125,7 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 			return out, 0, err
 		}
 	} else {
-		slog.Slog.InfoF(ctx, "SignServiceImp frequent VerifySign error %s", nil)
+		slog.Slog.InfoF(ctx, "SignServiceImp frequent VerifySign error", nil)
 		return out, common.FrequentVerifyThirdPartySign, errors.New(commons.GetCodeAndMsg(common.FrequentVerifyThirdPartySign, commons.DefualtLanguage))
 	}
 
