@@ -96,7 +96,6 @@ func (s SignServiceImp) Sign(info inner.SignRequest) (out inner.SignResponse, co
 
 func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.VerifySignResponse, code commons.ResponseCode, err error) {
 
-	out.Flag = false
 	//check time
 	parseInt, err := strconv.ParseInt(info.Timestamp, 10, 64)
 	if err != nil {
@@ -182,7 +181,6 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 		return out, common.VerifyThirdPartySignError, errors.New(commons.GetCodeAndMsg(common.VerifyThirdPartySignError, commons.DefualtLanguage))
 	}
 	out.ThirdPartyId = thirdPartyId
-	out.Flag = true
 	return
 }
 

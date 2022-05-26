@@ -22,5 +22,4 @@ type VerifySignRequest struct {
 }
 type VerifySignResponse struct {
 	ThirdPartyId uint64 `json:"third_party_id"`
-	Flag         bool   `json:"flag"`
 }
