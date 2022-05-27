@@ -4,12 +4,16 @@ import (
 	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/pojo/inner"
 	"github.com/blockfishio/metaspace-backend/pojo/request"
-	"github.com/blockfishio/metaspace-backend/services/api"
+	commonService "github.com/blockfishio/metaspace-backend/services/common"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jau1jz/cornus"
 	"github.com/jau1jz/cornus/commons"
 	"github.com/kataras/iris/v12"
+	"sync"
 )
+
+var comService commonService.PublicService
+var commonMidOnce sync.Once
 
 var jwtConfig struct {
 	JWT struct {
@@ -32,14 +36,16 @@ var witheList = map[string]string{
 }
 
 func CheckPortalAuth(ctx iris.Context) {
+
+	commonMidOnce.Do(func() {
+		comService = commonService.NewPublicInstance()
+	})
+
 	var language, uuid, email string
 	var userId inner.UserId
 	//check white list
 	if _, ok := witheList[ctx.Request().RequestURI]; !ok {
 
-		signMidOnce.Do(func() {
-			signService = api.NewSignInstance()
-		})
 		//check jwt
 		parseToken, err := jwt.Parse(ctx.Request().Header.Get("Authorization"), func(token *jwt.Token) (interface{}, error) {
 			return []byte(jwtConfig.JWT.Secret), nil
@@ -57,7 +63,7 @@ func CheckPortalAuth(ctx iris.Context) {
 			return
 		}
 
-		userId, _, err = signService.GetUserId(ctx, uuid)
+		userId, _, err = comService.GetUserId(ctx, uuid)
 		if err != nil {
 			_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage))
 			return
