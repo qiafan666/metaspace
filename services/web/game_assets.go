@@ -119,11 +119,13 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			}
 
 		}
-
-		SubcategoryString, err := function.GetSubcategoryString(vAsset.Category, vAsset.Type)
+		var subCategoryString string
+		subCategoryString, err = function.GetSubcategoryString(vAsset.Category, vAsset.Type)
 		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp SubcategoryString Error: %s", err.Error())
-			return out, 0, err
+			category := strconv.FormatInt(vAsset.Category, 10)
+			subCategory := strconv.FormatInt(vAsset.Type, 10)
+			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp SubcategoryString Category:%s,type:%s,Error: %s", category, subCategory, err.Error())
+			subCategoryString = "unknown type"
 		}
 
 		out.Assets = append(out.Assets, response.AssetBody{
@@ -141,7 +143,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			RarityId:        vAsset.Rarity,
 			MintSignature:   vAsset.MintSignature,
 			SubcategoryId:   vAsset.Type,
-			Subcategory:     SubcategoryString,
+			Subcategory:     subCategoryString,
 			Status:          vAsset.Status,
 			Price:           vAsset.Price,
 			OrderId:         int64(vAsset.OrderID),

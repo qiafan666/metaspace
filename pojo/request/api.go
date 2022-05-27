@@ -15,7 +15,7 @@ type CreateAuthCode struct {
 type AddAssets struct {
 	BaseRequest
 	BaseApiRequest
-	AssetsList []Assets `json:"assets_list"`
+	AssetsList []Assets `json:"list"`
 }
 
 type Assets struct {

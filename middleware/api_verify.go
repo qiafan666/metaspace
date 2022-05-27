@@ -45,7 +45,7 @@ func CheckSignAuth(ctx iris.Context) {
 		//查询redis
 
 		token := ctx.Request().Header.Get(common.BaseRequestAuthorization)
-		tokenUser, err := signService.GetTokenUser(ctx, token)
+		tokenUser, _, err := signService.GetTokenUser(ctx, token)
 		if err != nil {
 			_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))
 			return

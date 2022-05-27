@@ -355,7 +355,7 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 			return out, 0, err
 		}
 		//if wallet address does not register,then register
-		err = p.dao.First([]string{model.UserColumns.UUID, model.UserColumns.ID, model.UserColumns.Email, model.UserColumns.UserName, model.UserColumns.AvatarAddress}, map[string]interface{}{
+		err = p.dao.First([]string{model.UserColumns.UUID, model.UserColumns.Email, model.UserColumns.UserName, model.UserColumns.AvatarAddress}, map[string]interface{}{
 			model.UserColumns.WalletAddress: vWalletAddress,
 		}, nil, &user)
 		if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
@@ -393,12 +393,11 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 		}
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": user.ID,
-		"email":   user.Email,
-		"uuid":    user.UUID,
-		"iss":     "metaspace",
-		"iat":     time.Now().Unix(),
-		"exp":     time.Now().Add(24 * time.Hour).Unix(),
+		"email": user.Email,
+		"uuid":  user.UUID,
+		"iss":   "metaspace",
+		"iat":   time.Now().Unix(),
+		"exp":   time.Now().Add(24 * time.Hour).Unix(),
 	})
 	signedString, err := token.SignedString([]byte(portalConfig.JWT.Secret))
 	if err != nil {
@@ -625,12 +624,13 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 }
 
 func (p portalServiceImp) UserUpdate(info request.UserUpdate) (out response.UserUpdate, code commons.ResponseCode, err error) {
+
 	if len(info.UserName) > 0 && len(info.AvatarAddress) > 0 {
 		_, err = p.dao.WithContext(info.Ctx).Update(model.User{
 			UserName:      info.UserName,
 			AvatarAddress: info.AvatarAddress,
 		}, map[string]interface{}{
-			model.UserColumns.ID: info.BaseUserID,
+			model.UserColumns.UUID: info.BaseUUID,
 		}, nil)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserUpdate error %s", err.Error())
@@ -640,7 +640,7 @@ func (p portalServiceImp) UserUpdate(info request.UserUpdate) (out response.User
 		_, err = p.dao.WithContext(info.Ctx).Update(model.User{
 			UserName: info.UserName,
 		}, map[string]interface{}{
-			model.UserColumns.ID: info.BaseUserID,
+			model.UserColumns.UUID: info.BaseUUID,
 		}, nil)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserUpdate error %s", err.Error())
@@ -650,7 +650,7 @@ func (p portalServiceImp) UserUpdate(info request.UserUpdate) (out response.User
 		_, err = p.dao.WithContext(info.Ctx).Update(model.User{
 			AvatarAddress: info.AvatarAddress,
 		}, map[string]interface{}{
-			model.UserColumns.ID: info.BaseUserID,
+			model.UserColumns.UUID: info.BaseUUID,
 		}, nil)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserUpdate error %s", err.Error())

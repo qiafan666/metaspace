@@ -33,3 +33,7 @@ type TokenUser struct {
 	Email              string `json:"email"`
 	Uuid               string `json:"uuid"`
 }
+
+type UserId struct {
+	UserId uint64 `json:"user_id"`
+}

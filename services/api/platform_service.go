@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/blockfishio/metaspace-backend/common"
+	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/dao"
 	"github.com/blockfishio/metaspace-backend/model"
 	"github.com/blockfishio/metaspace-backend/pojo/request"
@@ -62,6 +63,7 @@ func (p PlatformServiceImp) AddAssets(infos request.AddAssets) (out response.Add
 			UriContent:  info.UriContent,
 			Description: info.Description,
 			IsNft:       common.NotNft,
+			Name:        function.GetCategoryString(info.Category),
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 		}

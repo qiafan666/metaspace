@@ -2,8 +2,9 @@ package middleware
 
 import (
 	"github.com/blockfishio/metaspace-backend/common"
-
+	"github.com/blockfishio/metaspace-backend/pojo/inner"
 	"github.com/blockfishio/metaspace-backend/pojo/request"
+	"github.com/blockfishio/metaspace-backend/services/api"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jau1jz/cornus"
 	"github.com/jau1jz/cornus/commons"
@@ -32,9 +33,13 @@ var witheList = map[string]string{
 
 func CheckPortalAuth(ctx iris.Context) {
 	var language, uuid, email string
-	var userId uint64
+	var userId inner.UserId
 	//check white list
 	if _, ok := witheList[ctx.Request().RequestURI]; !ok {
+
+		signMidOnce.Do(func() {
+			signService = api.NewSignInstance()
+		})
 		//check jwt
 		parseToken, err := jwt.Parse(ctx.Request().Header.Get("Authorization"), func(token *jwt.Token) (interface{}, error) {
 			return []byte(jwtConfig.JWT.Secret), nil
@@ -45,16 +50,21 @@ func CheckPortalAuth(ctx iris.Context) {
 		}
 
 		if claims, ok := parseToken.Claims.(jwt.MapClaims); ok && parseToken.Valid {
-			userId = uint64(claims["user_id"].(float64))
 			uuid, _ = claims["uuid"].(string)
 			email, _ = claims["email"].(string)
 		} else {
 			_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, language))
 			return
 		}
+
+		userId, _, err = signService.GetUserId(ctx, uuid)
+		if err != nil {
+			_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage))
+			return
+		}
 	}
 	ctx.Values().Set(common.BasePortalRequest, request.BasePortalRequest{
-		BaseUserID: userId,
+		BaseUserID: userId.UserId,
 		BaseUUID:   uuid,
 		BaseEmail:  email,
 	})
