@@ -20,7 +20,9 @@ type ThirdPartyLogin struct {
 }
 
 type UserLogin struct {
-	JwtToken string `json:"jwt_token"`
+	JwtToken      string `json:"jwt_token"`
+	UserName      string `json:"user_name"`
+	AvatarAddress string `json:"avatar_address"`
 }
 
 type RegisterUser struct {
@@ -107,4 +109,7 @@ type OrdersDetail struct {
 
 type OrderCancel struct {
 	OrderId uint64 `json:"order_id"`
+}
+
+type UserUpdate struct {
 }

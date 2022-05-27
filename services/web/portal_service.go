@@ -14,6 +14,7 @@ import (
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
+	"math/rand"
 	"strconv"
 	"strings"
 	"sync"
@@ -48,6 +49,7 @@ type PortalService interface {
 	SubscribeNewsletterEmail(info request.SubscribeNewsletterEmail) (out response.SubscribeNewsletterEmail, code commons.ResponseCode, err error)
 	GetTowerStatus(info request.TowerStats) (out response.TowerStats, code commons.ResponseCode, err error)
 	GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error)
+	UserUpdate(info request.UserUpdate) (out response.UserUpdate, code commons.ResponseCode, err error)
 }
 
 var portalConfig struct {
@@ -353,7 +355,7 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 			return out, 0, err
 		}
 		//if wallet address does not register,then register
-		err = p.dao.First([]string{model.UserColumns.UUID}, map[string]interface{}{
+		err = p.dao.First([]string{model.UserColumns.UUID, model.UserColumns.ID, model.UserColumns.Email, model.UserColumns.UserName, model.UserColumns.AvatarAddress}, map[string]interface{}{
 			model.UserColumns.WalletAddress: vWalletAddress,
 		}, nil, &user)
 		if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
@@ -361,9 +363,11 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 			return out, 0, err
 		} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
 			//register
+			userName := "用戶" + strconv.FormatInt(rand.Int63(), 10)
 			user = model.User{
 				UUID:          utils.GenerateUUID(),
 				WalletAddress: vWalletAddress,
+				UserName:      userName,
 			}
 			if err := p.dao.Create(&user); err != nil {
 				slog.Slog.InfoF(info.Ctx, "portalServiceImp Create error %s", err.Error())
@@ -389,11 +393,12 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 		}
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email": user.Email,
-		"uuid":  user.UUID,
-		"iss":   "metaspace",
-		"iat":   time.Now().Unix(),
-		"exp":   time.Now().Add(24 * time.Hour).Unix(),
+		"user_id": user.ID,
+		"email":   user.Email,
+		"uuid":    user.UUID,
+		"iss":     "metaspace",
+		"iat":     time.Now().Unix(),
+		"exp":     time.Now().Add(24 * time.Hour).Unix(),
 	})
 	signedString, err := token.SignedString([]byte(portalConfig.JWT.Secret))
 	if err != nil {
@@ -401,6 +406,8 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 		return out, 0, err
 	}
 	out.JwtToken = signedString
+	out.AvatarAddress = user.AvatarAddress
+	out.UserName = user.UserName
 	return
 }
 func (p portalServiceImp) SubscribeNewsletterEmail(info request.SubscribeNewsletterEmail) (out response.SubscribeNewsletterEmail, code commons.ResponseCode, err error) {
@@ -615,4 +622,43 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 		return
 	}
 
+}
+
+func (p portalServiceImp) UserUpdate(info request.UserUpdate) (out response.UserUpdate, code commons.ResponseCode, err error) {
+	if len(info.UserName) > 0 && len(info.AvatarAddress) > 0 {
+		_, err = p.dao.WithContext(info.Ctx).Update(model.User{
+			UserName:      info.UserName,
+			AvatarAddress: info.AvatarAddress,
+		}, map[string]interface{}{
+			model.UserColumns.ID: info.BaseUserID,
+		}, nil)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserUpdate error %s", err.Error())
+			return out, 0, err
+		}
+	} else if len(info.UserName) > 0 && len(info.AvatarAddress) == 0 {
+		_, err = p.dao.WithContext(info.Ctx).Update(model.User{
+			UserName: info.UserName,
+		}, map[string]interface{}{
+			model.UserColumns.ID: info.BaseUserID,
+		}, nil)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserUpdate error %s", err.Error())
+			return out, 0, err
+		}
+	} else if len(info.UserName) == 0 && len(info.AvatarAddress) > 0 {
+		_, err = p.dao.WithContext(info.Ctx).Update(model.User{
+			AvatarAddress: info.AvatarAddress,
+		}, map[string]interface{}{
+			model.UserColumns.ID: info.BaseUserID,
+		}, nil)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserUpdate error %s", err.Error())
+			return out, 0, err
+		}
+	} else {
+		slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserUpdate error")
+		return out, 0, err
+	}
+	return
 }

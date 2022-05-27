@@ -15,6 +15,10 @@ type CreateAuthCode struct {
 type AddAssets struct {
 	BaseRequest
 	BaseApiRequest
+	AssetsList []Assets `json:"assets_list"`
+}
+
+type Assets struct {
 	WalletAddress string `json:"wallet_address"`
 	Category      int64  `json:"category"`
 	Type          int64  `json:"type"`

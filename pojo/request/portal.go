@@ -107,3 +107,10 @@ type OrderCancel struct {
 	BasePortalRequest
 	OrderId uint64 `json:"order_id,string" validate:"required"`
 }
+
+type UserUpdate struct {
+	BaseRequest
+	BasePortalRequest
+	UserName      string `json:"user_name"`
+	AvatarAddress string `json:"avatar_address"`
+}

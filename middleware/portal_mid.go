@@ -32,7 +32,7 @@ var witheList = map[string]string{
 
 func CheckPortalAuth(ctx iris.Context) {
 	var language, uuid, email string
-
+	var userId uint64
 	//check white list
 	if _, ok := witheList[ctx.Request().RequestURI]; !ok {
 		//check jwt
@@ -45,6 +45,7 @@ func CheckPortalAuth(ctx iris.Context) {
 		}
 
 		if claims, ok := parseToken.Claims.(jwt.MapClaims); ok && parseToken.Valid {
+			userId = uint64(claims["user_id"].(float64))
 			uuid, _ = claims["uuid"].(string)
 			email, _ = claims["email"].(string)
 		} else {
@@ -53,8 +54,9 @@ func CheckPortalAuth(ctx iris.Context) {
 		}
 	}
 	ctx.Values().Set(common.BasePortalRequest, request.BasePortalRequest{
-		BaseUUID:  uuid,
-		BaseEmail: email,
+		BaseUserID: userId,
+		BaseUUID:   uuid,
+		BaseEmail:  email,
 	})
 	ctx.Next()
 
