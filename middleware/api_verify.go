@@ -24,7 +24,7 @@ func CheckSignAuth(ctx iris.Context) {
 		signService = api.NewSignInstance()
 	})
 
-	verifyResult, code, _ := signService.VerifySign(inner.VerifySignRequest{
+	verifyResult, code, err := signService.VerifySign(inner.VerifySignRequest{
 		Sign:      ctx.Request().Header.Get(common.BaseRequestSign),
 		ApiKey:    ctx.Request().Header.Get(common.BaseRequestApiKey),
 		Timestamp: ctx.Request().Header.Get(common.BaseRequestTimestamp),
@@ -33,9 +33,8 @@ func CheckSignAuth(ctx iris.Context) {
 		Parameter: ctx.Values().Get(commons.CtxValueParameter).([]byte),
 	})
 
-	if verifyResult.Flag == false {
+	if err != nil {
 		_, _ = ctx.JSON(commons.BuildFailed(code, commons.DefualtLanguage))
-
 		return
 	}
 
@@ -46,7 +45,7 @@ func CheckSignAuth(ctx iris.Context) {
 		//查询redis
 
 		token := ctx.Request().Header.Get(common.BaseRequestAuthorization)
-		tokenUser, err := signService.GetTokenUser(ctx, token)
+		tokenUser, _, err := signService.GetTokenUser(ctx, token)
 		if err != nil {
 			_, _ = ctx.JSON(commons.BuildFailed(commons.ValidateError, commons.DefualtLanguage))
 			return

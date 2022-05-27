@@ -164,6 +164,17 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 
 func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellShelf, code commons.ResponseCode, err error) {
 
+	var user model.User
+	err = m.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.WalletAddress}, map[string]interface{}{
+		model.UserColumns.UUID: info.BasePortalRequest.BaseUUID,
+	}, nil, &user)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp failed to fetch UUID. Error: %s", err.Error())
+		return out, 0, err
+	}
+
+	vWalletAddress := strings.ToLower(user.WalletAddress)
+
 	if info.ExpireTime.Before(time.Now()) {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp expireTime error:%s", err.Error())
 		return out, 0, err
@@ -219,7 +230,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 
 	} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
 		newOrders := model.Orders{
-			Seller:      info.BasePortalRequest.BaseUUID,
+			Seller:      vWalletAddress,
 			Signature:   info.SignedMessage,
 			Status:      common.OrderStatusActive,
 			CreatedTime: time.Now(),
@@ -333,6 +344,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 			Name:          v.Name,
 			Description:   v.Description,
 			Price:         v.Price,
+			ExpireTime:    v.ExpireTime,
 			ContractChain: "BSC",
 		})
 	}

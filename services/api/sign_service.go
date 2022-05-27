@@ -25,7 +25,8 @@ import (
 type SignService interface {
 	Sign(info inner.SignRequest) (out inner.SignResponse, code commons.ResponseCode, err error)
 	VerifySign(info inner.VerifySignRequest) (out inner.VerifySignResponse, code commons.ResponseCode, err error)
-	GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, err error)
+	GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, code commons.ResponseCode, err error)
+	GetUserId(ctx context.Context, uuid string) (out inner.UserId, code commons.ResponseCode, err error)
 }
 
 var SignServiceIns *SignServiceImp
@@ -110,22 +111,21 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 
 	//check rand
 	ctx := context.Background()
-	_, err = s.redis.GetRand(ctx, info.ApiKey)
+	_, err = s.redis.GetRand(ctx, info.Rand)
 	if err != nil && err.Error() != redis.Nil.Error() {
 		slog.Slog.InfoF(ctx, "SignServiceImp sign VerifySign error %s", err.Error())
 		return out, 0, err
 	} else if err != nil && err.Error() == redis.Nil.Error() {
 
 		err = s.redis.SetRand(ctx, inner.Rand{
-			ApiKey: info.ApiKey,
-			Rand:   info.Rand,
+			Rand: info.Rand,
 		}, time.Second*10)
 		if err != nil {
 			slog.Slog.ErrorF(ctx, "SignServiceImp SetRand error %s", err.Error())
 			return out, 0, err
 		}
 	} else {
-		slog.Slog.InfoF(ctx, "SignServiceImp frequent VerifySign error", nil)
+		slog.Slog.InfoF(ctx, "SignServiceImp frequent VerifySign error")
 		return out, common.FrequentVerifyThirdPartySign, errors.New(commons.GetCodeAndMsg(common.FrequentVerifyThirdPartySign, commons.DefualtLanguage))
 	}
 
@@ -178,16 +178,14 @@ func (s SignServiceImp) VerifySign(info inner.VerifySignRequest) (out inner.Veri
 	thirdPartyPublicKeyBufferString := bytes.NewBufferString(thirdPartyPublicKey)
 	err = utils.Rsa2VerifySign(sha256.Sum256(bufferString.Bytes()), decodeString, thirdPartyPublicKeyBufferString.Bytes())
 	if err != nil {
-		out.Flag = false
 		slog.Slog.InfoF(ctx, "SignServiceImp Verify Rsa2Sign failed %s", err.Error())
 		return out, common.VerifyThirdPartySignError, errors.New(commons.GetCodeAndMsg(common.VerifyThirdPartySignError, commons.DefualtLanguage))
 	}
 	out.ThirdPartyId = thirdPartyId
-	out.Flag = true
 	return
 }
 
-func (s SignServiceImp) GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, err error) {
+func (s SignServiceImp) GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, code commons.ResponseCode, err error) {
 
 	result, err := s.redis.GetTokenUser(ctx, token)
 	if err != nil {
@@ -197,4 +195,18 @@ func (s SignServiceImp) GetTokenUser(ctx context.Context, token string) (out inn
 	out = result
 	return
 
+}
+
+func (s SignServiceImp) GetUserId(ctx context.Context, uuid string) (out inner.UserId, code commons.ResponseCode, err error) {
+	var user model.User
+	err = s.dao.First([]string{model.UserColumns.ID}, map[string]interface{}{
+		model.UserColumns.UUID: uuid,
+	}, nil, &user)
+
+	if err != nil {
+		slog.Slog.ErrorF(ctx, "SignServiceImp GetUserId error %s", err.Error())
+		return out, 0, err
+	}
+	out.UserId = user.ID
+	return
 }

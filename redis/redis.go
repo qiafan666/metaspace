@@ -23,9 +23,9 @@ type Dao interface {
 	GetPublicKey(ctx context.Context, apiKey string) (out inner.PublicKey, err error)
 	DelPublicKey(ctx context.Context, apiKey string) (err error)
 
-	SetRand(ctx context.Context, publicKey inner.Rand, expire time.Duration) (err error)
-	GetRand(ctx context.Context, apiKey string) (out inner.Rand, err error)
-	DelRand(ctx context.Context, apiKey string) (err error)
+	SetRand(ctx context.Context, rand inner.Rand, expire time.Duration) (err error)
+	GetRand(ctx context.Context, rand string) (out inner.Rand, err error)
+	DelRand(ctx context.Context, rand string) (err error)
 
 	SetAuthCode(ctx context.Context, publicKey inner.AuthCode, expire time.Duration) (err error)
 	GetAuthCode(ctx context.Context, authCode string) (out inner.AuthCode, err error)
@@ -90,8 +90,8 @@ func (i Imp) DelPublicKey(ctx context.Context, apiKey string) (err error) {
 	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyPublicKey, apiKey)).Err()
 }
 
-func (i Imp) GetRand(ctx context.Context, apiKey string) (out inner.Rand, err error) {
-	result := i.redis.Get(ctx, fmt.Sprintf(common.ThirdPartyRand, apiKey))
+func (i Imp) GetRand(ctx context.Context, rand string) (out inner.Rand, err error) {
+	result := i.redis.Get(ctx, fmt.Sprintf(common.ThirdPartyRand, rand))
 	if result.Err() != nil {
 		return out, result.Err()
 	}
@@ -99,16 +99,16 @@ func (i Imp) GetRand(ctx context.Context, apiKey string) (out inner.Rand, err er
 	return
 }
 
-func (i Imp) SetRand(ctx context.Context, publicKey inner.Rand, expire time.Duration) (err error) {
-	marshal, err := json.Marshal(publicKey)
+func (i Imp) SetRand(ctx context.Context, rand inner.Rand, expire time.Duration) (err error) {
+	marshal, err := json.Marshal(rand)
 	if err != nil {
 		return err
 	}
-	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyRand, publicKey.ApiKey), marshal, expire).Err()
+	return i.redis.SetEX(ctx, fmt.Sprintf(common.ThirdPartyRand, rand.Rand), marshal, expire).Err()
 }
 
-func (i Imp) DelRand(ctx context.Context, apiKey string) (err error) {
-	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyRand, apiKey)).Err()
+func (i Imp) DelRand(ctx context.Context, rand string) (err error) {
+	return i.redis.Del(ctx, fmt.Sprintf(common.ThirdPartyRand, rand)).Err()
 }
 
 func (i Imp) GetAuthCode(ctx context.Context, authCode string) (out inner.AuthCode, err error) {

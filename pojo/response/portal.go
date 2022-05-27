@@ -20,7 +20,9 @@ type ThirdPartyLogin struct {
 }
 
 type UserLogin struct {
-	JwtToken string `json:"jwt_token"`
+	JwtToken      string `json:"jwt_token"`
+	UserName      string `json:"user_name"`
+	AvatarAddress string `json:"avatar_address"`
 }
 
 type RegisterUser struct {
@@ -88,22 +90,26 @@ type Orders struct {
 }
 
 type OrdersDetail struct {
-	Id            int64  `json:"id"`
-	Seller        string `json:"seller"`
-	Buyer         string `json:"buyer"`
-	Signature     string `json:"signature"`
-	Status        uint8  `json:"status"` // 1:active 2:expire 3:canceled 4:finished
-	NftID         string `json:"nft_id"`
-	Category      int64  `json:"category_id"`
-	Type          int64  `json:"type"`
-	Rarity        int64  `json:"rarity_id"`
-	Image         string `json:"image"`
-	Name          string `json:"name"`
-	Description   string `json:"description"`
-	Price         uint   `json:"price"`
-	ContractChain string `json:"contract_chain"`
+	Id            int64     `json:"id"`
+	Seller        string    `json:"seller"`
+	Buyer         string    `json:"buyer"`
+	Signature     string    `json:"signature"`
+	Status        uint8     `json:"status"` // 1:active 2:expire 3:canceled 4:finished
+	NftID         string    `json:"nft_id"`
+	Category      int64     `json:"category_id"`
+	Type          int64     `json:"type"`
+	Rarity        int64     `json:"rarity_id"`
+	Image         string    `json:"image"`
+	Name          string    `json:"name"`
+	Description   string    `json:"description"`
+	Price         uint      `json:"price"`
+	ContractChain string    `json:"contract_chain"`
+	ExpireTime    time.Time `json:"expire_time"`
 }
 
 type OrderCancel struct {
 	OrderId uint64 `json:"order_id"`
+}
+
+type UserUpdate struct {
 }

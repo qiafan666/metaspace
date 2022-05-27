@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/blockfishio/metaspace-backend/common"
+	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/dao"
 	"github.com/blockfishio/metaspace-backend/model"
 	"github.com/blockfishio/metaspace-backend/pojo/request"
@@ -37,9 +38,7 @@ type PlatformServiceImp struct {
 	redis redis.Dao
 }
 
-func (p PlatformServiceImp) AddAssets(info request.AddAssets) (out response.AddAssets, code commons.ResponseCode, err error) {
-
-	walletAddress := strings.ToLower(info.WalletAddress)
+func (p PlatformServiceImp) AddAssets(infos request.AddAssets) (out response.AddAssets, code commons.ResponseCode, err error) {
 
 	tx := p.dao.Tx()
 	defer func() {
@@ -50,34 +49,41 @@ func (p PlatformServiceImp) AddAssets(info request.AddAssets) (out response.AddA
 		}
 	}()
 
-	newAssets := model.Assets{
-		Uid:         walletAddress,
-		Category:    info.Category,
-		Type:        info.Type,
-		Rarity:      info.Rarity,
-		Image:       info.Image,
-		Uri:         info.Uri,
-		UriContent:  info.UriContent,
-		Description: info.Description,
-		IsNft:       common.NotNft,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}
-	err = tx.WithContext(info.Ctx).Create(&newAssets)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp assets Create error %s", err.Error())
-		return out, 0, err
+	for _, info := range infos.AssetsList {
+
+		walletAddress := strings.ToLower(info.WalletAddress)
+
+		newAssets := model.Assets{
+			Uid:         walletAddress,
+			Category:    info.Category,
+			Type:        info.Type,
+			Rarity:      info.Rarity,
+			Image:       info.Image,
+			Uri:         info.Uri,
+			UriContent:  info.UriContent,
+			Description: info.Description,
+			IsNft:       common.NotNft,
+			Name:        function.GetCategoryString(info.Category),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+		}
+		err = tx.WithContext(infos.Ctx).Create(&newAssets)
+		if err != nil {
+			slog.Slog.ErrorF(infos.Ctx, "PlatformServiceImp assets Create error %s", err.Error())
+			return out, 0, err
+		}
+
+		//update order status
+		_, err = tx.WithContext(infos.Ctx).Update(model.Assets{
+			TokenId: newAssets.Id,
+		}, map[string]interface{}{
+			model.AssetsColumns.Id: newAssets.Id,
+		}, nil)
+		if err != nil {
+			slog.Slog.ErrorF(infos.Ctx, "PlatformServiceImp Update assets token_id error %s", err.Error())
+			return out, 0, err
+		}
 	}
 
-	//update order status
-	_, err = tx.WithContext(info.Ctx).Update(model.Assets{
-		TokenId: newAssets.Id,
-	}, map[string]interface{}{
-		model.AssetsColumns.Id: newAssets.Id,
-	}, nil)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp Update assets token_id error %s", err.Error())
-		return out, 0, err
-	}
 	return
 }
