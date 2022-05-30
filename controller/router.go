@@ -31,7 +31,7 @@ func RegisterRouter(ctx *iris.Application) {
 	//api router
 	mvc.Configure(ctx.Party("/metaspace/api"),
 		func(application *mvc.Application) {
-			application.Router.Use(middleware.CheckSignAuth)
+			application.Router.Use(middleware.CheckSignAuth, middleware.Logger)
 			application.Handle(&api.LoginApiController{
 				LoginService: api2.NewLoginInstance(),
 			})

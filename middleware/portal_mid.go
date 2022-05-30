@@ -43,6 +43,9 @@ func CheckPortalAuth(ctx iris.Context) {
 
 	var language, uuid, email string
 	var userId inner.UserId
+
+	BaseRequest := ctx.Values().Get(common.BaseRequest).(request.BaseRequest)
+	language = BaseRequest.Language
 	//check white list
 	if _, ok := witheList[ctx.Request().RequestURI]; !ok {
 

@@ -14,7 +14,6 @@ import (
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
-	"math/rand"
 	"strconv"
 	"strings"
 	"sync"
@@ -363,7 +362,7 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 			return out, 0, err
 		} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
 			//register
-			userName := "用戶" + strconv.FormatInt(rand.Int63(), 10)
+			userName := "User" + strconv.FormatInt(time.Now().Unix(), 10)
 			user = model.User{
 				UUID:          utils.GenerateUUID(),
 				WalletAddress: vWalletAddress,
@@ -454,15 +453,6 @@ func (p portalServiceImp) GetTowerStatus(info request.TowerStats) (out response.
 		return out, common.AssetsNotExist, errors.New(commons.GetCodeAndMsg(common.AssetsNotExist, info.Language))
 	} else {
 
-		if _, err = strconv.Atoi(strconv.FormatInt(vAssets.Type, 10)); err != nil {
-			slog.Slog.ErrorF(info.Ctx, "TowerType error:%s", err.Error())
-			return out, 0, err
-		}
-
-		if _, err = strconv.Atoi(strconv.FormatInt(vAssets.Rarity, 10)); err != nil {
-			slog.Slog.ErrorF(info.Ctx, "TowerRarity error:%s", err.Error())
-			return out, 0, err
-		}
 		TowerTypeConfigs := make(map[string]model.TowerConfig)
 		TowerTypeConfigs[common.TowerTypeConfigs1] = model.TowerConfig{
 			AttackFactors:       [3]float32{20, 2, 0.15},
@@ -625,29 +615,9 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 
 func (p portalServiceImp) UserUpdate(info request.UserUpdate) (out response.UserUpdate, code commons.ResponseCode, err error) {
 
-	if len(info.UserName) > 0 && len(info.AvatarAddress) > 0 {
+	if len(info.UserName) > 0 || len(info.AvatarAddress) > 0 {
 		_, err = p.dao.WithContext(info.Ctx).Update(model.User{
 			UserName:      info.UserName,
-			AvatarAddress: info.AvatarAddress,
-		}, map[string]interface{}{
-			model.UserColumns.UUID: info.BaseUUID,
-		}, nil)
-		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserUpdate error %s", err.Error())
-			return out, 0, err
-		}
-	} else if len(info.UserName) > 0 && len(info.AvatarAddress) == 0 {
-		_, err = p.dao.WithContext(info.Ctx).Update(model.User{
-			UserName: info.UserName,
-		}, map[string]interface{}{
-			model.UserColumns.UUID: info.BaseUUID,
-		}, nil)
-		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserUpdate error %s", err.Error())
-			return out, 0, err
-		}
-	} else if len(info.UserName) == 0 && len(info.AvatarAddress) > 0 {
-		_, err = p.dao.WithContext(info.Ctx).Update(model.User{
 			AvatarAddress: info.AvatarAddress,
 		}, map[string]interface{}{
 			model.UserColumns.UUID: info.BaseUUID,

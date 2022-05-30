@@ -13,7 +13,8 @@ var logService common.LoggerService
 var logMidOnce sync.Once
 
 var logList = map[string]string{
-	"/metaspace/web/login": "",
+	"/metaspace/web/login":      "",
+	"/metaspace/api/assets/add": "",
 }
 
 func Logger(ctx iris.Context) {
