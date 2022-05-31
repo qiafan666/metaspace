@@ -20,7 +20,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"math/big"
-	"math/rand"
 	"strconv"
 	"strings"
 	"sync"
@@ -154,7 +153,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 	}
 	price := big.NewInt(int64(atoi))
 	//_saltNonce
-	saltNonce := big.NewInt(rand.Int63())
+	saltNonce := big.NewInt(20)
 
 	var message [32]byte
 	message, err = instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, saltNonce)
