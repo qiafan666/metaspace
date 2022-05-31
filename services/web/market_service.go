@@ -256,6 +256,8 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders detail Create error %s", err.Error())
 			return out, 0, err
 		}
+		out.RawMessage = info.RawMessage
+		out.SignMessage = info.SignedMessage
 	} else {
 		//update order status
 		_, err = tx.WithContext(info.Ctx).Update(model.Orders{
@@ -279,7 +281,8 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update orders_detail expireTime error %s", err.Error())
 			return out, 0, err
 		}
-
+		out.RawMessage = info.RawMessage
+		out.SignMessage = info.SignedMessage
 	}
 
 	return

@@ -81,7 +81,8 @@ type ShelfSign struct {
 }
 
 type SellShelf struct {
-	Flag string `json:"flag"`
+	RawMessage  string `json:"raw_message"`
+	SignMessage string `json:"sign_message"`
 }
 
 type Orders struct {
