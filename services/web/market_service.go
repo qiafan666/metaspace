@@ -151,7 +151,8 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 	}
 	price := big.NewInt(int64(atoi))
 	//_saltNonce
-	saltNonce := big.NewInt(rand.Int63())
+	randNum := rand.Int63()
+	saltNonce := big.NewInt(randNum)
 	var message [32]byte
 	message, err = instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, saltNonce)
 	if err != nil {
@@ -159,6 +160,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		return out, 0, err
 	}
 	out.SignMessage = hex.EncodeToString(message[:])
+	out.SaltNonce = randNum
 	return
 }
 
@@ -233,6 +235,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 			Seller:      vWalletAddress,
 			Signature:   info.SignedMessage,
 			Status:      common.OrderStatusActive,
+			SaltNonce:   info.SaltNonce,
 			CreatedTime: time.Now(),
 			UpdatedTime: time.Now(),
 		}
@@ -262,6 +265,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		//update order status
 		_, err = tx.WithContext(info.Ctx).Update(model.Orders{
 			Status:    common.OrderStatusActive,
+			SaltNonce: info.SaltNonce,
 			Signature: info.SignedMessage,
 		}, map[string]interface{}{
 			model.OrdersColumns.ID: ordersDetail.OrderID,
@@ -291,7 +295,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
 
 	var ordersDetail []join.OrdersDetail
-	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.buyer,orders.seller,orders_detail.nft_id,orders_detail.price,orders_detail.expire_time,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders_detail.nft_id,orders_detail.price,orders_detail.expire_time,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 			Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").
 			Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").
@@ -338,6 +342,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 			Seller:        v.Seller,
 			Buyer:         v.Buyer,
 			Signature:     v.Signature,
+			SaltNonce:     v.SaltNonce,
 			Status:        v.Status,
 			NftID:         v.NftID,
 			Category:      v.Category,
