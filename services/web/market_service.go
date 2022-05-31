@@ -164,6 +164,8 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 	}
 	out.SignMessage = hex.EncodeToString(message[:])
 	slog.Slog.InfoF(info.Ctx, "signString:%s", saltNonce.String())
+	slog.Slog.InfoF(info.Ctx, "tokenId:%s", tokenId.String())
+	slog.Slog.InfoF(info.Ctx, "price:%s", price.String())
 	out.SaltNonce = saltNonce.String()
 	return
 }
