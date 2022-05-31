@@ -91,7 +91,7 @@ type SellShelf struct {
 	ItemId        string    `json:"item_id" validate:"required,max=192"`
 	Price         uint      `json:"price" validate:"required"`
 	ExpireTime    time.Time `json:"expire_time" validate:"required"`
-	SaltNonce     int64     `json:"salt_nonce" validate:"required"`
+	SaltNonce     string    `json:"salt_nonce" validate:"required"`
 }
 
 type Orders struct {

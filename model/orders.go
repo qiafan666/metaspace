@@ -10,7 +10,7 @@ CREATE TABLE `orders` (
   `seller` varchar(192) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_ci NOT NULL,
   `buyer` varchar(192) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `signature` varchar(192) NOT NULL,
-  `salt_nonce` bigint NOT NULL,
+  `salt_nonce` varchar(192) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `status` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '1:active 2:expire 3:canceled 4:finished',
   `created_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   `updated_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
@@ -23,7 +23,7 @@ type Orders struct {
 	Seller      string    `gorm:"column:seller" json:"seller"`
 	Buyer       string    `gorm:"column:buyer" json:"buyer"`
 	Signature   string    `gorm:"column:signature" json:"signature"`
-	SaltNonce   int64     `gorm:"column:salt_nonce" json:"salt_nonce"`
+	SaltNonce   string    `gorm:"column:salt_nonce" json:"salt_nonce"`
 	Status      uint8     `gorm:"column:status" json:"status"` // 1:active 2:expire 3:canceled 4:finished
 	CreatedTime time.Time `gorm:"column:created_time" json:"created_time"`
 	UpdatedTime time.Time `gorm:"column:updated_time" json:"updated_time"`

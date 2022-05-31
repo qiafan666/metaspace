@@ -78,7 +78,7 @@ type Sign struct {
 
 type ShelfSign struct {
 	SignMessage string `json:"sign_message"`
-	SaltNonce   int64  `json:"salt_nonce"`
+	SaltNonce   string `json:"salt_nonce"`
 }
 
 type SellShelf struct {

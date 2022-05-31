@@ -141,6 +141,9 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get orderStatus error:%s", err.Error())
 			return out, 0, err
 		}
+	} else {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature error: tokenId not nil")
+		return out, 0, err
 	}
 
 	//_price
@@ -151,8 +154,8 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 	}
 	price := big.NewInt(int64(atoi))
 	//_saltNonce
-	randNum := rand.Int63()
-	saltNonce := big.NewInt(randNum)
+	saltNonce := big.NewInt(rand.Int63())
+
 	var message [32]byte
 	message, err = instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, saltNonce)
 	if err != nil {
@@ -160,7 +163,8 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		return out, 0, err
 	}
 	out.SignMessage = hex.EncodeToString(message[:])
-	out.SaltNonce = randNum
+	saltNonceString := saltNonce.String()
+	out.SaltNonce = saltNonceString
 	return
 }
 
