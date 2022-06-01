@@ -87,7 +87,7 @@ type SellShelf struct {
 	BaseRequest
 	BasePortalRequest
 	SignedMessage string    `json:"signed_message" validate:"required,max=192"`
-	RawMessage    string    `json:"raw_message" validate:"required,max=192"`
+	RawMessage    []byte    `json:"raw_message" validate:"required,max=192"`
 	ItemId        string    `json:"item_id" validate:"required,max=192"`
 	Price         uint      `json:"price" validate:"required"`
 	ExpireTime    time.Time `json:"expire_time" validate:"required"`
