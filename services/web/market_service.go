@@ -213,7 +213,12 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		info.SignedMessage = "0x" + info.SignedMessage
 	}
 
-	if err = function.VerifySig(of.String(), info.SignedMessage, string(info.RawMessage)); err != nil {
+	decodeString, err := base64.StdEncoding.DecodeString(info.RawMessage)
+	if err != nil {
+		slog.Slog.InfoF(info.Ctx, "marketServiceImp base64 decode rawMessage error %s", err.Error())
+		return out, 0, err
+	}
+	if err = function.VerifySig(of.String(), info.SignedMessage, string(decodeString)); err != nil {
 		slog.Slog.InfoF(info.Ctx, "marketServiceImp GetSellShelf verify error %s", err.Error())
 		return out, common.SignatureVerificationError, err
 	}

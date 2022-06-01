@@ -82,7 +82,7 @@ type ShelfSign struct {
 }
 
 type SellShelf struct {
-	RawMessage  []byte `json:"raw_message"`
+	RawMessage  string `json:"raw_message"`
 	SignMessage string `json:"sign_message"`
 }
 
