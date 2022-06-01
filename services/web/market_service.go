@@ -1,7 +1,7 @@
 package web
 
 import (
-	"encoding/hex"
+	"encoding/base64"
 	"errors"
 	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/common/function"
@@ -161,7 +161,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
 		return out, 0, err
 	}
-	out.SignMessage = hex.EncodeToString(message[:])
+	out.SignMessage = base64.StdEncoding.EncodeToString(message[:])
 	slog.Slog.InfoF(info.Ctx, "signString:%s", saltNonce.String())
 	slog.Slog.InfoF(info.Ctx, "tokenId:%s", tokenId.String())
 	slog.Slog.InfoF(info.Ctx, "price:%s", price.String())
