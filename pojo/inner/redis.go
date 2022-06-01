@@ -37,3 +37,7 @@ type TokenUser struct {
 type UserId struct {
 	UserId uint64 `json:"user_id"`
 }
+
+type RawMessage struct {
+	RawMessage string `json:"raw_message"`
+}

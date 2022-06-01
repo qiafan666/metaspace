@@ -38,6 +38,10 @@ type Dao interface {
 	SetUserToken(ctx context.Context, userToken inner.UserToken) (err error)
 	GetUserToken(ctx context.Context, userId string, token string) (out inner.UserToken, err error)
 	DelUserToken(ctx context.Context, userId string) (err error)
+
+	SetRawMessage(ctx context.Context, RawMessage inner.RawMessage, expire time.Duration) (err error)
+	GetRawMessage(ctx context.Context, rawMessage string) (out inner.RawMessage, err error)
+	DelRawMessage(ctx context.Context, rawMessage string) (err error)
 }
 
 type Imp struct {
@@ -178,4 +182,27 @@ func (i Imp) SetUserToken(ctx context.Context, userToken inner.UserToken) (err e
 
 func (i Imp) DelUserToken(ctx context.Context, user string) (err error) {
 	return i.redis.Del(ctx, user).Err()
+}
+
+func (i Imp) GetRawMessage(ctx context.Context, rawMessage string) (out inner.RawMessage, err error) {
+
+	result := i.redis.Get(ctx, fmt.Sprintf(common.RawMessage, rawMessage))
+	if result.Err() != nil {
+		return out, result.Err()
+	}
+	err = json.Unmarshal([]byte(result.Val()), &out)
+	return
+}
+
+func (i Imp) SetRawMessage(ctx context.Context, rawMessage inner.RawMessage, expire time.Duration) (err error) {
+
+	marshal, err := json.Marshal(rawMessage)
+	if err != nil {
+		return err
+	}
+	return i.redis.SetEX(ctx, fmt.Sprintf(common.RawMessage, rawMessage.RawMessage), marshal, expire).Err()
+}
+
+func (i Imp) DelRawMessage(ctx context.Context, rawMessage string) (err error) {
+	return i.redis.Del(ctx, fmt.Sprintf(common.RawMessage, rawMessage)).Err()
 }

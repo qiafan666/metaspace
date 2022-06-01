@@ -77,6 +77,7 @@ const (
 	ThirdPartyAuthCode  = "third_party/auth_code/%s"
 	ThirdPartyUserToken = "third_party/user_token/%s/%s"
 	ThirdPartyTokenUser = "third_party/token_user/%s"
+	RawMessage          = "user/raw_message/%s"
 )
 
 const (

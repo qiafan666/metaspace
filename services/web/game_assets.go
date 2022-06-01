@@ -103,7 +103,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			continue
 		}
 		//check expireTime
-		if !vAsset.ExpireTime.IsZero() && vAsset.ExpireTime.Before(time.Now()) {
+		if !vAsset.ExpireTime.IsZero() && vAsset.ExpireTime.Before(time.Now()) && vAsset.Status == common.OrderStatusActive {
 			vAsset.Status = common.OrderStatusExpire
 
 			//update order status

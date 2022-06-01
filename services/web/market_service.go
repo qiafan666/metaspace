@@ -1,7 +1,6 @@
 package web
 
 import (
-	"encoding/base64"
 	"errors"
 	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/common/function"
@@ -10,6 +9,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/dao"
 	"github.com/blockfishio/metaspace-backend/model"
 	"github.com/blockfishio/metaspace-backend/model/join"
+	"github.com/blockfishio/metaspace-backend/pojo/inner"
 	"github.com/blockfishio/metaspace-backend/pojo/request"
 	"github.com/blockfishio/metaspace-backend/pojo/response"
 	"github.com/blockfishio/metaspace-backend/redis"
@@ -20,6 +20,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"math/big"
+	"math/rand"
 	"strconv"
 	"strings"
 	"sync"
@@ -129,31 +130,20 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 
 		}
 
-		var ordersStatus join.OrdersStatus
-		err = m.dao.Find([]string{"orders.id,orders.`status`,orders.signature,orders.seller,orders.buyer,orders_detail.nft_id,orders_detail.expire_time"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-			return db.Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").Where("orders.status=? and orders_detail.nft_id=?", common.OrderStatusActive, strconv.FormatInt(vAssets.TokenId, 10))
-		}, &ordersStatus)
-		if err == nil && ordersStatus.Id != 0 {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get orderDetail error")
-			return out, common.OrdersIsShelf, errors.New(commons.GetCodeAndMsg(common.OrdersIsShelf, commons.DefualtLanguage))
-		} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get orderStatus error:%s", err.Error())
-			return out, 0, err
-		}
 	} else {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature error: tokenId not nil")
 		return out, 0, err
 	}
 
 	//_price
-	atoi, err := strconv.Atoi(info.Price)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature assets by AssetId not find error:%s", err.Error())
-		return out, 0, err
+	price, flag := big.NewInt(0).SetString(info.Price, 10)
+	if flag == false {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature price setString error")
+		return out, commons.ParameterError, err
 	}
-	price := big.NewInt(int64(atoi))
+
 	//_saltNonce
-	saltNonce := big.NewInt(20)
+	saltNonce := big.NewInt(int64(rand.Int31()))
 
 	var message [32]byte
 	message, err = instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, saltNonce)
@@ -161,15 +151,32 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
 		return out, 0, err
 	}
-	out.SignMessage = base64.StdEncoding.EncodeToString(message[:])
-	slog.Slog.InfoF(info.Ctx, "signString:%s", saltNonce.String())
-	slog.Slog.InfoF(info.Ctx, "tokenId:%s", tokenId.String())
-	slog.Slog.InfoF(info.Ctx, "price:%s", price.String())
+	out.SignMessage = strings.TrimLeft(ethcommon.BytesToHash(message[:]).String(), "0x")
 	out.SaltNonce = saltNonce.String()
+
+	err = m.redis.SetRawMessage(info.Ctx, inner.RawMessage{
+		RawMessage: out.SignMessage,
+	}, time.Second*10)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetTokenUser error %s", err.Error())
+		return out, 0, err
+	}
 	return
 }
 
 func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellShelf, code commons.ResponseCode, err error) {
+
+	_, err = m.redis.GetRawMessage(info.Ctx, info.RawMessage)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetRawMessage error %s", err.Error())
+		return
+	}
+
+	err = m.redis.DelRawMessage(info.Ctx, info.RawMessage)
+	if err != nil {
+		slog.Slog.InfoF(info.Ctx, "marketServiceImp DelRawMessage error %s", err.Error())
+		return out, 0, err
+	}
 
 	var user model.User
 	err = m.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.WalletAddress}, map[string]interface{}{
@@ -199,7 +206,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 	address := ethcommon.HexToAddress(portalConfig.Contract.Erc721Address)
 	instance, err := assetscontract.NewContracts(address, ethClient)
 	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf NewContracts error:%s", err.Error())
 		return out, 0, err
 	}
 
@@ -213,12 +220,19 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		info.SignedMessage = "0x" + info.SignedMessage
 	}
 
-	decodeString, err := base64.StdEncoding.DecodeString(info.RawMessage)
+	marketAddress := ethcommon.HexToAddress(marketConfig.Contract.MarketAddress)
+	marketInstance, err := marketcontract.NewContracts(marketAddress, ethClient)
 	if err != nil {
-		slog.Slog.InfoF(info.Ctx, "marketServiceImp base64 decode rawMessage error %s", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf marketNewContracts error:%s", err.Error())
 		return out, 0, err
 	}
-	if err = function.VerifySig(of.String(), info.SignedMessage, string(decodeString)); err != nil {
+	flag, err := marketInstance.UsedSignatures(nil, []byte(info.SignedMessage))
+	if flag == true {
+		slog.Slog.InfoF(info.Ctx, "marketServiceImp GetSellShelf signMessage already used : %s", err.Error())
+		return out, 0, err
+	}
+
+	if err = function.VerifySig(of.String(), info.SignedMessage, info.RawMessage); err != nil {
 		slog.Slog.InfoF(info.Ctx, "marketServiceImp GetSellShelf verify error %s", err.Error())
 		return out, common.SignatureVerificationError, err
 	}
@@ -418,6 +432,16 @@ func (m marketServiceImp) GetUserOrders(info request.Orders) (out response.Order
 }
 
 func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.OrderCancel, code commons.ResponseCode, err error) {
+	var user model.User
+	err = m.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.WalletAddress}, map[string]interface{}{
+		model.UserColumns.UUID: info.BasePortalRequest.BaseUUID,
+	}, nil, &user)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp failed to fetch UUID. Error: %s", err.Error())
+		return out, 0, err
+	}
+
+	vWalletAddress := strings.ToLower(user.WalletAddress)
 
 	tx := m.dao.Tx()
 	defer func() {
@@ -441,8 +465,8 @@ func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.Or
 		return out, common.OrdersNotExist, errors.New(commons.GetCodeAndMsg(common.OrdersNotExist, info.Language))
 	}
 
-	if orders.Seller != info.BasePortalRequest.BaseUUID {
-		slog.Slog.InfoF(info.Ctx, "marketServiceImp order seller")
+	if orders.Seller != vWalletAddress {
+		slog.Slog.InfoF(info.Ctx, "marketServiceImp order seller is error")
 		return out, common.IdentityError, errors.New(commons.GetCodeAndMsg(common.IdentityError, info.Language))
 	}
 
