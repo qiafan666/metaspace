@@ -156,7 +156,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 
 	err = m.redis.SetRawMessage(info.Ctx, inner.RawMessage{
 		RawMessage: out.SignMessage,
-	}, time.Second*30)
+	}, time.Minute*3)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetTokenUser error %s", err.Error())
 		return out, 0, err
