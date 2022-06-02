@@ -151,7 +151,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
 		return out, 0, err
 	}
-	out.SignMessage = strings.TrimLeft(ethcommon.BytesToHash(message[:]).String(), "0x")
+	out.SignMessage = ethcommon.BytesToHash(message[:]).String()
 	out.SaltNonce = saltNonce.String()
 
 	err = m.redis.SetRawMessage(info.Ctx, inner.RawMessage{
@@ -232,7 +232,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		return out, 0, err
 	}
 
-	if err = function.VerifySig(of.String(), info.SignedMessage, info.RawMessage); err != nil {
+	if err = function.VerifySigEthHash(of.String(), info.SignedMessage, info.RawMessage); err != nil {
 		slog.Slog.InfoF(info.Ctx, "marketServiceImp GetSellShelf verify error %s", err.Error())
 		return out, common.SignatureVerificationError, err
 	}
