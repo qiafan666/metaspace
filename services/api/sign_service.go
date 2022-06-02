@@ -26,7 +26,6 @@ type SignService interface {
 	Sign(info inner.SignRequest) (out inner.SignResponse, code commons.ResponseCode, err error)
 	VerifySign(info inner.VerifySignRequest) (out inner.VerifySignResponse, code commons.ResponseCode, err error)
 	GetTokenUser(ctx context.Context, token string) (out inner.TokenUser, code commons.ResponseCode, err error)
-	GetUserId(ctx context.Context, uuid string) (out inner.UserId, code commons.ResponseCode, err error)
 }
 
 var SignServiceIns *SignServiceImp
@@ -195,18 +194,4 @@ func (s SignServiceImp) GetTokenUser(ctx context.Context, token string) (out inn
 	out = result
 	return
 
-}
-
-func (s SignServiceImp) GetUserId(ctx context.Context, uuid string) (out inner.UserId, code commons.ResponseCode, err error) {
-	var user model.User
-	err = s.dao.First([]string{model.UserColumns.ID}, map[string]interface{}{
-		model.UserColumns.UUID: uuid,
-	}, nil, &user)
-
-	if err != nil {
-		slog.Slog.ErrorF(ctx, "SignServiceImp GetUserId error %s", err.Error())
-		return out, 0, err
-	}
-	out.UserId = user.ID
-	return
 }

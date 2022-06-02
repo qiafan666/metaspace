@@ -67,17 +67,6 @@ type marketServiceImp struct {
 
 func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out response.ShelfSign, code commons.ResponseCode, err error) {
 
-	var user model.User
-	err = m.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.WalletAddress}, map[string]interface{}{
-		model.UserColumns.UUID: info.BasePortalRequest.BaseUUID,
-	}, nil, &user)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp failed to fetch UUID. Error: %s", err.Error())
-		return out, 0, err
-	}
-
-	vWalletAddress := strings.ToLower(user.WalletAddress)
-
 	address := ethcommon.HexToAddress(marketConfig.Contract.MarketAddress)
 	instance, err := marketcontract.NewContracts(address, ethClient)
 	if err != nil {
@@ -111,7 +100,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get walletAdress error")
 			return out, 0, errs
 		}
-		if strings.ToLower(of.String()) != vWalletAddress {
+		if strings.ToLower(of.String()) != info.BaseWallet {
 			//check assets owner
 			if vAssets.Uid != strings.ToLower(of.String()) {
 				_, errs = m.dao.WithContext(info.Ctx).Update(model.Assets{
@@ -176,17 +165,6 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		slog.Slog.InfoF(info.Ctx, "marketServiceImp DelRawMessage error %s", err.Error())
 		return out, 0, err
 	}
-
-	var user model.User
-	err = m.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.WalletAddress}, map[string]interface{}{
-		model.UserColumns.UUID: info.BasePortalRequest.BaseUUID,
-	}, nil, &user)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp failed to fetch UUID. Error: %s", err.Error())
-		return out, 0, err
-	}
-
-	vWalletAddress := strings.ToLower(user.WalletAddress)
 
 	if info.ExpireTime.Before(time.Now()) {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp expireTime error:%s", err.Error())
@@ -255,7 +233,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 
 	} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
 		newOrders := model.Orders{
-			Seller:      vWalletAddress,
+			Seller:      info.BaseWallet,
 			Signature:   info.SignedMessage,
 			Status:      common.OrderStatusActive,
 			SaltNonce:   info.SaltNonce,
@@ -431,16 +409,6 @@ func (m marketServiceImp) GetUserOrders(info request.Orders) (out response.Order
 }
 
 func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.OrderCancel, code commons.ResponseCode, err error) {
-	var user model.User
-	err = m.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.WalletAddress}, map[string]interface{}{
-		model.UserColumns.UUID: info.BasePortalRequest.BaseUUID,
-	}, nil, &user)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp failed to fetch UUID. Error: %s", err.Error())
-		return out, 0, err
-	}
-
-	vWalletAddress := strings.ToLower(user.WalletAddress)
 
 	tx := m.dao.Tx()
 	defer func() {
@@ -464,7 +432,7 @@ func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.Or
 		return out, common.OrdersNotExist, errors.New(commons.GetCodeAndMsg(common.OrdersNotExist, info.Language))
 	}
 
-	if orders.Seller != vWalletAddress {
+	if orders.Seller != info.BaseWallet {
 		slog.Slog.InfoF(info.Ctx, "marketServiceImp order seller is error")
 		return out, common.IdentityError, errors.New(commons.GetCodeAndMsg(common.IdentityError, info.Language))
 	}

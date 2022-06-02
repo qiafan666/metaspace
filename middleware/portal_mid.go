@@ -42,7 +42,7 @@ func CheckPortalAuth(ctx iris.Context) {
 	})
 
 	var language, uuid, email string
-	var userId inner.UserId
+	var user inner.User
 
 	BaseRequest := ctx.Values().Get(common.BaseRequest).(request.BaseRequest)
 	language = BaseRequest.Language
@@ -66,16 +66,17 @@ func CheckPortalAuth(ctx iris.Context) {
 			return
 		}
 
-		userId, _, err = comService.GetUserId(ctx, uuid)
+		user, _, err = comService.GetUser(ctx, uuid)
 		if err != nil {
 			_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage))
 			return
 		}
 	}
 	ctx.Values().Set(common.BasePortalRequest, request.BasePortalRequest{
-		BaseUserID: userId.UserId,
+		BaseUserID: user.UserId,
 		BaseUUID:   uuid,
 		BaseEmail:  email,
+		BaseWallet: user.WalletAddress,
 	})
 	ctx.Next()
 

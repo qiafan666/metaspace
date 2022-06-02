@@ -9,6 +9,7 @@ type BasePortalRequest struct {
 	BaseUserID uint64 `json:"base_user_id"`
 	BaseUUID   string `json:"base_uuid"`
 	BaseEmail  string `json:"base_email"`
+	BaseWallet string `json:"base_wallet"`
 }
 
 type ThirdPartyLogin struct {
