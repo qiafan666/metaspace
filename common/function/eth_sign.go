@@ -50,7 +50,7 @@ func VerifySigEthHash(from string, sigHex string, msg string) error {
 	}
 
 	address := crypto.PubkeyToAddress(*pubKey)
-	fmt.Println(address)
+
 	if fromAddr != address {
 		return errors.New("address does not match")
 	}
