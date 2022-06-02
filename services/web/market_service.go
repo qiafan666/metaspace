@@ -145,8 +145,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 	//_saltNonce
 	saltNonce := big.NewInt(int64(rand.Int31()))
 
-	var message [32]byte
-	message, err = instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, saltNonce)
+	message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, saltNonce)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
 		return out, 0, err
