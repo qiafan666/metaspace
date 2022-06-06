@@ -8,6 +8,7 @@ type OrdersDetail struct {
 	Seller      string    `gorm:"column:seller" json:"seller"`
 	Buyer       string    `gorm:"column:buyer" json:"buyer"`
 	Signature   string    `gorm:"column:signature" json:"signature"`
+	SaltNonce   int64     `gorm:"column:salt_nonce" json:"salt_nonce"`
 	Status      uint8     `gorm:"column:status" json:"status"` // 1:active 2:expire 3:canceled 4:finished
 	ExpireTime  time.Time `gorm:"column:expire_time" json:"expire_time"`
 	Price       uint      `gorm:"column:price" json:"price"`

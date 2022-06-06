@@ -13,7 +13,7 @@ import (
 
 // PublicService service layer interface
 type PublicService interface {
-	GetUserId(ctx context.Context, uuid string) (out inner.UserId, code commons.ResponseCode, err error)
+	GetUser(ctx context.Context, uuid string) (out inner.User, code commons.ResponseCode, err error)
 }
 
 var PublicServiceIns *PublicServiceImp
@@ -34,16 +34,17 @@ type PublicServiceImp struct {
 	redis redis.Dao
 }
 
-func (p PublicServiceImp) GetUserId(ctx context.Context, uuid string) (out inner.UserId, code commons.ResponseCode, err error) {
+func (p PublicServiceImp) GetUser(ctx context.Context, uuid string) (out inner.User, code commons.ResponseCode, err error) {
 	var user model.User
-	err = p.dao.First([]string{model.UserColumns.ID}, map[string]interface{}{
+	err = p.dao.First([]string{model.UserColumns.ID, model.UserColumns.WalletAddress}, map[string]interface{}{
 		model.UserColumns.UUID: uuid,
 	}, nil, &user)
 
 	if err != nil {
-		slog.Slog.ErrorF(ctx, "SignServiceImp GetUserId error %s", err.Error())
+		slog.Slog.ErrorF(ctx, "SignServiceImp GetUser error %s", err.Error())
 		return out, 0, err
 	}
 	out.UserId = user.ID
+	out.WalletAddress = user.WalletAddress
 	return
 }

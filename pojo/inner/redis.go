@@ -34,6 +34,11 @@ type TokenUser struct {
 	Uuid               string `json:"uuid"`
 }
 
-type UserId struct {
-	UserId uint64 `json:"user_id"`
+type User struct {
+	UserId        uint64 `json:"user_id"`
+	WalletAddress string `json:"wallet_address"`
+}
+
+type RawMessage struct {
+	RawMessage string `json:"raw_message"`
 }

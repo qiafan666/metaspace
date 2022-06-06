@@ -78,10 +78,12 @@ type Sign struct {
 
 type ShelfSign struct {
 	SignMessage string `json:"sign_message"`
+	SaltNonce   string `json:"salt_nonce"`
 }
 
 type SellShelf struct {
-	Flag string `json:"flag"`
+	RawMessage  string `json:"raw_message"`
+	SignMessage string `json:"sign_message"`
 }
 
 type Orders struct {
@@ -94,6 +96,7 @@ type OrdersDetail struct {
 	Seller        string    `json:"seller"`
 	Buyer         string    `json:"buyer"`
 	Signature     string    `json:"signature"`
+	SaltNonce     int64     `json:"salt_nonce"`
 	Status        uint8     `json:"status"` // 1:active 2:expire 3:canceled 4:finished
 	NftID         string    `json:"nft_id"`
 	Category      int64     `json:"category_id"`

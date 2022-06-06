@@ -13,7 +13,6 @@ import (
 	slog "github.com/jau1jz/cornus/commons/log"
 	"gorm.io/gorm"
 	"strconv"
-	"strings"
 	"time"
 
 	// "gorm.io/gorm"
@@ -45,19 +44,8 @@ type gameAssetsServiceImp struct {
 
 func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out response.GetGameAssets, code commons.ResponseCode, err error) {
 
-	var user model.User
-	err = p.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.WalletAddress}, map[string]interface{}{
-		model.UserColumns.UUID: info.BasePortalRequest.BaseUUID,
-	}, nil, &user)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp failed to fetch UUID. Error: %s", err.Error())
-		return out, 0, err
-	}
-
-	vWalletAddress := strings.ToLower(user.WalletAddress)
-
 	count, err := p.dao.WithContext(info.Ctx).Count(model.Assets{}, map[string]interface{}{
-		model.AssetsColumns.Uid: vWalletAddress,
+		model.AssetsColumns.Uid: info.BaseWallet,
 	}, func(db *gorm.DB) *gorm.DB {
 		if info.Category != nil {
 			db = db.Where("assets.category=?", info.Category)
@@ -81,7 +69,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 			Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
 			Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
-			Where("assets.uid=?", vWalletAddress)
+			Where("assets.uid=?", info.BaseWallet)
 		if info.Category != nil {
 			db = db.Where("assets.category=?", info.Category)
 		}
@@ -103,7 +91,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			continue
 		}
 		//check expireTime
-		if !vAsset.ExpireTime.IsZero() && vAsset.ExpireTime.Before(time.Now()) {
+		if !vAsset.ExpireTime.IsZero() && vAsset.ExpireTime.Before(time.Now()) && vAsset.Status == common.OrderStatusActive {
 			vAsset.Status = common.OrderStatusExpire
 
 			//update order status

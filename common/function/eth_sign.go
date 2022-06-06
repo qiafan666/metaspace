@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 )
@@ -26,6 +27,31 @@ func VerifySig(from string, sigHex string, msg string) error {
 	}
 
 	if fromAddr != crypto.PubkeyToAddress(*pubKey) {
+		return errors.New("address does not match")
+	}
+	return nil
+}
+
+func VerifySigEthHash(from string, sigHex string, msg string) error {
+	fromAddr := common.HexToAddress(from)
+
+	sig, err := hexutil.Decode(sigHex)
+	if err != nil {
+		return err
+	}
+	// https://github.com/ethereum/go-ethereum/blob/55599ee95d4151a2502465e0afc7c47bd1acba77/internal/ethapi/api.go#L442
+	if sig[64] != 27 && sig[64] != 28 {
+		return errors.New("sign format error")
+	}
+	sig[64] -= 27
+	pubKey, err := crypto.SigToPub(signHash(ethcommon.HexToHash(msg).Bytes()), sig)
+	if err != nil {
+		return err
+	}
+
+	address := crypto.PubkeyToAddress(*pubKey)
+
+	if fromAddr != address {
 		return errors.New("address does not match")
 	}
 	return nil

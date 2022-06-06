@@ -9,6 +9,7 @@ type BasePortalRequest struct {
 	BaseUserID uint64 `json:"base_user_id"`
 	BaseUUID   string `json:"base_uuid"`
 	BaseEmail  string `json:"base_email"`
+	BaseWallet string `json:"base_wallet"`
 }
 
 type ThirdPartyLogin struct {
@@ -91,6 +92,7 @@ type SellShelf struct {
 	ItemId        string    `json:"item_id" validate:"required,max=192"`
 	Price         uint      `json:"price" validate:"required"`
 	ExpireTime    time.Time `json:"expire_time" validate:"required"`
+	SaltNonce     string    `json:"salt_nonce" validate:"required"`
 }
 
 type Orders struct {
