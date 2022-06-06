@@ -8,17 +8,17 @@ import (
 func GetCategoryString(mType int64) string {
 	switch mType {
 	case common.CategoryId0:
-		return common.ChestString
+		return common.DummyString
 	case common.CategoryId1:
-		return common.TicketString
+		return common.ChestString
 	case common.CategoryId2:
-		return common.LandString
+		return common.TicketString
 	case common.CategoryId3:
-		return common.BuildingString
+		return common.LandString
 	case common.CategoryId4:
-		return common.TowerString
+		return common.BuildingString
 	case common.CategoryId5:
-		return common.TrapString
+		return common.TowerString
 	case common.CategoryId6:
 		return common.TrapString
 	}
