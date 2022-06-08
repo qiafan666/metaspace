@@ -13,8 +13,6 @@ CREATE TABLE `orders` (
   `salt_nonce` varchar(192) NOT NULL COMMENT '上架签名中的salt_nonce',
   `status` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '1:active 2:expire 3:canceled 4:finished',
   `total_price` int unsigned NOT NULL,
-  `origin_chain` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT 'origin chain',
-  `block_number` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'block number',
   `start_time` timestamp(3) NOT NULL,
   `expire_time` timestamp(3) NOT NULL,
   `created_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
@@ -31,8 +29,6 @@ type Orders struct {
 	SaltNonce   string    `gorm:"column:salt_nonce" json:"salt_nonce"` // 上架签名中的salt_nonce
 	Status      uint8     `gorm:"column:status" json:"status"`         // 1:active 2:expire 3:canceled 4:finished
 	TotalPrice  uint      `gorm:"column:total_price" json:"total_price"`
-	OriginChain string    `gorm:"column:origin_chain" json:"origin_chain"` // origin chain
-	BlockNumber string    `gorm:"column:block_number" json:"block_number"` // block number
 	StartTime   time.Time `gorm:"column:start_time" json:"start_time"`
 	ExpireTime  time.Time `gorm:"column:expire_time" json:"expire_time"`
 	CreatedTime time.Time `gorm:"column:created_time" json:"created_time"`
@@ -53,8 +49,6 @@ var OrdersColumns = struct {
 	SaltNonce   string
 	Status      string
 	TotalPrice  string
-	OriginChain string
-	BlockNumber string
 	StartTime   string
 	ExpireTime  string
 	CreatedTime string
@@ -67,8 +61,6 @@ var OrdersColumns = struct {
 	SaltNonce:   "salt_nonce",
 	Status:      "status",
 	TotalPrice:  "total_price",
-	OriginChain: "origin_chain",
-	BlockNumber: "block_number",
 	StartTime:   "start_time",
 	ExpireTime:  "expire_time",
 	CreatedTime: "created_time",
