@@ -288,7 +288,8 @@ func (p portalServiceImp) UpdatePassword(info request.PasswordUpdate) (out respo
 	}
 
 	_, err = tx.WithContext(info.Ctx).Update(model.User{
-		Password: utils.StringToSha256(info.NewPassword),
+		Password:  utils.StringToSha256(info.NewPassword),
+		UpdatedAt: time.Now(),
 	}, map[string]interface{}{
 		model.UserColumns.UUID: info.BaseUUID,
 	}, nil)

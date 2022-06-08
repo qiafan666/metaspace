@@ -79,20 +79,20 @@ type Sign struct {
 type ShelfSign struct {
 	BaseRequest
 	BasePortalRequest
-	AssetId      string `json:"asset_id" validate:"required,max=192"`
-	PaymentErc20 string `json:"payment_erc20" validate:"required,max=192"`
-	Price        string `json:"price" validate:"required,max=192"`
+	AssetId      string    `json:"asset_id" validate:"required,max=192"`
+	PaymentErc20 string    `json:"payment_erc20" validate:"required,max=192"`
+	Price        string    `json:"price" validate:"required,max=192"`
+	ExpireTime   time.Time `json:"expire_time" validate:"required"`
 }
 
 type SellShelf struct {
 	BaseRequest
 	BasePortalRequest
-	SignedMessage string    `json:"signed_message" validate:"required,max=192"`
-	RawMessage    string    `json:"raw_message" validate:"required,max=192"`
-	ItemId        string    `json:"item_id" validate:"required,max=192"`
-	Price         uint      `json:"price" validate:"required"`
-	ExpireTime    time.Time `json:"expire_time" validate:"required"`
-	SaltNonce     string    `json:"salt_nonce" validate:"required"`
+	SignedMessage string `json:"signed_message" validate:"required,max=192"`
+	RawMessage    string `json:"raw_message" validate:"required,max=192"`
+	ItemId        string `json:"item_id" validate:"required,max=192"`
+	Price         uint   `json:"price" validate:"required"`
+	SaltNonce     string `json:"salt_nonce" validate:"required"`
 }
 
 type Orders struct {

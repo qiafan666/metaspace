@@ -5,7 +5,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/contract/assetscontract"
-	"github.com/blockfishio/metaspace-backend/contract/marketcontract"
+	marketcontract "github.com/blockfishio/metaspace-backend/contract/marketcontract"
 	"github.com/blockfishio/metaspace-backend/dao"
 	"github.com/blockfishio/metaspace-backend/model"
 	"github.com/blockfishio/metaspace-backend/model/join"
@@ -104,7 +104,8 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 			//check assets owner
 			if vAssets.Uid != strings.ToLower(of.String()) {
 				_, errs = m.dao.WithContext(info.Ctx).Update(model.Assets{
-					Uid: strings.ToLower(of.String()),
+					Uid:       strings.ToLower(of.String()),
+					UpdatedAt: time.Now(),
 				}, map[string]interface{}{
 					model.AssetsColumns.TokenId: vAssets.TokenId,
 				}, nil)
@@ -134,16 +135,20 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 	//_saltNonce
 	saltNonce := big.NewInt(int64(rand.Int31()))
 
-	message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, saltNonce)
+	startTime := time.Now()
+	endTime := info.ExpireTime
+
+	message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, big.NewInt(startTime.Unix()), big.NewInt(endTime.Unix()), saltNonce)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
 		return out, 0, err
 	}
 	out.SignMessage = ethcommon.BytesToHash(message[:]).String()
 	out.SaltNonce = saltNonce.String()
-
 	err = m.redis.SetRawMessage(info.Ctx, inner.RawMessage{
 		RawMessage: out.SignMessage,
+		StartTime:  startTime,
+		ExpireTime: endTime,
 	}, time.Minute*3)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetTokenUser error %s", err.Error())
@@ -154,7 +159,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 
 func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellShelf, code commons.ResponseCode, err error) {
 
-	_, err = m.redis.GetRawMessage(info.Ctx, info.RawMessage)
+	signMessage, err := m.redis.GetRawMessage(info.Ctx, info.RawMessage)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetRawMessage error %s", err.Error())
 		return
@@ -166,7 +171,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		return out, 0, err
 	}
 
-	if info.ExpireTime.Before(time.Now()) {
+	if signMessage.ExpireTime.Before(time.Now()) {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp expireTime error:%s", err.Error())
 		return out, 0, err
 	}
@@ -193,6 +198,12 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		return out, 0, err
 	}
 
+	//check
+	if info.BaseWallet != strings.ToLower(of.String()) {
+		slog.Slog.ErrorF(info.Ctx, "assets address not wallet address")
+		return out, common.WalletError, errors.New("inconsistent wallet addresses")
+	}
+
 	if strings.HasPrefix(info.SignedMessage, "0x") == false {
 		info.SignedMessage = "0x" + info.SignedMessage
 	}
@@ -203,10 +214,11 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf marketNewContracts error:%s", err.Error())
 		return out, 0, err
 	}
+
 	flag, err := marketInstance.UsedSignatures(nil, []byte(info.SignedMessage))
 	if flag == true {
-		slog.Slog.InfoF(info.Ctx, "marketServiceImp GetSellShelf signMessage already used : %s", err.Error())
-		return out, 0, err
+		slog.Slog.InfoF(info.Ctx, "marketServiceImp GetSellShelf Signatures already used : %s", err.Error())
+		return out, common.UsedSignature, err
 	}
 
 	if err = function.VerifySigEthHash(of.String(), info.SignedMessage, info.RawMessage); err != nil {
@@ -237,6 +249,9 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 			Signature:   info.SignedMessage,
 			Status:      common.OrderStatusActive,
 			SaltNonce:   info.SaltNonce,
+			TotalPrice:  info.Price,
+			StartTime:   signMessage.StartTime,
+			ExpireTime:  signMessage.ExpireTime,
 			CreatedTime: time.Now(),
 			UpdatedTime: time.Now(),
 		}
@@ -250,7 +265,6 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 			OrderID:     newOrders.ID,
 			NftID:       strconv.FormatInt(vAssets.TokenId, 10),
 			Price:       info.Price,
-			ExpireTime:  info.ExpireTime,
 			CreatedTime: time.Now(),
 			UpdatedTime: time.Now(),
 		}
@@ -265,9 +279,13 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 	} else {
 		//update order status
 		_, err = tx.WithContext(info.Ctx).Update(model.Orders{
-			Status:    common.OrderStatusActive,
-			SaltNonce: info.SaltNonce,
-			Signature: info.SignedMessage,
+			Status:      common.OrderStatusActive,
+			SaltNonce:   info.SaltNonce,
+			Signature:   info.SignedMessage,
+			TotalPrice:  info.Price,
+			StartTime:   signMessage.StartTime,
+			ExpireTime:  signMessage.ExpireTime,
+			UpdatedTime: time.Now(),
 		}, map[string]interface{}{
 			model.OrdersColumns.ID: ordersDetail.OrderID,
 		}, nil)
@@ -277,8 +295,8 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		}
 		//update orders_detail status
 		_, err = tx.WithContext(info.Ctx).Update(model.OrdersDetail{
-			Price:      info.Price,
-			ExpireTime: info.ExpireTime,
+			Price:       info.Price,
+			UpdatedTime: time.Now(),
 		}, map[string]interface{}{
 			model.OrdersDetailColumns.NftID: vAssets.TokenId,
 		}, nil)
@@ -296,7 +314,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
 
 	var ordersDetail []join.OrdersDetail
-	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders_detail.nft_id,orders_detail.price,orders_detail.expire_time,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders_detail.nft_id,orders_detail.price,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 			Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").
 			Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").
@@ -352,7 +370,9 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 			Image:         v.Image,
 			Name:          v.Name,
 			Description:   v.Description,
+			TotalPrice:    v.TotalPrice,
 			Price:         v.Price,
+			StartTime:     v.StartTime,
 			ExpireTime:    v.ExpireTime,
 			ContractChain: "BSC",
 		})
@@ -443,7 +463,8 @@ func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.Or
 	}
 
 	_, err = tx.WithContext(info.Ctx).Update(model.Orders{
-		Status: common.OrderStatusCancel,
+		Status:      common.OrderStatusCancel,
+		UpdatedTime: time.Now(),
 	}, map[string]interface{}{
 		model.OrdersColumns.ID: info.OrderId,
 	}, nil)

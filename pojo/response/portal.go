@@ -60,6 +60,9 @@ type AssetBody struct {
 	Price           uint      `json:"price"`
 	OrderId         int64     `json:"order_id"`
 	ExpireTime      time.Time `json:"expire_time"`
+	Signature       string    `json:"signature"`
+	SaltNonce       string    `json:"salt_nonce"`
+	StartTime       time.Time `json:"start_time"`
 }
 
 type SubscribeNewsletterEmail struct {
@@ -105,8 +108,10 @@ type OrdersDetail struct {
 	Image         string    `json:"image"`
 	Name          string    `json:"name"`
 	Description   string    `json:"description"`
+	TotalPrice    uint      `json:"total_price"`
 	Price         uint      `json:"price"`
 	ContractChain string    `json:"contract_chain"`
+	StartTime     time.Time `json:"start_time"`
 	ExpireTime    time.Time `json:"expire_time"`
 }
 

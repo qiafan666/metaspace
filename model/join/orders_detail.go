@@ -10,6 +10,8 @@ type OrdersDetail struct {
 	Signature   string    `gorm:"column:signature" json:"signature"`
 	SaltNonce   int64     `gorm:"column:salt_nonce" json:"salt_nonce"`
 	Status      uint8     `gorm:"column:status" json:"status"` // 1:active 2:expire 3:canceled 4:finished
+	TotalPrice  uint      `gorm:"column:total_price" json:"total_price"`
+	StartTime   time.Time `gorm:"column:start_time" json:"start_time"`
 	ExpireTime  time.Time `gorm:"column:expire_time" json:"expire_time"`
 	Price       uint      `gorm:"column:price" json:"price"`
 	NftID       string    `gorm:"column:nft_id" json:"nft_id"`

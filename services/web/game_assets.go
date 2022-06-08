@@ -65,7 +65,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 
 	var assetsOrders []join.AssetsOrders
 	err = p.dao.WithContext(info.Ctx).Find([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature," +
-		"orders_detail.price,orders_detail.order_id,orders_detail.expire_time,orders.`status`,orders.signature"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce,orders.start_time"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 			Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
 			Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
@@ -96,7 +96,8 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 
 			//update order status
 			_, err = p.dao.WithContext(info.Ctx).Update(model.Orders{
-				Status: common.OrderStatusExpire,
+				Status:      common.OrderStatusExpire,
+				UpdatedTime: time.Now(),
 			}, map[string]interface{}{
 				model.OrdersColumns.ID:     vAsset.OrderID,
 				model.OrdersColumns.Status: common.OrderStatusActive,
@@ -136,6 +137,9 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			Price:           vAsset.Price,
 			OrderId:         int64(vAsset.OrderID),
 			ExpireTime:      vAsset.ExpireTime,
+			Signature:       vAsset.Signature,
+			StartTime:       vAsset.StartTime,
+			SaltNonce:       vAsset.SaltNonce,
 		})
 
 	}

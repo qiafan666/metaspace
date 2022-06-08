@@ -1,7 +1,7 @@
 // Code generated - DO NOT EDIT.
 // This file is a generated binding and any manual changes will be lost.
 
-package marketcontract
+package contracts
 
 import (
 	"errors"
@@ -30,7 +30,7 @@ var (
 
 // ContractsMetaData contains all meta data concerning the Contracts contract.
 var ContractsMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256[]\",\"name\":\"tokenIds\",\"type\":\"uint256[]\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"paymentToken\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"buyer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"MatchTransaction\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"feeToAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_nftAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_tokenId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_paymentErc20\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_saltNonce\",\"type\":\"uint256\"}],\"name\":\"getMessageHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_nftAddress\",\"type\":\"address\"},{\"internalType\":\"uint256[]\",\"name\":\"_tokenIds\",\"type\":\"uint256[]\"},{\"internalType\":\"address\",\"name\":\"_paymentErc20\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_saltNonce\",\"type\":\"uint256\"}],\"name\":\"getMessageHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"nftaddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"paymentToken\",\"type\":\"address\"},{\"internalType\":\"uint256[]\",\"name\":\"tokenIds\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"saltnonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"ignoreSignature\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[3]\",\"name\":\"addresses\",\"type\":\"address[3]\"},{\"internalType\":\"uint256[]\",\"name\":\"tokenIds\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"saltnonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"matchTransaction\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[3]\",\"name\":\"addresses\",\"type\":\"address[3]\"},{\"internalType\":\"uint256[3]\",\"name\":\"values\",\"type\":\"uint256[3]\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"matchTransaction\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"paymentTokens\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_removedPaymentTokens\",\"type\":\"address[]\"}],\"name\":\"removePaymentTokens\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_feeToAddress\",\"type\":\"address\"}],\"name\":\"setFeeToAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_paymentTokens\",\"type\":\"address[]\"}],\"name\":\"setPaymentTokens\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_transactionFeePerMillion\",\"type\":\"uint256\"}],\"name\":\"setTransactionFeePerMillion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"transactionFeePerMillion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"name\":\"usedSignatures\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"CancelTransaction\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"signatrue\",\"type\":\"bytes\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"paymentToken\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"seller\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"buyer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"MatchTransaction\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"feeToAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_nftAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_tokenId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_paymentErc20\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_startTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_endTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_saltNonce\",\"type\":\"uint256\"}],\"name\":\"getMessageHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_nftAddress\",\"type\":\"address\"},{\"internalType\":\"uint256[]\",\"name\":\"_tokenIds\",\"type\":\"uint256[]\"},{\"internalType\":\"address\",\"name\":\"_paymentErc20\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_startTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_endTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_saltNonce\",\"type\":\"uint256\"}],\"name\":\"getMessageHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[3]\",\"name\":\"addresses\",\"type\":\"address[3]\"},{\"internalType\":\"uint256[]\",\"name\":\"tokenIds\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[4]\",\"name\":\"orderdetails\",\"type\":\"uint256[4]\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"ignoreSignature\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[3]\",\"name\":\"addresses\",\"type\":\"address[3]\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"uint256[4]\",\"name\":\"orderdetails\",\"type\":\"uint256[4]\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"ignoreSignature\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[3]\",\"name\":\"addresses\",\"type\":\"address[3]\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"uint256[4]\",\"name\":\"orderdetails\",\"type\":\"uint256[4]\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"matchTransaction\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[3]\",\"name\":\"addresses\",\"type\":\"address[3]\"},{\"internalType\":\"uint256[]\",\"name\":\"tokenIds\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[4]\",\"name\":\"orderdetails\",\"type\":\"uint256[4]\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"matchTransaction\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"paymentTokens\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_removedPaymentTokens\",\"type\":\"address[]\"}],\"name\":\"removePaymentTokens\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_feeToAddress\",\"type\":\"address\"}],\"name\":\"setFeeToAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_paymentTokens\",\"type\":\"address[]\"}],\"name\":\"setPaymentTokens\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_transactionFeePerMillion\",\"type\":\"uint256\"}],\"name\":\"setTransactionFeePerMillion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"transactionFeePerMillion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"name\":\"usedSignatures\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // ContractsABI is the input ABI used to generate the binding from.
@@ -210,12 +210,12 @@ func (_Contracts *ContractsCallerSession) FeeToAddress() (common.Address, error)
 	return _Contracts.Contract.FeeToAddress(&_Contracts.CallOpts)
 }
 
-// GetMessageHash is a free data retrieval call binding the contract method 0x1e5192e5.
+// GetMessageHash is a free data retrieval call binding the contract method 0xbbf071f7.
 //
-// Solidity: function getMessageHash(address _nftAddress, uint256 _tokenId, address _paymentErc20, uint256 _price, uint256 _saltNonce) pure returns(bytes32)
-func (_Contracts *ContractsCaller) GetMessageHash(opts *bind.CallOpts, _nftAddress common.Address, _tokenId *big.Int, _paymentErc20 common.Address, _price *big.Int, _saltNonce *big.Int) ([32]byte, error) {
+// Solidity: function getMessageHash(address _nftAddress, uint256 _tokenId, address _paymentErc20, uint256 _price, uint256 _startTime, uint256 _endTime, uint256 _saltNonce) pure returns(bytes32)
+func (_Contracts *ContractsCaller) GetMessageHash(opts *bind.CallOpts, _nftAddress common.Address, _tokenId *big.Int, _paymentErc20 common.Address, _price *big.Int, _startTime *big.Int, _endTime *big.Int, _saltNonce *big.Int) ([32]byte, error) {
 	var out []interface{}
-	err := _Contracts.contract.Call(opts, &out, "getMessageHash", _nftAddress, _tokenId, _paymentErc20, _price, _saltNonce)
+	err := _Contracts.contract.Call(opts, &out, "getMessageHash", _nftAddress, _tokenId, _paymentErc20, _price, _startTime, _endTime, _saltNonce)
 
 	if err != nil {
 		return *new([32]byte), err
@@ -227,26 +227,26 @@ func (_Contracts *ContractsCaller) GetMessageHash(opts *bind.CallOpts, _nftAddre
 
 }
 
-// GetMessageHash is a free data retrieval call binding the contract method 0x1e5192e5.
+// GetMessageHash is a free data retrieval call binding the contract method 0xbbf071f7.
 //
-// Solidity: function getMessageHash(address _nftAddress, uint256 _tokenId, address _paymentErc20, uint256 _price, uint256 _saltNonce) pure returns(bytes32)
-func (_Contracts *ContractsSession) GetMessageHash(_nftAddress common.Address, _tokenId *big.Int, _paymentErc20 common.Address, _price *big.Int, _saltNonce *big.Int) ([32]byte, error) {
-	return _Contracts.Contract.GetMessageHash(&_Contracts.CallOpts, _nftAddress, _tokenId, _paymentErc20, _price, _saltNonce)
+// Solidity: function getMessageHash(address _nftAddress, uint256 _tokenId, address _paymentErc20, uint256 _price, uint256 _startTime, uint256 _endTime, uint256 _saltNonce) pure returns(bytes32)
+func (_Contracts *ContractsSession) GetMessageHash(_nftAddress common.Address, _tokenId *big.Int, _paymentErc20 common.Address, _price *big.Int, _startTime *big.Int, _endTime *big.Int, _saltNonce *big.Int) ([32]byte, error) {
+	return _Contracts.Contract.GetMessageHash(&_Contracts.CallOpts, _nftAddress, _tokenId, _paymentErc20, _price, _startTime, _endTime, _saltNonce)
 }
 
-// GetMessageHash is a free data retrieval call binding the contract method 0x1e5192e5.
+// GetMessageHash is a free data retrieval call binding the contract method 0xbbf071f7.
 //
-// Solidity: function getMessageHash(address _nftAddress, uint256 _tokenId, address _paymentErc20, uint256 _price, uint256 _saltNonce) pure returns(bytes32)
-func (_Contracts *ContractsCallerSession) GetMessageHash(_nftAddress common.Address, _tokenId *big.Int, _paymentErc20 common.Address, _price *big.Int, _saltNonce *big.Int) ([32]byte, error) {
-	return _Contracts.Contract.GetMessageHash(&_Contracts.CallOpts, _nftAddress, _tokenId, _paymentErc20, _price, _saltNonce)
+// Solidity: function getMessageHash(address _nftAddress, uint256 _tokenId, address _paymentErc20, uint256 _price, uint256 _startTime, uint256 _endTime, uint256 _saltNonce) pure returns(bytes32)
+func (_Contracts *ContractsCallerSession) GetMessageHash(_nftAddress common.Address, _tokenId *big.Int, _paymentErc20 common.Address, _price *big.Int, _startTime *big.Int, _endTime *big.Int, _saltNonce *big.Int) ([32]byte, error) {
+	return _Contracts.Contract.GetMessageHash(&_Contracts.CallOpts, _nftAddress, _tokenId, _paymentErc20, _price, _startTime, _endTime, _saltNonce)
 }
 
-// GetMessageHash0 is a free data retrieval call binding the contract method 0x9d76b8ad.
+// GetMessageHash0 is a free data retrieval call binding the contract method 0xea492018.
 //
-// Solidity: function getMessageHash(address _nftAddress, uint256[] _tokenIds, address _paymentErc20, uint256 _price, uint256 _saltNonce) pure returns(bytes32)
-func (_Contracts *ContractsCaller) GetMessageHash0(opts *bind.CallOpts, _nftAddress common.Address, _tokenIds []*big.Int, _paymentErc20 common.Address, _price *big.Int, _saltNonce *big.Int) ([32]byte, error) {
+// Solidity: function getMessageHash(address _nftAddress, uint256[] _tokenIds, address _paymentErc20, uint256 _price, uint256 _startTime, uint256 _endTime, uint256 _saltNonce) pure returns(bytes32)
+func (_Contracts *ContractsCaller) GetMessageHash0(opts *bind.CallOpts, _nftAddress common.Address, _tokenIds []*big.Int, _paymentErc20 common.Address, _price *big.Int, _startTime *big.Int, _endTime *big.Int, _saltNonce *big.Int) ([32]byte, error) {
 	var out []interface{}
-	err := _Contracts.contract.Call(opts, &out, "getMessageHash0", _nftAddress, _tokenIds, _paymentErc20, _price, _saltNonce)
+	err := _Contracts.contract.Call(opts, &out, "getMessageHash0", _nftAddress, _tokenIds, _paymentErc20, _price, _startTime, _endTime, _saltNonce)
 
 	if err != nil {
 		return *new([32]byte), err
@@ -258,18 +258,18 @@ func (_Contracts *ContractsCaller) GetMessageHash0(opts *bind.CallOpts, _nftAddr
 
 }
 
-// GetMessageHash0 is a free data retrieval call binding the contract method 0x9d76b8ad.
+// GetMessageHash0 is a free data retrieval call binding the contract method 0xea492018.
 //
-// Solidity: function getMessageHash(address _nftAddress, uint256[] _tokenIds, address _paymentErc20, uint256 _price, uint256 _saltNonce) pure returns(bytes32)
-func (_Contracts *ContractsSession) GetMessageHash0(_nftAddress common.Address, _tokenIds []*big.Int, _paymentErc20 common.Address, _price *big.Int, _saltNonce *big.Int) ([32]byte, error) {
-	return _Contracts.Contract.GetMessageHash0(&_Contracts.CallOpts, _nftAddress, _tokenIds, _paymentErc20, _price, _saltNonce)
+// Solidity: function getMessageHash(address _nftAddress, uint256[] _tokenIds, address _paymentErc20, uint256 _price, uint256 _startTime, uint256 _endTime, uint256 _saltNonce) pure returns(bytes32)
+func (_Contracts *ContractsSession) GetMessageHash0(_nftAddress common.Address, _tokenIds []*big.Int, _paymentErc20 common.Address, _price *big.Int, _startTime *big.Int, _endTime *big.Int, _saltNonce *big.Int) ([32]byte, error) {
+	return _Contracts.Contract.GetMessageHash0(&_Contracts.CallOpts, _nftAddress, _tokenIds, _paymentErc20, _price, _startTime, _endTime, _saltNonce)
 }
 
-// GetMessageHash0 is a free data retrieval call binding the contract method 0x9d76b8ad.
+// GetMessageHash0 is a free data retrieval call binding the contract method 0xea492018.
 //
-// Solidity: function getMessageHash(address _nftAddress, uint256[] _tokenIds, address _paymentErc20, uint256 _price, uint256 _saltNonce) pure returns(bytes32)
-func (_Contracts *ContractsCallerSession) GetMessageHash0(_nftAddress common.Address, _tokenIds []*big.Int, _paymentErc20 common.Address, _price *big.Int, _saltNonce *big.Int) ([32]byte, error) {
-	return _Contracts.Contract.GetMessageHash0(&_Contracts.CallOpts, _nftAddress, _tokenIds, _paymentErc20, _price, _saltNonce)
+// Solidity: function getMessageHash(address _nftAddress, uint256[] _tokenIds, address _paymentErc20, uint256 _price, uint256 _startTime, uint256 _endTime, uint256 _saltNonce) pure returns(bytes32)
+func (_Contracts *ContractsCallerSession) GetMessageHash0(_nftAddress common.Address, _tokenIds []*big.Int, _paymentErc20 common.Address, _price *big.Int, _startTime *big.Int, _endTime *big.Int, _saltNonce *big.Int) ([32]byte, error) {
+	return _Contracts.Contract.GetMessageHash0(&_Contracts.CallOpts, _nftAddress, _tokenIds, _paymentErc20, _price, _startTime, _endTime, _saltNonce)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
@@ -396,67 +396,88 @@ func (_Contracts *ContractsCallerSession) UsedSignatures(arg0 []byte) (bool, err
 	return _Contracts.Contract.UsedSignatures(&_Contracts.CallOpts, arg0)
 }
 
-// IgnoreSignature is a paid mutator transaction binding the contract method 0x4b290720.
+// IgnoreSignature is a paid mutator transaction binding the contract method 0x3b6c4b9f.
 //
-// Solidity: function ignoreSignature(address nftaddress, address paymentToken, uint256[] tokenIds, uint256 price, uint256 saltnonce, bytes signature) returns()
-func (_Contracts *ContractsTransactor) IgnoreSignature(opts *bind.TransactOpts, nftaddress common.Address, paymentToken common.Address, tokenIds []*big.Int, price *big.Int, saltnonce *big.Int, signature []byte) (*types.Transaction, error) {
-	return _Contracts.contract.Transact(opts, "ignoreSignature", nftaddress, paymentToken, tokenIds, price, saltnonce, signature)
+// Solidity: function ignoreSignature(address[3] addresses, uint256[] tokenIds, uint256[4] orderdetails, bytes signature) returns()
+func (_Contracts *ContractsTransactor) IgnoreSignature(opts *bind.TransactOpts, addresses [3]common.Address, tokenIds []*big.Int, orderdetails [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.contract.Transact(opts, "ignoreSignature", addresses, tokenIds, orderdetails, signature)
 }
 
-// IgnoreSignature is a paid mutator transaction binding the contract method 0x4b290720.
+// IgnoreSignature is a paid mutator transaction binding the contract method 0x3b6c4b9f.
 //
-// Solidity: function ignoreSignature(address nftaddress, address paymentToken, uint256[] tokenIds, uint256 price, uint256 saltnonce, bytes signature) returns()
-func (_Contracts *ContractsSession) IgnoreSignature(nftaddress common.Address, paymentToken common.Address, tokenIds []*big.Int, price *big.Int, saltnonce *big.Int, signature []byte) (*types.Transaction, error) {
-	return _Contracts.Contract.IgnoreSignature(&_Contracts.TransactOpts, nftaddress, paymentToken, tokenIds, price, saltnonce, signature)
+// Solidity: function ignoreSignature(address[3] addresses, uint256[] tokenIds, uint256[4] orderdetails, bytes signature) returns()
+func (_Contracts *ContractsSession) IgnoreSignature(addresses [3]common.Address, tokenIds []*big.Int, orderdetails [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.Contract.IgnoreSignature(&_Contracts.TransactOpts, addresses, tokenIds, orderdetails, signature)
 }
 
-// IgnoreSignature is a paid mutator transaction binding the contract method 0x4b290720.
+// IgnoreSignature is a paid mutator transaction binding the contract method 0x3b6c4b9f.
 //
-// Solidity: function ignoreSignature(address nftaddress, address paymentToken, uint256[] tokenIds, uint256 price, uint256 saltnonce, bytes signature) returns()
-func (_Contracts *ContractsTransactorSession) IgnoreSignature(nftaddress common.Address, paymentToken common.Address, tokenIds []*big.Int, price *big.Int, saltnonce *big.Int, signature []byte) (*types.Transaction, error) {
-	return _Contracts.Contract.IgnoreSignature(&_Contracts.TransactOpts, nftaddress, paymentToken, tokenIds, price, saltnonce, signature)
+// Solidity: function ignoreSignature(address[3] addresses, uint256[] tokenIds, uint256[4] orderdetails, bytes signature) returns()
+func (_Contracts *ContractsTransactorSession) IgnoreSignature(addresses [3]common.Address, tokenIds []*big.Int, orderdetails [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.Contract.IgnoreSignature(&_Contracts.TransactOpts, addresses, tokenIds, orderdetails, signature)
 }
 
-// MatchTransaction is a paid mutator transaction binding the contract method 0x0bde414e.
+// IgnoreSignature0 is a paid mutator transaction binding the contract method 0x603ab72a.
 //
-// Solidity: function matchTransaction(address[3] addresses, uint256[] tokenIds, uint256 price, uint256 saltnonce, bytes signature) returns(bool)
-func (_Contracts *ContractsTransactor) MatchTransaction(opts *bind.TransactOpts, addresses [3]common.Address, tokenIds []*big.Int, price *big.Int, saltnonce *big.Int, signature []byte) (*types.Transaction, error) {
-	return _Contracts.contract.Transact(opts, "matchTransaction", addresses, tokenIds, price, saltnonce, signature)
+// Solidity: function ignoreSignature(address[3] addresses, uint256 tokenId, uint256[4] orderdetails, bytes signature) returns()
+func (_Contracts *ContractsTransactor) IgnoreSignature0(opts *bind.TransactOpts, addresses [3]common.Address, tokenId *big.Int, orderdetails [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.contract.Transact(opts, "ignoreSignature0", addresses, tokenId, orderdetails, signature)
 }
 
-// MatchTransaction is a paid mutator transaction binding the contract method 0x0bde414e.
+// IgnoreSignature0 is a paid mutator transaction binding the contract method 0x603ab72a.
 //
-// Solidity: function matchTransaction(address[3] addresses, uint256[] tokenIds, uint256 price, uint256 saltnonce, bytes signature) returns(bool)
-func (_Contracts *ContractsSession) MatchTransaction(addresses [3]common.Address, tokenIds []*big.Int, price *big.Int, saltnonce *big.Int, signature []byte) (*types.Transaction, error) {
-	return _Contracts.Contract.MatchTransaction(&_Contracts.TransactOpts, addresses, tokenIds, price, saltnonce, signature)
+// Solidity: function ignoreSignature(address[3] addresses, uint256 tokenId, uint256[4] orderdetails, bytes signature) returns()
+func (_Contracts *ContractsSession) IgnoreSignature0(addresses [3]common.Address, tokenId *big.Int, orderdetails [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.Contract.IgnoreSignature0(&_Contracts.TransactOpts, addresses, tokenId, orderdetails, signature)
 }
 
-// MatchTransaction is a paid mutator transaction binding the contract method 0x0bde414e.
+// IgnoreSignature0 is a paid mutator transaction binding the contract method 0x603ab72a.
 //
-// Solidity: function matchTransaction(address[3] addresses, uint256[] tokenIds, uint256 price, uint256 saltnonce, bytes signature) returns(bool)
-func (_Contracts *ContractsTransactorSession) MatchTransaction(addresses [3]common.Address, tokenIds []*big.Int, price *big.Int, saltnonce *big.Int, signature []byte) (*types.Transaction, error) {
-	return _Contracts.Contract.MatchTransaction(&_Contracts.TransactOpts, addresses, tokenIds, price, saltnonce, signature)
+// Solidity: function ignoreSignature(address[3] addresses, uint256 tokenId, uint256[4] orderdetails, bytes signature) returns()
+func (_Contracts *ContractsTransactorSession) IgnoreSignature0(addresses [3]common.Address, tokenId *big.Int, orderdetails [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.Contract.IgnoreSignature0(&_Contracts.TransactOpts, addresses, tokenId, orderdetails, signature)
 }
 
-// MatchTransaction0 is a paid mutator transaction binding the contract method 0xe8e8e872.
+// MatchTransaction is a paid mutator transaction binding the contract method 0x37ff6fc6.
 //
-// Solidity: function matchTransaction(address[3] addresses, uint256[3] values, bytes signature) returns(bool)
-func (_Contracts *ContractsTransactor) MatchTransaction0(opts *bind.TransactOpts, addresses [3]common.Address, values [3]*big.Int, signature []byte) (*types.Transaction, error) {
-	return _Contracts.contract.Transact(opts, "matchTransaction0", addresses, values, signature)
+// Solidity: function matchTransaction(address[3] addresses, uint256 tokenId, uint256[4] orderdetails, bytes signature) returns(bool)
+func (_Contracts *ContractsTransactor) MatchTransaction(opts *bind.TransactOpts, addresses [3]common.Address, tokenId *big.Int, orderdetails [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.contract.Transact(opts, "matchTransaction", addresses, tokenId, orderdetails, signature)
 }
 
-// MatchTransaction0 is a paid mutator transaction binding the contract method 0xe8e8e872.
+// MatchTransaction is a paid mutator transaction binding the contract method 0x37ff6fc6.
 //
-// Solidity: function matchTransaction(address[3] addresses, uint256[3] values, bytes signature) returns(bool)
-func (_Contracts *ContractsSession) MatchTransaction0(addresses [3]common.Address, values [3]*big.Int, signature []byte) (*types.Transaction, error) {
-	return _Contracts.Contract.MatchTransaction0(&_Contracts.TransactOpts, addresses, values, signature)
+// Solidity: function matchTransaction(address[3] addresses, uint256 tokenId, uint256[4] orderdetails, bytes signature) returns(bool)
+func (_Contracts *ContractsSession) MatchTransaction(addresses [3]common.Address, tokenId *big.Int, orderdetails [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.Contract.MatchTransaction(&_Contracts.TransactOpts, addresses, tokenId, orderdetails, signature)
 }
 
-// MatchTransaction0 is a paid mutator transaction binding the contract method 0xe8e8e872.
+// MatchTransaction is a paid mutator transaction binding the contract method 0x37ff6fc6.
 //
-// Solidity: function matchTransaction(address[3] addresses, uint256[3] values, bytes signature) returns(bool)
-func (_Contracts *ContractsTransactorSession) MatchTransaction0(addresses [3]common.Address, values [3]*big.Int, signature []byte) (*types.Transaction, error) {
-	return _Contracts.Contract.MatchTransaction0(&_Contracts.TransactOpts, addresses, values, signature)
+// Solidity: function matchTransaction(address[3] addresses, uint256 tokenId, uint256[4] orderdetails, bytes signature) returns(bool)
+func (_Contracts *ContractsTransactorSession) MatchTransaction(addresses [3]common.Address, tokenId *big.Int, orderdetails [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.Contract.MatchTransaction(&_Contracts.TransactOpts, addresses, tokenId, orderdetails, signature)
+}
+
+// MatchTransaction0 is a paid mutator transaction binding the contract method 0xaa9bea30.
+//
+// Solidity: function matchTransaction(address[3] addresses, uint256[] tokenIds, uint256[4] orderdetails, bytes signature) returns(bool)
+func (_Contracts *ContractsTransactor) MatchTransaction0(opts *bind.TransactOpts, addresses [3]common.Address, tokenIds []*big.Int, orderdetails [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.contract.Transact(opts, "matchTransaction0", addresses, tokenIds, orderdetails, signature)
+}
+
+// MatchTransaction0 is a paid mutator transaction binding the contract method 0xaa9bea30.
+//
+// Solidity: function matchTransaction(address[3] addresses, uint256[] tokenIds, uint256[4] orderdetails, bytes signature) returns(bool)
+func (_Contracts *ContractsSession) MatchTransaction0(addresses [3]common.Address, tokenIds []*big.Int, orderdetails [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.Contract.MatchTransaction0(&_Contracts.TransactOpts, addresses, tokenIds, orderdetails, signature)
+}
+
+// MatchTransaction0 is a paid mutator transaction binding the contract method 0xaa9bea30.
+//
+// Solidity: function matchTransaction(address[3] addresses, uint256[] tokenIds, uint256[4] orderdetails, bytes signature) returns(bool)
+func (_Contracts *ContractsTransactorSession) MatchTransaction0(addresses [3]common.Address, tokenIds []*big.Int, orderdetails [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.Contract.MatchTransaction0(&_Contracts.TransactOpts, addresses, tokenIds, orderdetails, signature)
 }
 
 // RemovePaymentTokens is a paid mutator transaction binding the contract method 0x64e60ef4.
@@ -585,6 +606,140 @@ func (_Contracts *ContractsTransactorSession) TransferOwnership(newOwner common.
 	return _Contracts.Contract.TransferOwnership(&_Contracts.TransactOpts, newOwner)
 }
 
+// ContractsCancelTransactionIterator is returned from FilterCancelTransaction and is used to iterate over the raw logs and unpacked data for CancelTransaction events raised by the Contracts contract.
+type ContractsCancelTransactionIterator struct {
+	Event *ContractsCancelTransaction // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ContractsCancelTransactionIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ContractsCancelTransaction)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ContractsCancelTransaction)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ContractsCancelTransactionIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ContractsCancelTransactionIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ContractsCancelTransaction represents a CancelTransaction event raised by the Contracts contract.
+type ContractsCancelTransaction struct {
+	Signature []byte
+	Raw       types.Log // Blockchain specific contextual infos
+}
+
+// FilterCancelTransaction is a free log retrieval operation binding the contract event 0x2f309903a6b99e9efac8733c5d41cafcb175989faec025cd4cbdf90cdf8149d7.
+//
+// Solidity: event CancelTransaction(bytes signature)
+func (_Contracts *ContractsFilterer) FilterCancelTransaction(opts *bind.FilterOpts) (*ContractsCancelTransactionIterator, error) {
+
+	logs, sub, err := _Contracts.contract.FilterLogs(opts, "CancelTransaction")
+	if err != nil {
+		return nil, err
+	}
+	return &ContractsCancelTransactionIterator{contract: _Contracts.contract, event: "CancelTransaction", logs: logs, sub: sub}, nil
+}
+
+// WatchCancelTransaction is a free log subscription operation binding the contract event 0x2f309903a6b99e9efac8733c5d41cafcb175989faec025cd4cbdf90cdf8149d7.
+//
+// Solidity: event CancelTransaction(bytes signature)
+func (_Contracts *ContractsFilterer) WatchCancelTransaction(opts *bind.WatchOpts, sink chan<- *ContractsCancelTransaction) (event.Subscription, error) {
+
+	logs, sub, err := _Contracts.contract.WatchLogs(opts, "CancelTransaction")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ContractsCancelTransaction)
+				if err := _Contracts.contract.UnpackLog(event, "CancelTransaction", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseCancelTransaction is a log parse operation binding the contract event 0x2f309903a6b99e9efac8733c5d41cafcb175989faec025cd4cbdf90cdf8149d7.
+//
+// Solidity: event CancelTransaction(bytes signature)
+func (_Contracts *ContractsFilterer) ParseCancelTransaction(log types.Log) (*ContractsCancelTransaction, error) {
+	event := new(ContractsCancelTransaction)
+	if err := _Contracts.contract.UnpackLog(event, "CancelTransaction", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
 // ContractsMatchTransactionIterator is returned from FilterMatchTransaction and is used to iterate over the raw logs and unpacked data for MatchTransaction events raised by the Contracts contract.
 type ContractsMatchTransactionIterator struct {
 	Event *ContractsMatchTransaction // Event containing the contract specifics and raw log
@@ -654,7 +809,8 @@ func (it *ContractsMatchTransactionIterator) Close() error {
 
 // ContractsMatchTransaction represents a MatchTransaction event raised by the Contracts contract.
 type ContractsMatchTransaction struct {
-	TokenIds        []*big.Int
+	Signatrue       []byte
+	TokenId         *big.Int
 	ContractAddress common.Address
 	Price           *big.Int
 	PaymentToken    common.Address
@@ -664,34 +820,34 @@ type ContractsMatchTransaction struct {
 	Raw             types.Log // Blockchain specific contextual infos
 }
 
-// FilterMatchTransaction is a free log retrieval operation binding the contract event 0x48f0b1d9e60d7fe2a9d34381733069d2f7ec8a3720c8f2432f48d615192846b1.
+// FilterMatchTransaction is a free log retrieval operation binding the contract event 0xee360d7fd9457423828ebc181b15acf9a744f56ace271df805060c4fdbb9974d.
 //
-// Solidity: event MatchTransaction(uint256[] indexed tokenIds, address contractAddress, uint256 price, address paymentToken, address seller, address buyer, uint256 fee)
-func (_Contracts *ContractsFilterer) FilterMatchTransaction(opts *bind.FilterOpts, tokenIds [][]*big.Int) (*ContractsMatchTransactionIterator, error) {
+// Solidity: event MatchTransaction(bytes signatrue, uint256 indexed tokenId, address contractAddress, uint256 price, address paymentToken, address seller, address buyer, uint256 fee)
+func (_Contracts *ContractsFilterer) FilterMatchTransaction(opts *bind.FilterOpts, tokenId []*big.Int) (*ContractsMatchTransactionIterator, error) {
 
-	var tokenIdsRule []interface{}
-	for _, tokenIdsItem := range tokenIds {
-		tokenIdsRule = append(tokenIdsRule, tokenIdsItem)
+	var tokenIdRule []interface{}
+	for _, tokenIdItem := range tokenId {
+		tokenIdRule = append(tokenIdRule, tokenIdItem)
 	}
 
-	logs, sub, err := _Contracts.contract.FilterLogs(opts, "MatchTransaction", tokenIdsRule)
+	logs, sub, err := _Contracts.contract.FilterLogs(opts, "MatchTransaction", tokenIdRule)
 	if err != nil {
 		return nil, err
 	}
 	return &ContractsMatchTransactionIterator{contract: _Contracts.contract, event: "MatchTransaction", logs: logs, sub: sub}, nil
 }
 
-// WatchMatchTransaction is a free log subscription operation binding the contract event 0x48f0b1d9e60d7fe2a9d34381733069d2f7ec8a3720c8f2432f48d615192846b1.
+// WatchMatchTransaction is a free log subscription operation binding the contract event 0xee360d7fd9457423828ebc181b15acf9a744f56ace271df805060c4fdbb9974d.
 //
-// Solidity: event MatchTransaction(uint256[] indexed tokenIds, address contractAddress, uint256 price, address paymentToken, address seller, address buyer, uint256 fee)
-func (_Contracts *ContractsFilterer) WatchMatchTransaction(opts *bind.WatchOpts, sink chan<- *ContractsMatchTransaction, tokenIds [][]*big.Int) (event.Subscription, error) {
+// Solidity: event MatchTransaction(bytes signatrue, uint256 indexed tokenId, address contractAddress, uint256 price, address paymentToken, address seller, address buyer, uint256 fee)
+func (_Contracts *ContractsFilterer) WatchMatchTransaction(opts *bind.WatchOpts, sink chan<- *ContractsMatchTransaction, tokenId []*big.Int) (event.Subscription, error) {
 
-	var tokenIdsRule []interface{}
-	for _, tokenIdsItem := range tokenIds {
-		tokenIdsRule = append(tokenIdsRule, tokenIdsItem)
+	var tokenIdRule []interface{}
+	for _, tokenIdItem := range tokenId {
+		tokenIdRule = append(tokenIdRule, tokenIdItem)
 	}
 
-	logs, sub, err := _Contracts.contract.WatchLogs(opts, "MatchTransaction", tokenIdsRule)
+	logs, sub, err := _Contracts.contract.WatchLogs(opts, "MatchTransaction", tokenIdRule)
 	if err != nil {
 		return nil, err
 	}
@@ -723,9 +879,9 @@ func (_Contracts *ContractsFilterer) WatchMatchTransaction(opts *bind.WatchOpts,
 	}), nil
 }
 
-// ParseMatchTransaction is a log parse operation binding the contract event 0x48f0b1d9e60d7fe2a9d34381733069d2f7ec8a3720c8f2432f48d615192846b1.
+// ParseMatchTransaction is a log parse operation binding the contract event 0xee360d7fd9457423828ebc181b15acf9a744f56ace271df805060c4fdbb9974d.
 //
-// Solidity: event MatchTransaction(uint256[] indexed tokenIds, address contractAddress, uint256 price, address paymentToken, address seller, address buyer, uint256 fee)
+// Solidity: event MatchTransaction(bytes signatrue, uint256 indexed tokenId, address contractAddress, uint256 price, address paymentToken, address seller, address buyer, uint256 fee)
 func (_Contracts *ContractsFilterer) ParseMatchTransaction(log types.Log) (*ContractsMatchTransaction, error) {
 	event := new(ContractsMatchTransaction)
 	if err := _Contracts.contract.UnpackLog(event, "MatchTransaction", log); err != nil {
