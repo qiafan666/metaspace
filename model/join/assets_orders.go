@@ -24,7 +24,9 @@ type AssetsOrders struct {
 	Buyer      string    `gorm:"column:buyer" json:"buyer"`
 	Signature  string    `gorm:"column:signature" json:"signature"`
 	Status     uint8     `gorm:"column:status" json:"status"` // 1:active 2:expire 3:canceled 4:finished
+	SaltNonce  string    `gorm:"column:salt_nonce" json:"salt_nonce"`
 	ExpireTime time.Time `gorm:"column:expire_time" json:"expire_time"`
+	StartTime  time.Time `gorm:"column:start_time" json:"start_time"`
 
 	OrderID uint64 `gorm:"column:order_id" json:"order_id"` // orders id
 	NftID   string `gorm:"column:nft_id" json:"nft_id"`

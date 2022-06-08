@@ -1,5 +1,7 @@
 package inner
 
+import "time"
+
 type Nonce struct {
 	Address string `json:"address"`
 	Nonce   string `json:"nonce"`
@@ -40,5 +42,7 @@ type User struct {
 }
 
 type RawMessage struct {
-	RawMessage string `json:"raw_message"`
+	RawMessage string    `json:"raw_message"`
+	StartTime  time.Time `json:"start_time"`
+	ExpireTime time.Time `json:"expire_time"`
 }

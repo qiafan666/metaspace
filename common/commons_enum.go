@@ -35,6 +35,8 @@ const (
 	FrequentVerifyThirdPartySign = 100017
 	AuthCodeAlreadyExpired       = 100018
 	OrdersIsShelf                = 100019
+	UsedSignature                = 100020
+	WalletError                  = 100021
 )
 
 // EnglishCodeMsg local code and msg
@@ -59,6 +61,8 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	FrequentVerifyThirdPartySign: "Frequent Verify Third_Party Sign",
 	AuthCodeAlreadyExpired:       "AuthCode is already expired",
 	OrdersIsShelf:                "Orders is already shelf",
+	UsedSignature:                "Signatures is already used",
+	WalletError:                  "Inconsistent wallet addresses",
 }
 
 // login type
