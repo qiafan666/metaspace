@@ -2,11 +2,6 @@ package dao
 
 import (
 	"context"
-	"sync"
-
-	"github.com/blockfishio/metaspace-backend/model"
-	"github.com/jau1jz/cornus"
-	slog "github.com/jau1jz/cornus/commons/log"
 	"gorm.io/gorm"
 )
 
@@ -91,20 +86,7 @@ func (s Imp) Commit() error {
 }
 
 var db *gorm.DB
-var once sync.Once
 
 func Instance() Dao {
-	once.Do(func() {
-		db = cornus.GetCornusInstance().FeatureDB("metaspace").GormDB()
-		//check table
-		if db.Migrator().HasTable(&model.User{}) == false {
-			err := db.Migrator().CreateTable(&model.User{})
-			if err != nil {
-				s := err.Error()
-				slog.Slog.InfoF(context.Background(), "CreateTable User error %s", s)
-				panic(s)
-			}
-		}
-	})
 	return &Imp{db: db}
 }

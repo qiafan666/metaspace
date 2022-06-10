@@ -28,5 +28,5 @@ contract:
   erc721_address: "0xe88A806D31de758762d93a0e6682042Ec1AFe6ac"
   market_address: "0x9ee4489f25f800E3F2158254afE6a89e27537549"
 thirdLogin:
- third_login_address: "127.0.0.7"
+  third_login_address: "127.0.0.7"
 
