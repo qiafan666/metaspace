@@ -49,7 +49,7 @@ func init() {
 var marketServiceIns *marketServiceImp
 var marketServiceInitOnce sync.Once
 
-func NewMarketInstance() *marketServiceImp {
+func NewMarketInstance() MarketService {
 	marketServiceInitOnce.Do(func() {
 		marketServiceIns = &marketServiceImp{
 			dao:   dao.Instance(),

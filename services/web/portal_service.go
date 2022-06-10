@@ -71,7 +71,7 @@ var portalServiceInitOnce sync.Once
 var ethClient *ethclient.Client
 var portalErr error
 
-func NewPortalServiceInstance() *portalServiceImp {
+func NewPortalServiceInstance() PortalService {
 	portalServiceInitOnce.Do(func() {
 		portalServiceIns = &portalServiceImp{
 			dao:   dao.Instance(),
