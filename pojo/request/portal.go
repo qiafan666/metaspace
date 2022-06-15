@@ -91,7 +91,7 @@ type SellShelf struct {
 	SignedMessage string `json:"signed_message" validate:"required,max=192"`
 	RawMessage    string `json:"raw_message" validate:"required,max=192"`
 	ItemId        string `json:"item_id" validate:"required,max=192"`
-	Price         uint   `json:"price" validate:"required"`
+	Price         string `json:"price" validate:"required"`
 	SaltNonce     string `json:"salt_nonce" validate:"required"`
 }
 
@@ -102,6 +102,9 @@ type Orders struct {
 	Status   uint8 `json:"status,string"`
 	Category *int  `json:"category"`
 	Rarity   *int  `json:"rarity"`
+	//sort
+	SortPrice uint `json:"sort_price"`
+	SortTime  uint `json:"sort_time"`
 }
 
 type OrderCancel struct {

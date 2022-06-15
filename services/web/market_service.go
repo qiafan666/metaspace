@@ -131,14 +131,14 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature price setString error")
 		return out, commons.ParameterError, err
 	}
-
+	ethPrice := price.Mul(price, big.NewInt(1000000000000000000))
 	//_saltNonce
 	saltNonce := big.NewInt(int64(rand.Int31()))
 
 	startTime := time.Now()
 	endTime := info.ExpireTime
 
-	message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, big.NewInt(startTime.Unix()), big.NewInt(endTime.Unix()), saltNonce)
+	message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), ethPrice, big.NewInt(startTime.Unix()), big.NewInt(endTime.Unix()), saltNonce)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
 		return out, 0, err
@@ -314,7 +314,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
 
 	var ordersDetail []join.OrdersDetail
-	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders_detail.nft_id,orders_detail.price,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 			Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").
 			Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").
@@ -326,7 +326,25 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 		if info.Rarity != nil {
 			db = db.Where("assets.rarity=?", info.Rarity)
 		}
-		return db
+
+		if info.SortTime > 0 && info.SortPrice > 0 {
+			return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+		}
+
+		if info.SortTime == 0 {
+		} else if info.SortTime == 1 {
+			return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+		} else {
+			return db.Order(model.OrdersColumns.UpdatedTime + " asc")
+		}
+
+		if info.SortPrice == 0 {
+		} else if info.SortPrice == 1 {
+			return db.Order(model.OrdersDetailColumns.Price + " desc")
+		} else {
+			return db.Order(model.OrdersDetailColumns.Price + " asc")
+		}
+		return db.Order(model.OrdersColumns.UpdatedTime + " desc")
 	}, &ordersDetail)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetOrders detail error %s", err.Error())

@@ -64,7 +64,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	}
 
 	var assetsOrders []join.AssetsOrders
-	err = p.dao.WithContext(info.Ctx).Find([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature," +
+	err = p.dao.WithContext(info.Ctx).Find([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature,assets.updated_at," +
 		"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce,orders.start_time"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 			Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
@@ -79,6 +79,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		if info.Rarity != nil {
 			db = db.Where("assets.rarity=?", info.Rarity)
 		}
+		db.Order(model.AssetsColumns.UpdatedAt + " desc")
 		return db
 	}, &assetsOrders)
 
