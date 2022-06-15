@@ -2,7 +2,9 @@ package dao
 
 import (
 	"context"
+	"github.com/jau1jz/cornus"
 	"gorm.io/gorm"
+	"sync"
 )
 
 type Dao interface {
@@ -86,7 +88,11 @@ func (s Imp) Commit() error {
 }
 
 var db *gorm.DB
+var once sync.Once
 
 func Instance() Dao {
+	once.Do(func() {
+		db = cornus.GetCornusInstance().FeatureDB("metaspace").GormDB()
+	})
 	return &Imp{db: db}
 }

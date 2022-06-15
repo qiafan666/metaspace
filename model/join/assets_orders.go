@@ -30,7 +30,7 @@ type AssetsOrders struct {
 
 	OrderID uint64 `gorm:"column:order_id" json:"order_id"` // orders id
 	NftID   string `gorm:"column:nft_id" json:"nft_id"`
-	Price   uint   `gorm:"column:price" json:"price"`
+	Price   string `gorm:"column:price" json:"price"`
 }
 
 // TableName

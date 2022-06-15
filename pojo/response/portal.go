@@ -57,7 +57,7 @@ type AssetBody struct {
 	Subcategory     string    `json:"subcategory"`
 	SubcategoryId   int64     `json:"subcategory_id"`
 	Status          uint8     `json:"status"`
-	Price           uint      `json:"price"`
+	Price           string    `json:"price"`
 	OrderId         int64     `json:"order_id"`
 	ExpireTime      time.Time `json:"expire_time"`
 	Signature       string    `json:"signature"`
@@ -108,8 +108,8 @@ type OrdersDetail struct {
 	Image         string    `json:"image"`
 	Name          string    `json:"name"`
 	Description   string    `json:"description"`
-	TotalPrice    uint      `json:"total_price"`
-	Price         uint      `json:"price"`
+	TotalPrice    string    `json:"total_price"`
+	Price         string    `json:"price"`
 	ContractChain string    `json:"contract_chain"`
 	StartTime     time.Time `json:"start_time"`
 	ExpireTime    time.Time `json:"expire_time"`
