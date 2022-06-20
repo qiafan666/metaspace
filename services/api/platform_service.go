@@ -54,13 +54,14 @@ func (p PlatformServiceImp) AddAssets(infos request.AddAssets) (out response.Add
 		walletAddress := strings.ToLower(info.WalletAddress)
 
 		newAssets := model.Assets{
-			Uid:         walletAddress,
+			UID:         walletAddress,
+			UUID:        info.UUID,
 			Category:    info.Category,
 			Type:        info.Type,
 			Rarity:      info.Rarity,
 			Image:       info.Image,
-			Uri:         info.Uri,
-			UriContent:  info.UriContent,
+			URI:         info.Uri,
+			URIContent:  info.UriContent,
 			Description: info.Description,
 			IsNft:       common.NotNft,
 			Name:        function.GetCategoryString(info.Category),
@@ -75,9 +76,9 @@ func (p PlatformServiceImp) AddAssets(infos request.AddAssets) (out response.Add
 
 		//update order status
 		_, err = tx.WithContext(infos.Ctx).Update(model.Assets{
-			TokenId: newAssets.Id,
+			TokenID: newAssets.ID,
 		}, map[string]interface{}{
-			model.AssetsColumns.Id: newAssets.Id,
+			model.AssetsColumns.ID: newAssets.ID,
 		}, nil)
 		if err != nil {
 			slog.Slog.ErrorF(infos.Ctx, "PlatformServiceImp Update assets token_id error %s", err.Error())

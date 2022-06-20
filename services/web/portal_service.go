@@ -444,7 +444,7 @@ func (p portalServiceImp) GetTowerStatus(info request.TowerStats) (out response.
 
 	var vAssets model.Assets
 	err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.Rarity, model.AssetsColumns.Type}, map[string]interface{}{
-		model.AssetsColumns.Id: info.Id,
+		model.AssetsColumns.ID: info.Id,
 	}, nil, &vAssets)
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetTowerStatus error:%s", err.Error())
@@ -546,7 +546,7 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 
 	var vAssets model.Assets
 	err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.Category, model.AssetsColumns.Rarity, model.AssetsColumns.Type}, map[string]interface{}{
-		model.AssetsColumns.TokenId: info.TokenId,
+		model.AssetsColumns.TokenID: info.TokenId,
 	}, nil, &vAssets)
 
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {

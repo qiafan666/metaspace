@@ -76,16 +76,16 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 	//_nftAddress
 	//tokenId
 	var vAssets model.Assets
-	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenId, model.AssetsColumns.Uid}, map[string]interface{}{
-		model.AssetsColumns.Id: info.AssetId,
+	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenID, model.AssetsColumns.UID}, map[string]interface{}{
+		model.AssetsColumns.ID: info.AssetId,
 	}, nil, &vAssets)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature assets by AssetId not find error:%s", err.Error())
 		return out, 0, err
 	}
-	tokenId := big.NewInt(vAssets.TokenId)
+	tokenId := big.NewInt(vAssets.TokenID)
 
-	if vAssets.TokenId > 0 {
+	if vAssets.TokenID > 0 {
 
 		// check is nft
 		addressOwner := ethcommon.HexToAddress(portalConfig.Contract.Erc721Address)
@@ -102,12 +102,12 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		}
 		if strings.ToLower(of.String()) != info.BaseWallet {
 			//check assets owner
-			if vAssets.Uid != strings.ToLower(of.String()) {
+			if vAssets.UID != strings.ToLower(of.String()) {
 				_, errs = m.dao.WithContext(info.Ctx).Update(model.Assets{
-					Uid:       strings.ToLower(of.String()),
+					UID:       strings.ToLower(of.String()),
 					UpdatedAt: time.Now(),
 				}, map[string]interface{}{
-					model.AssetsColumns.TokenId: vAssets.TokenId,
+					model.AssetsColumns.TokenID: vAssets.TokenID,
 				}, nil)
 				if errs != nil {
 					slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets uid error %s", err.Error())
@@ -177,8 +177,8 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 	}
 	//itemId
 	var vAssets model.Assets
-	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenId}, map[string]interface{}{
-		model.AssetsColumns.Id: info.ItemId,
+	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenID}, map[string]interface{}{
+		model.AssetsColumns.ID: info.ItemId,
 	}, nil, &vAssets)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf assets by ItemId not find error:%s", err.Error())
@@ -192,7 +192,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		return out, 0, err
 	}
 
-	of, err := instance.OwnerOf(nil, big.NewInt(vAssets.TokenId))
+	of, err := instance.OwnerOf(nil, big.NewInt(vAssets.TokenID))
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp get userAddress error")
 		return out, 0, err
@@ -237,7 +237,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 
 	var ordersDetail model.OrdersDetail
 	err = m.dao.First([]string{model.OrdersDetailColumns.OrderID}, map[string]interface{}{
-		model.OrdersDetailColumns.NftID: vAssets.TokenId,
+		model.OrdersDetailColumns.NftID: vAssets.TokenID,
 	}, nil, &ordersDetail)
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf get ordersDetail by tokenId error %s", err.Error())
@@ -263,7 +263,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 
 		newOrdersDetail := model.OrdersDetail{
 			OrderID:     newOrders.ID,
-			NftID:       strconv.FormatInt(vAssets.TokenId, 10),
+			NftID:       strconv.FormatInt(vAssets.TokenID, 10),
 			Price:       info.Price,
 			CreatedTime: time.Now(),
 			UpdatedTime: time.Now(),
@@ -298,7 +298,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 			Price:       info.Price,
 			UpdatedTime: time.Now(),
 		}, map[string]interface{}{
-			model.OrdersDetailColumns.NftID: vAssets.TokenId,
+			model.OrdersDetailColumns.NftID: vAssets.TokenID,
 		}, nil)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update orders_detail expireTime error %s", err.Error())

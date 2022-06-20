@@ -65,6 +65,11 @@ const (
 	RarityId RarityIdInt = 5
 )
 
+// Land Type
+const (
+	LandTypeString = "Land"
+)
+
 // Building Type
 type BuildingType uint8
 
