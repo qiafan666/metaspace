@@ -4,7 +4,7 @@ import "time"
 
 //orders orders_detail assets table
 type OrdersDetail struct {
-	Id          int64     `gorm:"column:asset_id" json:"id"`
+	Id          int64     `gorm:"column:id" json:"id"`
 	Seller      string    `gorm:"column:seller" json:"seller"`
 	Buyer       string    `gorm:"column:buyer" json:"buyer"`
 	Signature   string    `gorm:"column:signature" json:"signature"`
@@ -15,7 +15,7 @@ type OrdersDetail struct {
 	ExpireTime  time.Time `gorm:"column:expire_time" json:"expire_time"`
 	Price       string    `gorm:"column:price" json:"price"`
 	NftID       string    `gorm:"column:nft_id" json:"nft_id"`
-	AssetId     int64     `gorm:"column:id" json:"asset_id"`
+	AssetId     int64     `gorm:"column:asset_id" json:"asset_id"`
 	Category    int64     `gorm:"column:category" json:"category"`
 	Type        int64     `gorm:"column:type" json:"type"`
 	Rarity      int64     `gorm:"column:rarity" json:"rarity"`
