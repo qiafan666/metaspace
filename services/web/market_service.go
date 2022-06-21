@@ -131,14 +131,13 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature price setString error")
 		return out, commons.ParameterError, err
 	}
-	ethPrice := price.Mul(price, big.NewInt(1000000000000000000))
 	//_saltNonce
 	saltNonce := big.NewInt(int64(rand.Int31()))
 
 	startTime := time.Now()
 	endTime := info.ExpireTime
 
-	message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), ethPrice, big.NewInt(startTime.Unix()), big.NewInt(endTime.Unix()), saltNonce)
+	message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, big.NewInt(startTime.Unix()), big.NewInt(endTime.Unix()), saltNonce)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
 		return out, 0, err
