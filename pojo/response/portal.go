@@ -43,7 +43,7 @@ type GetGameAssets struct {
 type AssetBody struct {
 	AssetsId        int64     `json:"assets_id"`
 	IsNft           uint8     `json:"is_nft"`
-	TokenId         string    `json:"token_id"`
+	TokenId         int64     `json:"token_id"`
 	ContrainChain   string    `json:"contract_chain"`
 	ContractAddress string    `json:"contract_address"`
 	Name            string    `json:"name"`

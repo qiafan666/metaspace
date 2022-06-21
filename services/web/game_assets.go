@@ -121,7 +121,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		out.Assets = append(out.Assets, response.AssetBody{
 			AssetsId:        vAsset.Id,
 			IsNft:           vAsset.IsNft,
-			TokenId:         strconv.FormatInt(vAsset.Id, 10),
+			TokenId:         vAsset.TokenId,
 			ContractAddress: "0xxxxx",
 			ContrainChain:   "BSC",
 			Name:            vAsset.Name,
