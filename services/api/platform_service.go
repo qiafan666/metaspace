@@ -55,6 +55,7 @@ func (p PlatformServiceImp) AddAssets(infos request.AddAssets) (out response.Add
 
 		newAssets := model.Assets{
 			UID:         walletAddress,
+			TokenID:     info.TokenID,
 			UUID:        info.UUID,
 			Category:    info.Category,
 			Type:        info.Type,
@@ -71,17 +72,6 @@ func (p PlatformServiceImp) AddAssets(infos request.AddAssets) (out response.Add
 		err = tx.WithContext(infos.Ctx).Create(&newAssets)
 		if err != nil {
 			slog.Slog.ErrorF(infos.Ctx, "PlatformServiceImp assets Create error %s", err.Error())
-			return out, 0, err
-		}
-
-		//update order status
-		_, err = tx.WithContext(infos.Ctx).Update(model.Assets{
-			TokenID: newAssets.ID,
-		}, map[string]interface{}{
-			model.AssetsColumns.ID: newAssets.ID,
-		}, nil)
-		if err != nil {
-			slog.Slog.ErrorF(infos.Ctx, "PlatformServiceImp Update assets token_id error %s", err.Error())
 			return out, 0, err
 		}
 	}
