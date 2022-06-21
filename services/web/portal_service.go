@@ -558,13 +558,7 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 	} else {
 		//_nftAddress
 		//_tokenId
-		var id int
-		id, err = strconv.Atoi(info.TokenId)
-		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign id format error")
-			return out, 0, err
-		}
-		tokenId := new(big.Int).SetUint64(uint64(id))
+		tokenId := new(big.Int).SetInt64(info.TokenId)
 
 		//_ownerAddress
 		var user model.User

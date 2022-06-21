@@ -73,7 +73,7 @@ type TowerStats struct {
 type Sign struct {
 	BaseRequest
 	BasePortalRequest
-	TokenId string `json:"token_id"  validate:"required,max=192"`
+	TokenId int64 `json:"token_id"  validate:"required,max=192"`
 }
 
 type ShelfSign struct {
