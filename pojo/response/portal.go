@@ -95,6 +95,7 @@ type Orders struct {
 }
 
 type OrdersDetail struct {
+	AssetId       int64     `json:"asset_id"`
 	Id            int64     `json:"id"`
 	Seller        string    `json:"seller"`
 	Buyer         string    `json:"buyer"`
@@ -120,4 +121,7 @@ type OrderCancel struct {
 }
 
 type UserUpdate struct {
+}
+
+type UserHistory struct {
 }
