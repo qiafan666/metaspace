@@ -4,7 +4,7 @@ import "time"
 
 //orders orders_detail assets table
 type OrdersDetail struct {
-	Id          int64     `gorm:"column:id" json:"id"`
+	Id          int64     `gorm:"column:asset_id" json:"id"`
 	Seller      string    `gorm:"column:seller" json:"seller"`
 	Buyer       string    `gorm:"column:buyer" json:"buyer"`
 	Signature   string    `gorm:"column:signature" json:"signature"`
