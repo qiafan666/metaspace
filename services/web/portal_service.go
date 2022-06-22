@@ -71,9 +71,9 @@ func init() {
 var portalServiceIns *portalServiceImp
 var portalServiceInitOnce sync.Once
 var ethClient *ethclient.Client
-var portalErr error
 
 func NewPortalServiceInstance() PortalService {
+	var err error
 	portalServiceInitOnce.Do(func() {
 		portalServiceIns = &portalServiceImp{
 			dao:   dao.Instance(),
@@ -81,11 +81,10 @@ func NewPortalServiceInstance() PortalService {
 		}
 	})
 
-	ethClient, portalErr = ethclient.Dial(portalConfig.Contract.EthClient)
-	if portalErr != nil {
-		s := portalErr.Error()
-		slog.Slog.InfoF(context.Background(), "eth client connect error %s", s)
-		panic(s)
+	ethClient, err = ethclient.Dial(portalConfig.Contract.EthClient)
+	if err != nil {
+		slog.Slog.ErrorF(context.Background(), "eth client connect error %s", err.Error())
+		panic(err.Error())
 	}
 	return portalServiceIns
 }
