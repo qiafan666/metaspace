@@ -47,6 +47,7 @@ type AssetBody struct {
 	ContrainChain   string    `json:"contract_chain"`
 	ContractAddress string    `json:"contract_address"`
 	Name            string    `json:"name"`
+	NickName        string    `json:"nick_name"`
 	Image           string    `json:"image"`
 	Description     string    `json:"description"`
 	Category        string    `json:"category"`
@@ -108,6 +109,7 @@ type OrdersDetail struct {
 	Rarity        int64     `json:"rarity_id"`
 	Image         string    `json:"image"`
 	Name          string    `json:"name"`
+	NickName      string    `json:"nick_name"`
 	Description   string    `json:"description"`
 	TotalPrice    string    `json:"total_price"`
 	Price         string    `json:"price"`

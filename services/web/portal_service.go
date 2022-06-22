@@ -11,6 +11,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/contract/bridgecontract"
 	"github.com/blockfishio/metaspace-backend/grpc"
 	"github.com/blockfishio/metaspace-backend/grpc/proto"
+	"github.com/blockfishio/metaspace-backend/model/join"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
@@ -49,6 +50,7 @@ type PortalService interface {
 	GetTowerStatus(info request.TowerStats) (out response.TowerStats, code commons.ResponseCode, err error)
 	GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error)
 	UserUpdate(info request.UserUpdate) (out response.UserUpdate, code commons.ResponseCode, err error)
+	UserHistory(info request.UserHistory) (out response.UserHistory, code commons.ResponseCode, err error)
 }
 
 var portalConfig struct {
@@ -624,6 +626,35 @@ func (p portalServiceImp) UserUpdate(info request.UserUpdate) (out response.User
 	} else {
 		slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserUpdate error")
 		return out, 0, err
+	}
+	return
+}
+
+func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.UserHistory, code commons.ResponseCode, err error) {
+	switch info.Type {
+	case common.TransactionHistory:
+		var transactionHistoryAssets []join.TransactionHistoryAssets
+		err = p.dao.WithContext(info.Ctx).Find([]string{"transaction_history.wallet_address,transaction_history.token_id,transaction_history.price," +
+			"transaction_history.unit,transaction_history.status,transaction_history.created_time,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
+				Joins("LEFT JOIN assets ON transaction_history.token_id = assets.token_id").
+				Where("transaction_history.wallet_address=?", info.BaseWallet)
+			if info.SortTransaction > 0 {
+				db = db.Where("transaction_history.status=?", info.SortTransaction)
+			}
+			db.Order(model.TransactionHistoryColumns.CreatedTime + " desc")
+			return db
+		}, &transactionHistoryAssets)
+
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp find transactionHistoryAssets Error: %s", err.Error())
+			return out, 0, err
+		}
+	case common.MintHistory:
+	case common.ListenHistory:
+	default:
+		slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserHistory error:history type not exists")
+		return out, common.HistoryError, errors.New("history type not exists")
 	}
 	return
 }

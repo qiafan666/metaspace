@@ -10,11 +10,12 @@ CREATE TABLE `assets` (
   `uid` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT 'user id',
   `uuid` varchar(128) COLLATE utf8mb4_bin NOT NULL COMMENT 'third_party association',
   `token_id` bigint NOT NULL COMMENT 'token id of erc721; should be the same as id',
-  `category` bigint NOT NULL COMMENT 'category',
-  `type` bigint NOT NULL COMMENT 'type',
-  `rarity` bigint NOT NULL DEFAULT '0' COMMENT 'rarity',
+  `category` int NOT NULL COMMENT 'category',
+  `type` int NOT NULL COMMENT 'type',
+  `rarity` int NOT NULL DEFAULT '0' COMMENT 'rarity',
   `image` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'image',
   `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'name',
+  `nick_name` varchar(256) COLLATE utf8mb4_bin NOT NULL COMMENT 'nick name',
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'description',
   `uri` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'uri',
   `uri_content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'uri content',
@@ -29,7 +30,7 @@ CREATE TABLE `assets` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `Index_uid` (`uid`) USING BTREE,
   KEY `Index_uid_category_status` (`uid`,`category`,`status`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=323 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='asset table'
+) ENGINE=InnoDB AUTO_INCREMENT=343 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='asset table'
 ******sql******/
 // Assets asset table
 type Assets struct {
@@ -42,6 +43,7 @@ type Assets struct {
 	Rarity        int64     `gorm:"column:rarity" json:"rarity"`                 // rarity
 	Image         string    `gorm:"column:image" json:"image"`                   // image
 	Name          string    `gorm:"column:name" json:"name"`                     // name
+	NickName      string    `gorm:"column:nick_name" json:"nick_name"`           // nick name
 	Description   string    `gorm:"column:description" json:"description"`       // description
 	URI           string    `gorm:"column:uri" json:"uri"`                       // uri
 	URIContent    string    `gorm:"column:uri_content" json:"uri_content"`       // uri content
@@ -71,6 +73,7 @@ var AssetsColumns = struct {
 	Rarity        string
 	Image         string
 	Name          string
+	NickName      string
 	Description   string
 	URI           string
 	URIContent    string
@@ -92,6 +95,7 @@ var AssetsColumns = struct {
 	Rarity:        "rarity",
 	Image:         "image",
 	Name:          "name",
+	NickName:      "nick_name",
 	Description:   "description",
 	URI:           "uri",
 	URIContent:    "uri_content",

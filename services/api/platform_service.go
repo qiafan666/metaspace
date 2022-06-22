@@ -10,6 +10,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/redis"
 	"github.com/jau1jz/cornus/commons"
 	slog "github.com/jau1jz/cornus/commons/log"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -66,6 +67,7 @@ func (p PlatformServiceImp) AddAssets(infos request.AddAssets) (out response.Add
 			Description: info.Description,
 			IsNft:       common.NotNft,
 			Name:        function.GetCategoryString(info.Category),
+			NickName:    function.GetCategoryString(info.Category) + "#" + strconv.FormatInt(info.TokenID, 10),
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 		}

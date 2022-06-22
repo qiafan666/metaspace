@@ -37,6 +37,7 @@ const (
 	OrdersIsShelf                = 100019
 	UsedSignature                = 100020
 	WalletError                  = 100021
+	HistoryError                 = 100022
 )
 
 // EnglishCodeMsg local code and msg
@@ -63,6 +64,7 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	OrdersIsShelf:                "Orders is already shelf",
 	UsedSignature:                "Signatures is already used",
 	WalletError:                  "Inconsistent wallet addresses",
+	HistoryError:                 "History type doesn't exist",
 }
 
 // login type
@@ -123,4 +125,18 @@ const (
 const (
 	IsNft  = 1
 	NotNft = 2
+)
+
+const (
+	TransactionHistory = 1
+	MintHistory        = 2
+	ListenHistory      = 3
+)
+
+//transaction_history activity type
+const (
+	Shelf     = 1
+	Cancel    = 2
+	Sold      = 3
+	Purchased = 4
 )

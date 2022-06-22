@@ -21,6 +21,7 @@ type OrdersDetail struct {
 	Rarity      int64     `gorm:"column:rarity" json:"rarity"`
 	Image       string    `gorm:"column:image" json:"image"`
 	Name        string    `gorm:"column:name" json:"name"`
+	NickName    string    `gorm:"column:nick_name" json:"nick_name"`
 	Description string    `gorm:"column:description" json:"description"`
 }
 

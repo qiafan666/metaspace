@@ -8,19 +8,19 @@ import (
 CREATE TABLE `orders_detail` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `order_id` bigint unsigned NOT NULL COMMENT 'orders id',
-  `nft_id` varchar(192) NOT NULL,
+  `nft_id` bigint NOT NULL,
   `price` varchar(256) NOT NULL,
   `updated_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   `created_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`),
   KEY `order_id` (`order_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+) ENGINE=InnoDB AUTO_INCREMENT=57 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 ******sql******/
 // OrdersDetail [...]
 type OrdersDetail struct {
 	ID          uint64    `gorm:"primaryKey;column:id" json:"-"`
 	OrderID     uint64    `gorm:"column:order_id" json:"order_id"` // orders id
-	NftID       string    `gorm:"column:nft_id" json:"nft_id"`
+	NftID       int64     `gorm:"column:nft_id" json:"nft_id"`
 	Price       string    `gorm:"column:price" json:"price"`
 	UpdatedTime time.Time `gorm:"column:updated_time" json:"updated_time"`
 	CreatedTime time.Time `gorm:"column:created_time" json:"created_time"`

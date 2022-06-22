@@ -21,7 +21,6 @@ import (
 	"gorm.io/gorm/clause"
 	"math/big"
 	"math/rand"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -262,7 +261,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 
 		newOrdersDetail := model.OrdersDetail{
 			OrderID:     newOrders.ID,
-			NftID:       strconv.FormatInt(vAssets.TokenID, 10),
+			NftID:       vAssets.TokenID,
 			Price:       info.Price,
 			CreatedTime: time.Now(),
 			UpdatedTime: time.Now(),
@@ -273,6 +272,23 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders detail Create error %s", err.Error())
 			return out, 0, err
 		}
+
+		//add shelf history
+		newTransactionHistory := model.TransactionHistory{
+			WalletAddress: info.BaseWallet,
+			TokenID:       vAssets.TokenID,
+			Price:         info.Price,
+			Status:        common.Shelf,
+			UpdatedTime:   time.Now(),
+			CreatedTime:   time.Now(),
+		}
+
+		err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+			return out, 0, err
+		}
+
 		out.RawMessage = info.RawMessage
 		out.SignMessage = info.SignedMessage
 	} else {
@@ -303,6 +319,23 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update orders_detail expireTime error %s", err.Error())
 			return out, 0, err
 		}
+
+		//add shelf history
+		newTransactionHistory := model.TransactionHistory{
+			WalletAddress: info.BaseWallet,
+			TokenID:       vAssets.TokenID,
+			Price:         info.Price,
+			Status:        common.Shelf,
+			UpdatedTime:   time.Now(),
+			CreatedTime:   time.Now(),
+		}
+
+		err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+			return out, 0, err
+		}
+
 		out.RawMessage = info.RawMessage
 		out.SignMessage = info.SignedMessage
 	}
@@ -313,7 +346,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
 
 	var ordersDetail []join.OrdersDetail
-	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 			Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").
 			Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").
@@ -387,6 +420,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 			Rarity:        v.Rarity,
 			Image:         v.Image,
 			Name:          v.Name,
+			NickName:      v.NickName,
 			Description:   v.Description,
 			TotalPrice:    v.TotalPrice,
 			Price:         v.Price,
