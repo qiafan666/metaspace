@@ -13,6 +13,7 @@ type TransactionHistoryAssets struct {
 	CreatedTime   time.Time `gorm:"column:created_time" json:"created_time"` // create timestamp
 
 	NickName string `gorm:"column:nick_name" json:"nick_name"` // nick name
+	Name     string `gorm:"column:name" json:"name"`           // name
 }
 
 // TableName

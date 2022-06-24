@@ -346,10 +346,11 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
 
 	var ordersDetail []join.OrdersDetail
+
 	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
-			Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").
-			Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").
+			Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
 			Where("orders.status=?", common.OrderStatusActive)
 
 		if info.Category != nil {
@@ -386,9 +387,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 	out.Data = make([]response.OrdersDetail, 0, len(ordersDetail))
 
 	for _, v := range ordersDetail {
-		if v.Id == 0 {
-			continue
-		}
+
 		//check expireTime
 		if v.ExpireTime.Before(time.Now()) {
 
@@ -430,7 +429,14 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 		})
 	}
 
-	out.Total = int64(len(out.Data))
+	count, err := m.dao.WithContext(info.Ctx).Count(model.Orders{}, map[string]interface{}{
+		model.OrdersColumns.Status: common.OrderStatusActive,
+	}, nil)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Count error %s", err.Error())
+		return out, 0, err
+	}
+	out.Total = count
 	out.CurrentPage = info.CurrentPage
 	out.PrePageCount = info.PageCount
 	return

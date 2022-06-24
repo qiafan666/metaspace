@@ -124,6 +124,7 @@ type UserHistory struct {
 	BaseRequest
 	BasePortalRequest
 	BasePagination
-	Type            uint8 `json:"type" validate:"required"` //1:transaction history  //2:mint history //3:Listing history
-	SortTransaction uint8 `json:"sort_transaction" validate:"required"`
+	Type              uint8     `json:"type" validate:"required"` //1:transaction history  //2:mint history //3:Listing history
+	FilterTransaction uint8     `json:"filter_transaction"`
+	FilterTime        time.Time `json:"filter_time"`
 }

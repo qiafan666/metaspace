@@ -126,4 +126,17 @@ type UserUpdate struct {
 }
 
 type UserHistory struct {
+	BasePagination
+	Data []HistoryList `json:"history_list"`
+}
+
+type HistoryList struct {
+	WalletAddress string    `json:"wallet_address"`
+	TokenID       int64     `json:"token_id"`
+	Price         string    `json:"price"`
+	Unit          string    `json:"unit"`
+	Status        uint8     `json:"status"`                            // 1:上架 2:下架 3:买 4:卖]
+	CreatedTime   time.Time `json:"created_time"`                      // create timestamp
+	Name          string    `gorm:"column:name" json:"name"`           // name
+	NickName      string    `gorm:"column:nick_name" json:"nick_name"` // nick name
 }
