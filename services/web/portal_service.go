@@ -18,7 +18,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/blockfishio/metaspace-backend/common/function"
@@ -634,6 +633,23 @@ func (p portalServiceImp) UserHistory(info request.
 	UserHistory) (out response.UserHistory, code commons.ResponseCode, err error) {
 	switch info.Type {
 	case common.TransactionHistory:
+		//count
+		count, err := p.dao.WithContext(info.Ctx).Count(model.TransactionHistory{}, map[string]interface{}{
+			model.TransactionHistoryColumns.Status:        info.FilterTransaction,
+			model.TransactionHistoryColumns.WalletAddress: info.BaseWallet,
+		}, func(db *gorm.DB) *gorm.DB {
+			if info.FilterTransaction > 0 {
+				db = db.Where("transaction_history.status=?", info.FilterTransaction)
+			}
+			if info.FilterTime.IsZero() == false {
+				db = db.Where("transaction_history.created_time > ?", info.FilterTime)
+			}
+			return db
+		})
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Count error %s", err.Error())
+			return out, 0, err
+		}
 		var transactionHistoryAssets []join.TransactionHistoryAssets
 		err = p.dao.WithContext(info.Ctx).Find([]string{"transaction_history.wallet_address,transaction_history.token_id,transaction_history.price," +
 			"transaction_history.unit,transaction_history.status,transaction_history.created_time,assets.name,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
@@ -643,7 +659,10 @@ func (p portalServiceImp) UserHistory(info request.
 			if info.FilterTransaction > 0 {
 				db = db.Where("transaction_history.status=?", info.FilterTransaction)
 			}
-			db.Order(model.TransactionHistoryColumns.CreatedTime + " desc")
+			if info.FilterTime.IsZero() == false {
+				db = db.Where("transaction_history.created_time > ?", info.FilterTime)
+			}
+			db = db.Order(model.TransactionHistoryColumns.CreatedTime + " desc")
 			return db
 		}, &transactionHistoryAssets)
 
@@ -654,79 +673,22 @@ func (p portalServiceImp) UserHistory(info request.
 
 		out.Data = make([]response.HistoryList, 0, len(transactionHistoryAssets))
 
-		if !info.FilterTime.IsZero() {
-
-			for _, transactionHistoryAsset := range transactionHistoryAssets {
-
-				if transactionHistoryAsset.CreatedTime.After(info.FilterTime) {
-					out.Data = append(out.Data, response.HistoryList{
-						WalletAddress: transactionHistoryAsset.WalletAddress,
-						TokenID:       transactionHistoryAsset.TokenID,
-						Price:         transactionHistoryAsset.Price,
-						Unit:          transactionHistoryAsset.Unit,
-						Status:        transactionHistoryAsset.Status,
-						CreatedTime:   transactionHistoryAsset.CreatedTime,
-						Name:          transactionHistoryAsset.Name,
-						NickName:      transactionHistoryAsset.NickName,
-					})
-				}
-				continue
-			}
-
-			var transactionHistoryAssetsCount []join.TransactionHistoryAssets
-			err = p.dao.WithContext(info.Ctx).Find([]string{"transaction_history.wallet_address,transaction_history.token_id,transaction_history.price," +
-				"transaction_history.unit,transaction_history.status,transaction_history.created_time,assets.name,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-				db.Joins("INNER JOIN assets ON transaction_history.token_id = assets.token_id").
-					Where("transaction_history.wallet_address=?", info.BaseWallet)
-				if info.FilterTransaction > 0 {
-					db = db.Where("transaction_history.status=?", info.FilterTransaction)
-				}
-				db.Order(model.TransactionHistoryColumns.CreatedTime + " desc")
-				return db
-			}, &transactionHistoryAssetsCount)
-
-			if err != nil {
-				slog.Slog.ErrorF(info.Ctx, "portalServiceImp find transactionHistoryAssetsCount Error: %s", err.Error())
-				return out, 0, err
-			}
-			var count int64
-
-			for _, transactionHistoryAsset := range transactionHistoryAssetsCount {
-
-				if transactionHistoryAsset.CreatedTime.After(info.FilterTime) {
-
-					atomic.AddInt64(&count, 1)
-				}
-				continue
-			}
-			out.Total = count
-		} else {
-			for _, transactionHistoryAsset := range transactionHistoryAssets {
-				out.Data = append(out.Data, response.HistoryList{
-					WalletAddress: transactionHistoryAsset.WalletAddress,
-					TokenID:       transactionHistoryAsset.TokenID,
-					Price:         transactionHistoryAsset.Price,
-					Unit:          transactionHistoryAsset.Unit,
-					Status:        transactionHistoryAsset.Status,
-					CreatedTime:   transactionHistoryAsset.CreatedTime,
-					Name:          transactionHistoryAsset.Name,
-					NickName:      transactionHistoryAsset.NickName,
-				})
-			}
-			count, err := p.dao.WithContext(info.Ctx).Count(model.TransactionHistory{}, map[string]interface{}{
-				model.TransactionHistoryColumns.Status:        info.FilterTransaction,
-				model.TransactionHistoryColumns.WalletAddress: info.BaseWallet,
-			}, nil)
-			if err != nil {
-				slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Count error %s", err.Error())
-				return out, 0, err
-			}
-			out.Total = count
+		for _, transactionHistoryAsset := range transactionHistoryAssets {
+			out.Data = append(out.Data, response.HistoryList{
+				WalletAddress: transactionHistoryAsset.WalletAddress,
+				TokenID:       transactionHistoryAsset.TokenID,
+				Price:         transactionHistoryAsset.Price,
+				Unit:          transactionHistoryAsset.Unit,
+				Status:        transactionHistoryAsset.Status,
+				CreatedTime:   transactionHistoryAsset.CreatedTime,
+				Name:          transactionHistoryAsset.Name,
+				NickName:      transactionHistoryAsset.NickName,
+			})
 		}
-
 		out.CurrentPage = info.CurrentPage
 		out.PrePageCount = info.PageCount
-		return
+		out.Total = count
+		return out, 0, nil
 	case common.MintHistory:
 	case common.ListenHistory:
 	default:
