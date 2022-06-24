@@ -15,11 +15,13 @@ type OrdersDetail struct {
 	ExpireTime  time.Time `gorm:"column:expire_time" json:"expire_time"`
 	Price       string    `gorm:"column:price" json:"price"`
 	NftID       string    `gorm:"column:nft_id" json:"nft_id"`
+	AssetId     int64     `gorm:"column:asset_id" json:"asset_id"`
 	Category    int64     `gorm:"column:category" json:"category"`
 	Type        int64     `gorm:"column:type" json:"type"`
 	Rarity      int64     `gorm:"column:rarity" json:"rarity"`
 	Image       string    `gorm:"column:image" json:"image"`
 	Name        string    `gorm:"column:name" json:"name"`
+	NickName    string    `gorm:"column:nick_name" json:"nick_name"`
 	Description string    `gorm:"column:description" json:"description"`
 }
 

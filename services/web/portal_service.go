@@ -11,6 +11,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/contract/bridgecontract"
 	"github.com/blockfishio/metaspace-backend/grpc"
 	"github.com/blockfishio/metaspace-backend/grpc/proto"
+	"github.com/blockfishio/metaspace-backend/model/join"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
@@ -49,6 +50,7 @@ type PortalService interface {
 	GetTowerStatus(info request.TowerStats) (out response.TowerStats, code commons.ResponseCode, err error)
 	GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error)
 	UserUpdate(info request.UserUpdate) (out response.UserUpdate, code commons.ResponseCode, err error)
+	UserHistory(info request.UserHistory) (out response.UserHistory, code commons.ResponseCode, err error)
 }
 
 var portalConfig struct {
@@ -69,9 +71,9 @@ func init() {
 var portalServiceIns *portalServiceImp
 var portalServiceInitOnce sync.Once
 var ethClient *ethclient.Client
-var portalErr error
 
 func NewPortalServiceInstance() PortalService {
+	var err error
 	portalServiceInitOnce.Do(func() {
 		portalServiceIns = &portalServiceImp{
 			dao:   dao.Instance(),
@@ -79,11 +81,10 @@ func NewPortalServiceInstance() PortalService {
 		}
 	})
 
-	ethClient, portalErr = ethclient.Dial(portalConfig.Contract.EthClient)
-	if portalErr != nil {
-		s := portalErr.Error()
-		slog.Slog.InfoF(context.Background(), "eth client connect error %s", s)
-		panic(s)
+	ethClient, err = ethclient.Dial(portalConfig.Contract.EthClient)
+	if err != nil {
+		slog.Slog.ErrorF(context.Background(), "eth client connect error %s", err.Error())
+		panic(err.Error())
 	}
 	return portalServiceIns
 }
@@ -444,7 +445,7 @@ func (p portalServiceImp) GetTowerStatus(info request.TowerStats) (out response.
 
 	var vAssets model.Assets
 	err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.Rarity, model.AssetsColumns.Type}, map[string]interface{}{
-		model.AssetsColumns.Id: info.Id,
+		model.AssetsColumns.ID: info.Id,
 	}, nil, &vAssets)
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetTowerStatus error:%s", err.Error())
@@ -546,7 +547,7 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 
 	var vAssets model.Assets
 	err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.Category, model.AssetsColumns.Rarity, model.AssetsColumns.Type}, map[string]interface{}{
-		model.AssetsColumns.TokenId: info.TokenId,
+		model.AssetsColumns.TokenID: info.TokenId,
 	}, nil, &vAssets)
 
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
@@ -558,13 +559,7 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 	} else {
 		//_nftAddress
 		//_tokenId
-		var id int
-		id, err = strconv.Atoi(info.TokenId)
-		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign id format error")
-			return out, 0, err
-		}
-		tokenId := new(big.Int).SetUint64(uint64(id))
+		tokenId := new(big.Int).SetInt64(info.TokenId)
 
 		//_ownerAddress
 		var user model.User
@@ -630,6 +625,73 @@ func (p portalServiceImp) UserUpdate(info request.UserUpdate) (out response.User
 	} else {
 		slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserUpdate error")
 		return out, 0, err
+	}
+	return
+}
+
+func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.UserHistory, code commons.ResponseCode, err error) {
+	switch info.Type {
+	case common.TransactionHistory:
+		//count
+		count, err := p.dao.WithContext(info.Ctx).Count(model.TransactionHistory{}, map[string]interface{}{
+			model.TransactionHistoryColumns.WalletAddress: info.BaseWallet,
+		}, func(db *gorm.DB) *gorm.DB {
+			if info.FilterTransaction > 0 {
+				db = db.Where("transaction_history.status=?", info.FilterTransaction)
+			}
+			if info.FilterTime.IsZero() == false {
+				db = db.Where("transaction_history.created_time > ?", info.FilterTime)
+			}
+			return db
+		})
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Count error %s", err.Error())
+			return out, 0, err
+		}
+		var transactionHistoryAssets []join.TransactionHistoryAssets
+		err = p.dao.WithContext(info.Ctx).Find([]string{"transaction_history.wallet_address,transaction_history.token_id,transaction_history.price," +
+			"transaction_history.unit,transaction_history.status,transaction_history.created_time,assets.name,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
+				Joins("LEFT JOIN assets ON transaction_history.token_id = assets.token_id").
+				Where("transaction_history.wallet_address=?", info.BaseWallet)
+			if info.FilterTransaction > 0 {
+				db = db.Where("transaction_history.status=?", info.FilterTransaction)
+			}
+			if info.FilterTime.IsZero() == false {
+				db = db.Where("transaction_history.created_time > ?", info.FilterTime)
+			}
+			db = db.Order(model.TransactionHistoryColumns.CreatedTime + " desc")
+			return db
+		}, &transactionHistoryAssets)
+
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp find transactionHistoryAssets Error: %s", err.Error())
+			return out, 0, err
+		}
+
+		out.Data = make([]response.HistoryList, 0, len(transactionHistoryAssets))
+
+		for _, transactionHistoryAsset := range transactionHistoryAssets {
+			out.Data = append(out.Data, response.HistoryList{
+				WalletAddress: transactionHistoryAsset.WalletAddress,
+				TokenID:       transactionHistoryAsset.TokenID,
+				Price:         transactionHistoryAsset.Price,
+				Unit:          transactionHistoryAsset.Unit,
+				Status:        transactionHistoryAsset.Status,
+				CreatedTime:   transactionHistoryAsset.CreatedTime,
+				Name:          transactionHistoryAsset.Name,
+				NickName:      transactionHistoryAsset.NickName,
+			})
+		}
+		out.CurrentPage = info.CurrentPage
+		out.PrePageCount = info.PageCount
+		out.Total = count
+		return out, 0, nil
+	case common.MintHistory:
+	case common.ListenHistory:
+	default:
+		slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserHistory error:history type not exists")
+		return out, common.HistoryError, errors.New("history type not exists")
 	}
 	return
 }

@@ -21,7 +21,6 @@ import (
 	"gorm.io/gorm/clause"
 	"math/big"
 	"math/rand"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -76,16 +75,16 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 	//_nftAddress
 	//tokenId
 	var vAssets model.Assets
-	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenId, model.AssetsColumns.Uid}, map[string]interface{}{
-		model.AssetsColumns.Id: info.AssetId,
+	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenID, model.AssetsColumns.UID}, map[string]interface{}{
+		model.AssetsColumns.ID: info.AssetId,
 	}, nil, &vAssets)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature assets by AssetId not find error:%s", err.Error())
 		return out, 0, err
 	}
-	tokenId := big.NewInt(vAssets.TokenId)
+	tokenId := big.NewInt(vAssets.TokenID)
 
-	if vAssets.TokenId > 0 {
+	if vAssets.TokenID > 0 {
 
 		// check is nft
 		addressOwner := ethcommon.HexToAddress(portalConfig.Contract.Erc721Address)
@@ -102,12 +101,12 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		}
 		if strings.ToLower(of.String()) != info.BaseWallet {
 			//check assets owner
-			if vAssets.Uid != strings.ToLower(of.String()) {
+			if vAssets.UID != strings.ToLower(of.String()) {
 				_, errs = m.dao.WithContext(info.Ctx).Update(model.Assets{
-					Uid:       strings.ToLower(of.String()),
+					UID:       strings.ToLower(of.String()),
 					UpdatedAt: time.Now(),
 				}, map[string]interface{}{
-					model.AssetsColumns.TokenId: vAssets.TokenId,
+					model.AssetsColumns.TokenID: vAssets.TokenID,
 				}, nil)
 				if errs != nil {
 					slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets uid error %s", err.Error())
@@ -131,14 +130,13 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature price setString error")
 		return out, commons.ParameterError, err
 	}
-	ethPrice := price.Mul(price, big.NewInt(1000000000000000000))
 	//_saltNonce
 	saltNonce := big.NewInt(int64(rand.Int31()))
 
 	startTime := time.Now()
 	endTime := info.ExpireTime
 
-	message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), ethPrice, big.NewInt(startTime.Unix()), big.NewInt(endTime.Unix()), saltNonce)
+	message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, big.NewInt(startTime.Unix()), big.NewInt(endTime.Unix()), saltNonce)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
 		return out, 0, err
@@ -177,8 +175,8 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 	}
 	//itemId
 	var vAssets model.Assets
-	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenId}, map[string]interface{}{
-		model.AssetsColumns.Id: info.ItemId,
+	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenID}, map[string]interface{}{
+		model.AssetsColumns.ID: info.ItemId,
 	}, nil, &vAssets)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf assets by ItemId not find error:%s", err.Error())
@@ -192,7 +190,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		return out, 0, err
 	}
 
-	of, err := instance.OwnerOf(nil, big.NewInt(vAssets.TokenId))
+	of, err := instance.OwnerOf(nil, big.NewInt(vAssets.TokenID))
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp get userAddress error")
 		return out, 0, err
@@ -237,7 +235,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 
 	var ordersDetail model.OrdersDetail
 	err = m.dao.First([]string{model.OrdersDetailColumns.OrderID}, map[string]interface{}{
-		model.OrdersDetailColumns.NftID: vAssets.TokenId,
+		model.OrdersDetailColumns.NftID: vAssets.TokenID,
 	}, nil, &ordersDetail)
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf get ordersDetail by tokenId error %s", err.Error())
@@ -263,7 +261,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 
 		newOrdersDetail := model.OrdersDetail{
 			OrderID:     newOrders.ID,
-			NftID:       strconv.FormatInt(vAssets.TokenId, 10),
+			NftID:       vAssets.TokenID,
 			Price:       info.Price,
 			CreatedTime: time.Now(),
 			UpdatedTime: time.Now(),
@@ -274,6 +272,23 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders detail Create error %s", err.Error())
 			return out, 0, err
 		}
+
+		//add shelf history
+		newTransactionHistory := model.TransactionHistory{
+			WalletAddress: info.BaseWallet,
+			TokenID:       vAssets.TokenID,
+			Price:         info.Price,
+			Status:        common.Shelf,
+			UpdatedTime:   time.Now(),
+			CreatedTime:   time.Now(),
+		}
+
+		err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+			return out, 0, err
+		}
+
 		out.RawMessage = info.RawMessage
 		out.SignMessage = info.SignedMessage
 	} else {
@@ -298,12 +313,29 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 			Price:       info.Price,
 			UpdatedTime: time.Now(),
 		}, map[string]interface{}{
-			model.OrdersDetailColumns.NftID: vAssets.TokenId,
+			model.OrdersDetailColumns.NftID: vAssets.TokenID,
 		}, nil)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update orders_detail expireTime error %s", err.Error())
 			return out, 0, err
 		}
+
+		//add shelf history
+		newTransactionHistory := model.TransactionHistory{
+			WalletAddress: info.BaseWallet,
+			TokenID:       vAssets.TokenID,
+			Price:         info.Price,
+			Status:        common.Shelf,
+			UpdatedTime:   time.Now(),
+			CreatedTime:   time.Now(),
+		}
+
+		err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+			return out, 0, err
+		}
+
 		out.RawMessage = info.RawMessage
 		out.SignMessage = info.SignedMessage
 	}
@@ -314,10 +346,11 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
 
 	var ordersDetail []join.OrdersDetail
-	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
-			Joins("LEFT JOIN orders_detail ON orders_detail.order_id = orders.id").
-			Joins("LEFT JOIN assets ON assets.token_id = orders_detail.nft_id").
+			Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
 			Where("orders.status=?", common.OrderStatusActive)
 
 		if info.Category != nil {
@@ -340,9 +373,9 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 
 		if info.SortPrice == 0 {
 		} else if info.SortPrice == 1 {
-			return db.Order(model.OrdersDetailColumns.Price + " desc")
+			return db.Order("--" + model.OrdersDetailColumns.Price + " desc")
 		} else {
-			return db.Order(model.OrdersDetailColumns.Price + " asc")
+			return db.Order("--" + model.OrdersDetailColumns.Price + " asc")
 		}
 		return db.Order(model.OrdersColumns.UpdatedTime + " desc")
 	}, &ordersDetail)
@@ -354,9 +387,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 	out.Data = make([]response.OrdersDetail, 0, len(ordersDetail))
 
 	for _, v := range ordersDetail {
-		if v.Id == 0 {
-			continue
-		}
+
 		//check expireTime
 		if v.ExpireTime.Before(time.Now()) {
 
@@ -375,6 +406,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 		}
 
 		out.Data = append(out.Data, response.OrdersDetail{
+			AssetId:       v.AssetId,
 			Id:            v.Id,
 			Seller:        v.Seller,
 			Buyer:         v.Buyer,
@@ -387,6 +419,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 			Rarity:        v.Rarity,
 			Image:         v.Image,
 			Name:          v.Name,
+			NickName:      v.NickName,
 			Description:   v.Description,
 			TotalPrice:    v.TotalPrice,
 			Price:         v.Price,
@@ -396,7 +429,28 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 		})
 	}
 
-	out.Total = int64(len(out.Data))
+	var ordersDetailCount []join.OrdersDetail
+
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
+			Where("orders.status=?", common.OrderStatusActive)
+
+		if info.Category != nil {
+			db = db.Where("assets.category=?", info.Category)
+		}
+		if info.Rarity != nil {
+			db = db.Where("assets.rarity=?", info.Rarity)
+		}
+		return db
+	}, &ordersDetailCount)
+
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Count error %s", err.Error())
+		return out, 0, err
+	}
+
+	out.Total = int64(len(ordersDetailCount))
 	out.CurrentPage = info.CurrentPage
 	out.PrePageCount = info.PageCount
 	return

@@ -10,6 +10,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/redis"
 	"github.com/jau1jz/cornus/commons"
 	slog "github.com/jau1jz/cornus/commons/log"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -54,33 +55,25 @@ func (p PlatformServiceImp) AddAssets(infos request.AddAssets) (out response.Add
 		walletAddress := strings.ToLower(info.WalletAddress)
 
 		newAssets := model.Assets{
-			Uid:         walletAddress,
+			UID:         walletAddress,
+			TokenID:     info.TokenID,
+			UUID:        info.UUID,
 			Category:    info.Category,
 			Type:        info.Type,
 			Rarity:      info.Rarity,
 			Image:       info.Image,
-			Uri:         info.Uri,
-			UriContent:  info.UriContent,
+			URI:         info.Uri,
+			URIContent:  info.UriContent,
 			Description: info.Description,
 			IsNft:       common.NotNft,
 			Name:        function.GetCategoryString(info.Category),
+			NickName:    function.GetCategoryString(info.Category) + "#" + strconv.FormatInt(info.TokenID, 10),
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 		}
 		err = tx.WithContext(infos.Ctx).Create(&newAssets)
 		if err != nil {
 			slog.Slog.ErrorF(infos.Ctx, "PlatformServiceImp assets Create error %s", err.Error())
-			return out, 0, err
-		}
-
-		//update order status
-		_, err = tx.WithContext(infos.Ctx).Update(model.Assets{
-			TokenId: newAssets.Id,
-		}, map[string]interface{}{
-			model.AssetsColumns.Id: newAssets.Id,
-		}, nil)
-		if err != nil {
-			slog.Slog.ErrorF(infos.Ctx, "PlatformServiceImp Update assets token_id error %s", err.Error())
 			return out, 0, err
 		}
 	}

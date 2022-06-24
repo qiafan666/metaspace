@@ -12,6 +12,7 @@ type AssetsOrders struct {
 	Rarity        int64  `gorm:"column:rarity" json:"rarity"`
 	Image         string `gorm:"column:image" json:"image"`
 	Name          string `gorm:"column:name" json:"name"`
+	NickName      string `gorm:"column:nick_name" json:"nick_name"`
 	Description   string `gorm:"column:description" json:"description"`
 	Uri           string `gorm:"column:uri" json:"uri"`
 	UriContent    string `gorm:"column:uri_content" json:"uri_content"`

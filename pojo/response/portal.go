@@ -43,10 +43,11 @@ type GetGameAssets struct {
 type AssetBody struct {
 	AssetsId        int64     `json:"assets_id"`
 	IsNft           uint8     `json:"is_nft"`
-	TokenId         string    `json:"token_id"`
+	TokenId         int64     `json:"token_id"`
 	ContrainChain   string    `json:"contract_chain"`
 	ContractAddress string    `json:"contract_address"`
 	Name            string    `json:"name"`
+	NickName        string    `json:"nick_name"`
 	Image           string    `json:"image"`
 	Description     string    `json:"description"`
 	Category        string    `json:"category"`
@@ -95,6 +96,7 @@ type Orders struct {
 }
 
 type OrdersDetail struct {
+	AssetId       int64     `json:"asset_id"`
 	Id            int64     `json:"id"`
 	Seller        string    `json:"seller"`
 	Buyer         string    `json:"buyer"`
@@ -107,6 +109,7 @@ type OrdersDetail struct {
 	Rarity        int64     `json:"rarity_id"`
 	Image         string    `json:"image"`
 	Name          string    `json:"name"`
+	NickName      string    `json:"nick_name"`
 	Description   string    `json:"description"`
 	TotalPrice    string    `json:"total_price"`
 	Price         string    `json:"price"`
@@ -120,4 +123,20 @@ type OrderCancel struct {
 }
 
 type UserUpdate struct {
+}
+
+type UserHistory struct {
+	BasePagination
+	Data []HistoryList `json:"history_list"`
+}
+
+type HistoryList struct {
+	WalletAddress string    `json:"wallet_address"`
+	TokenID       int64     `json:"token_id"`
+	Price         string    `json:"price"`
+	Unit          string    `json:"unit"`
+	Status        uint8     `json:"status"`                            // 1:上架 2:下架 3:买 4:卖]
+	CreatedTime   time.Time `json:"created_time"`                      // create timestamp
+	Name          string    `gorm:"column:name" json:"name"`           // name
+	NickName      string    `gorm:"column:nick_name" json:"nick_name"` // nick name
 }

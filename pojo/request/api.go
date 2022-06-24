@@ -19,6 +19,8 @@ type AddAssets struct {
 }
 
 type Assets struct {
+	UUID          string `json:"uuid"`
+	TokenID       int64  `json:"token_id"`
 	WalletAddress string `json:"wallet_address"`
 	Category      int64  `json:"category"`
 	Type          int64  `json:"type"`

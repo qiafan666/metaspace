@@ -73,7 +73,7 @@ type TowerStats struct {
 type Sign struct {
 	BaseRequest
 	BasePortalRequest
-	TokenId string `json:"token_id"  validate:"required,max=192"`
+	TokenId int64 `json:"token_id"  validate:"required"`
 }
 
 type ShelfSign struct {
@@ -118,4 +118,13 @@ type UserUpdate struct {
 	BasePortalRequest
 	UserName      string `json:"user_name"`
 	AvatarAddress string `json:"avatar_address"`
+}
+
+type UserHistory struct {
+	BaseRequest
+	BasePortalRequest
+	BasePagination
+	Type              uint8     `json:"type" validate:"required"` //1:transaction history  //2:mint history //3:Listing history
+	FilterTransaction uint8     `json:"filter_transaction"`
+	FilterTime        time.Time `json:"filter_time"`
 }
