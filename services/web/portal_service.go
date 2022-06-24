@@ -635,7 +635,6 @@ func (p portalServiceImp) UserHistory(info request.
 	case common.TransactionHistory:
 		//count
 		count, err := p.dao.WithContext(info.Ctx).Count(model.TransactionHistory{}, map[string]interface{}{
-			model.TransactionHistoryColumns.Status:        info.FilterTransaction,
 			model.TransactionHistoryColumns.WalletAddress: info.BaseWallet,
 		}, func(db *gorm.DB) *gorm.DB {
 			if info.FilterTransaction > 0 {
