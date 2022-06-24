@@ -429,9 +429,11 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 		})
 	}
 
-	count, err := m.dao.WithContext(info.Ctx).Count([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time," +
-		"orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity,assets.nick_name"},
+	count, err := m.dao.WithContext(info.Ctx).Count("orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,"+
+		"orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity,assets.nick_name",
 		map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+				Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id")
 			if info.Category != nil {
 				db = db.Where("assets.category=?", info.Category)
 			}
