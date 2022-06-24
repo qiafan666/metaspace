@@ -21,7 +21,6 @@ import (
 	"gorm.io/gorm/clause"
 	"math/big"
 	"math/rand"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -444,17 +443,14 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 			db = db.Where("assets.rarity=?", info.Rarity)
 		}
 		return db
-	}, &ordersDetail)
+	}, &ordersDetailCount)
 
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Count error %s", err.Error())
 		return out, 0, err
 	}
 
-	countString := strconv.Itoa(len(ordersDetailCount))
-	count, _ := strconv.ParseInt(countString, 10, 64)
-
-	out.Total = count
+	out.Total = int64(len(ordersDetailCount))
 	out.CurrentPage = info.CurrentPage
 	out.PrePageCount = info.PageCount
 	return
