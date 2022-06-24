@@ -629,8 +629,7 @@ func (p portalServiceImp) UserUpdate(info request.UserUpdate) (out response.User
 	return
 }
 
-func (p portalServiceImp) UserHistory(info request.
-	UserHistory) (out response.UserHistory, code commons.ResponseCode, err error) {
+func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.UserHistory, code commons.ResponseCode, err error) {
 	switch info.Type {
 	case common.TransactionHistory:
 		//count
