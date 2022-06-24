@@ -10,9 +10,9 @@ CREATE TABLE `assets` (
   `uid` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT 'user id',
   `uuid` varchar(128) COLLATE utf8mb4_bin NOT NULL COMMENT 'third_party association',
   `token_id` bigint NOT NULL COMMENT 'token id of erc721; should be the same as id',
-  `category` int NOT NULL COMMENT 'category',
-  `type` int NOT NULL COMMENT 'type',
-  `rarity` int NOT NULL DEFAULT '0' COMMENT 'rarity',
+  `category` bigint NOT NULL COMMENT 'category',
+  `type` bigint NOT NULL COMMENT 'type',
+  `rarity` bigint NOT NULL DEFAULT '0' COMMENT 'rarity',
   `image` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'image',
   `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'name',
   `nick_name` varchar(256) COLLATE utf8mb4_bin NOT NULL COMMENT 'nick name',
@@ -25,11 +25,12 @@ CREATE TABLE `assets` (
   `status` tinyint unsigned DEFAULT NULL COMMENT 'status',
   `mint_signature` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'mint signature',
   `is_nft` tinyint unsigned NOT NULL DEFAULT '2' COMMENT '1: is nft    2:not nft',
-  `created_at` datetime(3) NOT NULL COMMENT 'create timestamp',
-  `updated_at` datetime(3) NOT NULL COMMENT 'update timestamp',
+  `created_at` timestamp(3) NOT NULL COMMENT 'create timestamp',
+  `updated_at` timestamp(3) NOT NULL COMMENT 'update timestamp',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `Index_uid` (`uid`) USING BTREE,
-  KEY `Index_uid_category_status` (`uid`,`category`,`status`) USING BTREE
+  KEY `Index_uid_category_status` (`uid`,`category`,`status`) USING BTREE,
+  KEY `token_id` (`token_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=343 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='asset table'
 ******sql******/
 // Assets asset table

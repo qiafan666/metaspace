@@ -12,10 +12,11 @@ CREATE TABLE `transaction_history` (
   `price` varchar(192) NOT NULL,
   `Unit` varchar(192) NOT NULL,
   `status` tinyint unsigned NOT NULL COMMENT '1:上架 2:下架 3:买 4:卖',
-  `updated_time` datetime(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update timestamp',
-  `created_time` datetime(3) NOT NULL COMMENT 'create timestamp',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+  `updated_time` timestamp(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update timestamp',
+  `created_time` timestamp(3) NOT NULL COMMENT 'create timestamp',
+  PRIMARY KEY (`id`),
+  KEY `token_id` (`token_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 ******sql******/
 // TransactionHistory [...]
 type TransactionHistory struct {
