@@ -21,6 +21,7 @@ import (
 	"gorm.io/gorm/clause"
 	"math/big"
 	"math/rand"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -450,7 +451,10 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 		return out, 0, err
 	}
 
-	out.Total = int64(len(ordersDetailCount))
+	countString := strconv.Itoa(len(ordersDetailCount))
+	count, _ := strconv.ParseInt(countString, 10, 64)
+
+	out.Total = count
 	out.CurrentPage = info.CurrentPage
 	out.PrePageCount = info.PageCount
 	return
