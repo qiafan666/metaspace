@@ -47,6 +47,7 @@ type AssetBody struct {
 	ContrainChain   string    `json:"contract_chain"`
 	ContractAddress string    `json:"contract_address"`
 	Name            string    `json:"name"`
+	IndexID         uint64    `json:"index_id"`
 	NickName        string    `json:"nick_name"`
 	Image           string    `json:"image"`
 	Description     string    `json:"description"`
@@ -109,6 +110,7 @@ type OrdersDetail struct {
 	Rarity        int64     `json:"rarity_id"`
 	Image         string    `json:"image"`
 	Name          string    `json:"name"`
+	IndexID       uint64    `json:"index_id"`
 	NickName      string    `json:"nick_name"`
 	Description   string    `json:"description"`
 	TotalPrice    string    `json:"total_price"`
@@ -139,4 +141,5 @@ type HistoryList struct {
 	CreatedTime   time.Time `json:"created_time"`                      // create timestamp
 	Name          string    `gorm:"column:name" json:"name"`           // name
 	NickName      string    `gorm:"column:nick_name" json:"nick_name"` // nick name
+	IndexID       uint64    `gorm:"column:index_id" json:"index_id"`
 }

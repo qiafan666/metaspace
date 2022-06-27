@@ -14,6 +14,7 @@ type TransactionHistoryAssets struct {
 
 	NickName string `gorm:"column:nick_name" json:"nick_name"` // nick name
 	Name     string `gorm:"column:name" json:"name"`           // name
+	IndexID  uint64 `gorm:"column:index_id" json:"index_id"`
 }
 
 // TableName

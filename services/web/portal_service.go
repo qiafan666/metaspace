@@ -650,7 +650,7 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 		}
 		var transactionHistoryAssets []join.TransactionHistoryAssets
 		err = p.dao.WithContext(info.Ctx).Find([]string{"transaction_history.wallet_address,transaction_history.token_id,transaction_history.price," +
-			"transaction_history.unit,transaction_history.status,transaction_history.created_time,assets.name,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			"transaction_history.unit,transaction_history.status,transaction_history.created_time,assets.name,assets.index_id,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 			db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 				Joins("LEFT JOIN assets ON transaction_history.token_id = assets.token_id").
 				Where("transaction_history.wallet_address=?", info.BaseWallet)
@@ -681,6 +681,7 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 				CreatedTime:   transactionHistoryAsset.CreatedTime,
 				Name:          transactionHistoryAsset.Name,
 				NickName:      transactionHistoryAsset.NickName,
+				IndexID:       transactionHistoryAsset.IndexID,
 			})
 		}
 		out.CurrentPage = info.CurrentPage

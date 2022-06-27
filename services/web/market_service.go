@@ -347,7 +347,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 
 	var ordersDetail []join.OrdersDetail
 
-	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 			Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
 			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
@@ -419,6 +419,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 			Rarity:        v.Rarity,
 			Image:         v.Image,
 			Name:          v.Name,
+			IndexID:       v.IndexID,
 			NickName:      v.NickName,
 			Description:   v.Description,
 			TotalPrice:    v.TotalPrice,

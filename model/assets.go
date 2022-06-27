@@ -15,6 +15,7 @@ CREATE TABLE `assets` (
   `rarity` bigint NOT NULL DEFAULT '0' COMMENT 'rarity',
   `image` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'image',
   `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'name',
+  `index_id` bigint unsigned NOT NULL,
   `nick_name` varchar(256) COLLATE utf8mb4_bin NOT NULL COMMENT 'nick name',
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'description',
   `uri` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'uri',
@@ -35,15 +36,16 @@ CREATE TABLE `assets` (
 ******sql******/
 // Assets asset table
 type Assets struct {
-	ID            int64     `gorm:"primaryKey;column:id" json:"-"`               // asset id
-	UID           string    `gorm:"column:uid" json:"uid"`                       // user id
-	UUID          string    `gorm:"column:uuid" json:"uuid"`                     // third_party association
-	TokenID       int64     `gorm:"column:token_id" json:"token_id"`             // token id of erc721; should be the same as id
-	Category      int64     `gorm:"column:category" json:"category"`             // category
-	Type          int64     `gorm:"column:type" json:"type"`                     // type
-	Rarity        int64     `gorm:"column:rarity" json:"rarity"`                 // rarity
-	Image         string    `gorm:"column:image" json:"image"`                   // image
-	Name          string    `gorm:"column:name" json:"name"`                     // name
+	ID            int64     `gorm:"primaryKey;column:id" json:"-"`   // asset id
+	UID           string    `gorm:"column:uid" json:"uid"`           // user id
+	UUID          string    `gorm:"column:uuid" json:"uuid"`         // third_party association
+	TokenID       int64     `gorm:"column:token_id" json:"token_id"` // token id of erc721; should be the same as id
+	Category      int64     `gorm:"column:category" json:"category"` // category
+	Type          int64     `gorm:"column:type" json:"type"`         // type
+	Rarity        int64     `gorm:"column:rarity" json:"rarity"`     // rarity
+	Image         string    `gorm:"column:image" json:"image"`       // image
+	Name          string    `gorm:"column:name" json:"name"`         // name
+	IndexID       uint64    `gorm:"column:index_id" json:"index_id"`
 	NickName      string    `gorm:"column:nick_name" json:"nick_name"`           // nick name
 	Description   string    `gorm:"column:description" json:"description"`       // description
 	URI           string    `gorm:"column:uri" json:"uri"`                       // uri
@@ -74,6 +76,7 @@ var AssetsColumns = struct {
 	Rarity        string
 	Image         string
 	Name          string
+	IndexID       string
 	NickName      string
 	Description   string
 	URI           string
@@ -96,6 +99,7 @@ var AssetsColumns = struct {
 	Rarity:        "rarity",
 	Image:         "image",
 	Name:          "name",
+	IndexID:       "index_id",
 	NickName:      "nick_name",
 	Description:   "description",
 	URI:           "uri",
