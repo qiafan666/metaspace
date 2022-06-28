@@ -357,21 +357,21 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 		}
 
 		if info.SortTime > 0 && info.SortPrice > 0 {
-			return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+			return db.Order("orders.updated_time desc")
 		}
 
 		if info.SortTime == 0 {
 		} else if info.SortTime == 1 {
-			return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+			return db.Order("orders.updated_time desc")
 		} else {
-			return db.Order(model.OrdersColumns.UpdatedTime + " asc")
+			return db.Order("orders.updated_time desc")
 		}
 
 		if info.SortPrice == 0 {
 		} else if info.SortPrice == 1 {
-			return db.Order("--" + model.OrdersDetailColumns.Price + " desc")
+			return db.Order("--orders_detail.price desc")
 		} else {
-			return db.Order("--" + model.OrdersDetailColumns.Price + " asc")
+			return db.Order("--orders_detail.price asc")
 		}
 		return db
 	})
