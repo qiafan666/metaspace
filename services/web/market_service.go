@@ -345,6 +345,42 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 
 func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
 
+	count, err := m.dao.WithContext(info.Ctx).Count(join.OrdersDetail{}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
+			Where("orders.status=?", common.OrderStatusActive)
+		if info.Category != nil {
+			db = db.Where("assets.category=?", info.Category)
+		}
+		if info.Rarity != nil {
+			db = db.Where("assets.rarity=?", info.Rarity)
+		}
+
+		if info.SortTime > 0 && info.SortPrice > 0 {
+			return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+		}
+
+		if info.SortTime == 0 {
+		} else if info.SortTime == 1 {
+			return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+		} else {
+			return db.Order(model.OrdersColumns.UpdatedTime + " asc")
+		}
+
+		if info.SortPrice == 0 {
+		} else if info.SortPrice == 1 {
+			return db.Order("--" + model.OrdersDetailColumns.Price + " desc")
+		} else {
+			return db.Order("--" + model.OrdersDetailColumns.Price + " asc")
+		}
+		return db
+	})
+
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Count error %s", err.Error())
+		return out, 0, err
+	}
+
 	var ordersDetail []join.OrdersDetail
 
 	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
@@ -430,28 +466,7 @@ func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, c
 		})
 	}
 
-	var ordersDetailCount []join.OrdersDetail
-
-	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-		db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
-			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
-			Where("orders.status=?", common.OrderStatusActive)
-
-		if info.Category != nil {
-			db = db.Where("assets.category=?", info.Category)
-		}
-		if info.Rarity != nil {
-			db = db.Where("assets.rarity=?", info.Rarity)
-		}
-		return db
-	}, &ordersDetailCount)
-
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Count error %s", err.Error())
-		return out, 0, err
-	}
-
-	out.Total = int64(len(ordersDetailCount))
+	out.Total = count
 	out.CurrentPage = info.CurrentPage
 	out.PrePageCount = info.PageCount
 	return

@@ -645,7 +645,7 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 			return db
 		})
 		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Count error %s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp TransactionHistory Count error %s", err.Error())
 			return out, 0, err
 		}
 		var transactionHistoryAssets []join.TransactionHistoryAssets
@@ -689,6 +689,60 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 		out.Total = count
 		return out, 0, nil
 	case common.MintHistory:
+		//count
+		count, err := p.dao.WithContext(info.Ctx).Count(model.MintHistory{}, map[string]interface{}{
+			model.MintHistoryColumns.WalletAddress: info.BaseWallet,
+		}, func(db *gorm.DB) *gorm.DB {
+			if info.FilterTransaction > 0 {
+				db = db.Where("transaction_history.status=?", info.FilterTransaction)
+			}
+			if info.FilterTime.IsZero() == false {
+				db = db.Where("transaction_history.created_time > ?", info.FilterTime)
+			}
+			return db
+		})
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp MintHistory Count error %s", err.Error())
+			return out, 0, err
+		}
+		var mintHistoryAssets []join.MintHistoryAssets
+		err = p.dao.WithContext(info.Ctx).Find([]string{"mint_history.wallet_address,mint_history.token_id," +
+			"mint_history.status,mint_history.created_time,assets.name,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
+				Joins("LEFT JOIN assets ON mint_history.token_id = assets.token_id").
+				Where("mint_history.wallet_address=?", info.BaseWallet)
+			if info.FilterTransaction > 0 {
+				db = db.Where("mint_history.status=?", info.FilterTransaction)
+			}
+			if info.FilterTime.IsZero() == false {
+				db = db.Where("mint_history.created_time > ?", info.FilterTime)
+			}
+			db = db.Order(model.MintHistoryColumns.CreatedTime + " desc")
+			return db
+		}, &mintHistoryAssets)
+
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp find mintHistoryAssets Error: %s", err.Error())
+			return out, 0, err
+		}
+
+		out.Data = make([]response.HistoryList, 0, len(mintHistoryAssets))
+
+		for _, mintHistoryAsset := range mintHistoryAssets {
+			out.Data = append(out.Data, response.HistoryList{
+				WalletAddress: mintHistoryAsset.WalletAddress,
+				TokenID:       mintHistoryAsset.TokenID,
+				Status:        mintHistoryAsset.Status,
+				CreatedTime:   mintHistoryAsset.CreatedTime,
+				Name:          mintHistoryAsset.Name,
+				NickName:      mintHistoryAsset.NickName,
+			})
+		}
+		out.CurrentPage = info.CurrentPage
+		out.PrePageCount = info.PageCount
+		out.Total = count
+		return out, 0, nil
+
 	case common.ListenHistory:
 	default:
 		slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserHistory error:history type not exists")

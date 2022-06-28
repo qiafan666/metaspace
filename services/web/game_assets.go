@@ -44,9 +44,10 @@ type gameAssetsServiceImp struct {
 
 func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out response.GetGameAssets, code commons.ResponseCode, err error) {
 
-	count, err := p.dao.WithContext(info.Ctx).Count(model.Assets{}, map[string]interface{}{
-		model.AssetsColumns.UID: info.BaseWallet,
-	}, func(db *gorm.DB) *gorm.DB {
+	count, err := p.dao.WithContext(info.Ctx).Count(join.AssetsOrders{}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
+			Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
+			Where("assets.uid=?", info.BaseWallet)
 		if info.Category != nil {
 			db = db.Where("assets.category=?", info.Category)
 		}
@@ -56,10 +57,15 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		if info.Rarity != nil {
 			db = db.Where("assets.rarity=?", info.Rarity)
 		}
+		if info.IsSale == 1 {
+			db = db.Where("orders.status=?", common.OrderStatusActive)
+		} else if info.IsSale == 2 {
+			db = db.Where("orders.status!=?", common.OrderStatusActive)
+		}
 		return db
 	})
 	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp assets Count error %s", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp AssetsOrders count error %s", err.Error())
 		return out, 0, err
 	}
 
@@ -78,6 +84,11 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		}
 		if info.Rarity != nil {
 			db = db.Where("assets.rarity=?", info.Rarity)
+		}
+		if info.IsSale == 1 {
+			db = db.Where("orders.status=?", common.OrderStatusActive)
+		} else if info.IsSale == 2 {
+			db = db.Where("orders.status!=?", common.OrderStatusActive)
 		}
 		db.Order(model.AssetsColumns.UpdatedAt + " desc")
 		return db
