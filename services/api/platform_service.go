@@ -10,9 +10,11 @@ import (
 	"github.com/blockfishio/metaspace-backend/redis"
 	"github.com/jau1jz/cornus/commons"
 	slog "github.com/jau1jz/cornus/commons/log"
+	"gorm.io/gorm"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -54,6 +56,23 @@ func (p PlatformServiceImp) AddAssets(infos request.AddAssets) (out response.Add
 
 		walletAddress := strings.ToLower(info.WalletAddress)
 
+		var assets model.Assets
+		err = tx.WithContext(infos.Ctx).Find([]string{model.AssetsColumns.IndexID}, map[string]interface{}{
+			model.AssetsColumns.Category: info.Category,
+		}, func(db *gorm.DB) *gorm.DB {
+			return db.Order(model.AssetsColumns.IndexID + " desc")
+		}, &assets)
+		if err != nil {
+			slog.Slog.ErrorF(infos.Ctx, "PlatformServiceImp assets find error %s", err.Error())
+			return out, 0, err
+		}
+
+		var indexId uint64
+		if assets.IndexID > 0 {
+			indexId = atomic.AddUint64(&assets.IndexID, 1)
+		} else {
+			indexId = 1
+		}
 		newAssets := model.Assets{
 			UID:         walletAddress,
 			TokenID:     info.TokenID,
@@ -66,8 +85,9 @@ func (p PlatformServiceImp) AddAssets(infos request.AddAssets) (out response.Add
 			URIContent:  info.UriContent,
 			Description: info.Description,
 			IsNft:       common.NotNft,
+			IndexID:     indexId,
 			Name:        function.GetCategoryString(info.Category),
-			NickName:    function.GetCategoryString(info.Category) + "#" + strconv.FormatInt(info.TokenID, 10),
+			NickName:    function.GetCategoryString(info.Category) + "#" + strconv.FormatUint(indexId, 10),
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 		}

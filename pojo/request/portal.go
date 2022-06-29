@@ -57,6 +57,7 @@ type GetGameAssets struct {
 	Category *int `json:"category"`
 	Rarity   *int `json:"rarity"`
 	IsNft    *int `json:"is_nft"`
+	IsSale   int  `json:"is_sale"`
 }
 
 type SubscribeNewsletterEmail struct {

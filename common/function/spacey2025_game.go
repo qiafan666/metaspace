@@ -47,11 +47,11 @@ func GetRarityString(mType int64) string {
 
 func GetSubcategoryString(Category int64, subCategory int64) (string, error) {
 	if Category == common.CategoryId0 { //Dummy
-		return "", errors.New(" subCategory data Not found ")
+		return common.DummyString, nil
 	} else if Category == common.CategoryId1 { //Chest
-		return "", errors.New(" subCategory data Not found ")
+		return common.ChestString, nil
 	} else if Category == common.CategoryId2 { //Ticket
-		return "", errors.New(" subCategory data Not found ")
+		return common.TicketString, nil
 	} else if Category == common.CategoryId3 { //Land
 		return common.LandTypeString, nil
 	} else if Category == common.CategoryId4 { //Building

@@ -26,7 +26,7 @@ contract:
   eth_client: "https://rinkeby.infura.io/v3/059609bf2c8e433d8ad4a895a98278ed"
   nft_address: "0xc10641031430cF29579f829952b118f1d873bbc2"
   erc721_address: "0xe88A806D31de758762d93a0e6682042Ec1AFe6ac"
-  market_address: "0x9ee4489f25f800E3F2158254afE6a89e27537549"
+  market_address: "0x22Bc2260153CC4363465Fe729EE24f06043D4519"
 thirdLogin:
   third_login_address: "127.0.0.7"
 
