@@ -694,10 +694,10 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 			model.MintHistoryColumns.WalletAddress: info.BaseWallet,
 		}, func(db *gorm.DB) *gorm.DB {
 			if info.FilterTransaction > 0 {
-				db = db.Where("transaction_history.status=?", info.FilterTransaction)
+				db = db.Where("mint_history.status=?", info.FilterTransaction)
 			}
 			if info.FilterTime.IsZero() == false {
-				db = db.Where("transaction_history.created_time > ?", info.FilterTime)
+				db = db.Where("mint_history.created_time > ?", info.FilterTime)
 			}
 			return db
 		})
