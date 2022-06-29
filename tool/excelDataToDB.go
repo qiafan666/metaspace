@@ -49,8 +49,10 @@ func main() {
 	}
 
 	var assets []Assets
+	var tokenId, category, subCategory, rarity, indexId, isNft int
+	var walletAddress, image, name, description, url, urlContent, originChain string
 
-	for i := 2; i < 7; i++ {
+	for i := 6; i < 7; i++ {
 		fileName := "assets" + strconv.Itoa(i) + ".xlsx"
 		f, err := excelize.OpenFile(fileName)
 		if err != nil {
@@ -62,39 +64,87 @@ func main() {
 			fmt.Println(err)
 			return
 		}
+		var errs error
 		for index, row := range rows {
 			if index == 0 {
 				continue
 			}
 
-			row3, _ := strconv.Atoi(row[2])
-			row4, _ := strconv.Atoi(row[3])
-			row5, _ := strconv.Atoi(row[4])
-			row6, _ := strconv.Atoi(row[5])
-			row22, _ := strconv.Atoi(row[21])
+			tokenId, errs = strconv.Atoi(row[2])
+			if errs != nil {
+				fmt.Printf("index=%d,row=%d", index, tokenId)
+				return
+			}
+
+			category, errs = strconv.Atoi(row[3])
+			if errs != nil {
+				fmt.Printf("index=%d,row=%d", index, category)
+				return
+			}
+
+			subCategory, errs = strconv.Atoi(row[4])
+			if errs != nil {
+				fmt.Printf("index=%d,row=%d", index, subCategory)
+				return
+			}
+
+			rarity, errs = strconv.Atoi(row[5])
+			if errs != nil {
+				fmt.Printf("index=%d,row=%d", index, rarity)
+				return
+			}
+
+			indexId, errs = strconv.Atoi(row[21])
+			if errs != nil {
+				fmt.Printf("index=%d,row=%d", index, indexId)
+				return
+			}
+			isNft, errs = strconv.Atoi(row[15])
+			if errs != nil {
+				fmt.Printf("index=%d,row=%d", index, indexId)
+				return
+			}
+			if isNft == 0 {
+				isNft = 2
+			}
+			createTime, _ := time.Parse("2006-01-02 15:04:05", row[18])
+			updatedTime, _ := time.Parse("2006-01-02 15:04:05", row[19])
+
+			walletAddress = row[1]
+			image = row[7]
+			name = row[8]
+			description = row[9]
+			url = row[10]
+			urlContent = row[11]
+			originChain = row[12]
+
 			assets = append(assets, Assets{
-				UID:         row[1],
-				TokenID:     int64(row3),
-				Category:    int64(row4),
-				Type:        int64(row5),
-				Rarity:      int64(row6),
-				Image:       row[7],
-				Name:        row[8],
-				Description: row[9],
-				URI:         row[10],
-				URIContent:  row[11],
-				OriginChain: row[12],
-				IndexID:     uint64(row22),
-				NickName:    row[8] + "#" + row[21],
-				IsNft:       2,
-				CreatedAt:   time.Now(),
-				UpdatedAt:   time.Now(),
+				UID:         walletAddress,
+				TokenID:     int64(tokenId),
+				Category:    int64(category),
+				Type:        int64(subCategory),
+				Rarity:      int64(rarity),
+				Image:       image,
+				Name:        name,
+				Description: description,
+				URI:         url,
+				URIContent:  urlContent,
+				OriginChain: originChain,
+				IndexID:     uint64(indexId),
+				NickName:    name + "#" + row[21],
+				IsNft:       uint8(isNft),
+				CreatedAt:   createTime,
+				UpdatedAt:   updatedTime,
 			})
 		}
 
 	}
 
 	err = db.Transaction(func(tx *gorm.DB) error {
+
+		//err = db.Transaction(func(tx *gorm.DB) error {
+		//	return tx.Create(&assets).Error
+		//})
 		for k, _ := range assets {
 			err2 := tx.Create(&assets[k]).Error
 			if err2 != nil {
