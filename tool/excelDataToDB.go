@@ -1,10 +1,12 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/xuri/excelize/v2"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"log"
 	"strconv"
 	"time"
 )
@@ -42,9 +44,15 @@ func (m *Assets) TableName() string {
 //excel data insert to db
 func main() {
 
-	db, err := gorm.Open("mysql", "root:!devpass123456@tcp(3.20.122.137:3306)/metaspacetest?charset=utf8&parseTime=True&loc=Local")
+	// mysql connection url like : root:!devpass123456@tcp(3.20.122.137:3306)/spacetest?parseTime=true&charset=utf8mb4
+	var dbUrl string
+	flag.StringVar(&dbUrl, "db", "", "mysql connection url")
+	flag.Parse()
+
+	// gorm connect mysql
+	db, err := gorm.Open(mysql.Open(dbUrl), &gorm.Config{})
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 
@@ -52,14 +60,22 @@ func main() {
 	var tokenId, category, subCategory, rarity, indexId, isNft int
 	var walletAddress, image, name, description, url, urlContent, originChain string
 
-	for i := 6; i < 7; i++ {
-		fileName := "assets" + strconv.Itoa(i) + ".xlsx"
-		f, err := excelize.OpenFile(fileName)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		rows, err := f.GetRows("assets")
+	fileName := "assets.xlsx"
+	f, err := excelize.OpenFile(fileName)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	rowsMap := make(map[int]string)
+	rowsMap[1] = "Ticket"
+	rowsMap[2] = "Land"
+	rowsMap[3] = "Building"
+	rowsMap[4] = "Tower"
+	rowsMap[5] = "Trap"
+	for _, rowName := range rowsMap {
+
+		rows, err := f.GetRows(rowName)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -70,36 +86,36 @@ func main() {
 				continue
 			}
 
-			tokenId, errs = strconv.Atoi(row[2])
+			tokenId, errs = strconv.Atoi(row[0])
 			if errs != nil {
 				fmt.Printf("index=%d,row=%d", index, tokenId)
 				return
 			}
 
-			category, errs = strconv.Atoi(row[3])
+			category, errs = strconv.Atoi(row[1])
 			if errs != nil {
 				fmt.Printf("index=%d,row=%d", index, category)
 				return
 			}
 
-			subCategory, errs = strconv.Atoi(row[4])
+			subCategory, errs = strconv.Atoi(row[2])
 			if errs != nil {
 				fmt.Printf("index=%d,row=%d", index, subCategory)
 				return
 			}
 
-			rarity, errs = strconv.Atoi(row[5])
+			rarity, errs = strconv.Atoi(row[3])
 			if errs != nil {
 				fmt.Printf("index=%d,row=%d", index, rarity)
 				return
 			}
 
-			indexId, errs = strconv.Atoi(row[21])
+			indexId, errs = strconv.Atoi(row[14])
 			if errs != nil {
 				fmt.Printf("index=%d,row=%d", index, indexId)
 				return
 			}
-			isNft, errs = strconv.Atoi(row[15])
+			isNft, errs = strconv.Atoi(row[4])
 			if errs != nil {
 				fmt.Printf("index=%d,row=%d", index, indexId)
 				return
@@ -107,16 +123,17 @@ func main() {
 			if isNft == 0 {
 				isNft = 2
 			}
-			createTime, _ := time.Parse("2006-01-02 15:04:05", row[18])
-			updatedTime, _ := time.Parse("2006-01-02 15:04:05", row[19])
 
-			walletAddress = row[1]
-			image = row[7]
-			name = row[8]
-			description = row[9]
-			url = row[10]
-			urlContent = row[11]
-			originChain = row[12]
+			createTime, _ := time.Parse("2006-01-02 15:04:05", row[12])
+			updatedTime, _ := time.Parse("2006-01-02 15:04:05", row[13])
+
+			walletAddress = row[5]
+			image = row[6]
+			name = row[7]
+			description = row[8]
+			url = row[9]
+			urlContent = row[10]
+			originChain = row[11]
 
 			assets = append(assets, Assets{
 				UID:         walletAddress,
@@ -131,7 +148,7 @@ func main() {
 				URIContent:  urlContent,
 				OriginChain: originChain,
 				IndexID:     uint64(indexId),
-				NickName:    name + "#" + row[21],
+				NickName:    name + "#" + row[14],
 				IsNft:       uint8(isNft),
 				CreatedAt:   createTime,
 				UpdatedAt:   updatedTime,
@@ -141,18 +158,7 @@ func main() {
 	}
 
 	err = db.Transaction(func(tx *gorm.DB) error {
-
-		//err = db.Transaction(func(tx *gorm.DB) error {
-		//	return tx.Create(&assets).Error
-		//})
-		for k, _ := range assets {
-			err2 := tx.Create(&assets[k]).Error
-			if err2 != nil {
-				return err2
-			}
-			fmt.Println(k)
-		}
-		return nil
+		return tx.Create(&assets).Error
 	})
 	if err != nil {
 		fmt.Println(err)
