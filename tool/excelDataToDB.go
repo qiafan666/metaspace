@@ -50,7 +50,9 @@ func main() {
 	flag.Parse()
 
 	// gorm connect mysql
-	db, err := gorm.Open(mysql.Open(dbUrl), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(dbUrl), &gorm.Config{
+		CreateBatchSize: 1000,
+	})
 	if err != nil {
 		log.Println(err)
 		return
