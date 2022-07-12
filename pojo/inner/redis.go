@@ -46,3 +46,10 @@ type RawMessage struct {
 	StartTime  time.Time `json:"start_time"`
 	ExpireTime time.Time `json:"expire_time"`
 }
+
+type ExchangePrice struct {
+	Quote      string    `json:"quote"`
+	Base       string    `json:"base"`
+	Price      float64   `json:"price"`
+	ExpireTime time.Time `json:"expire_time"`
+}

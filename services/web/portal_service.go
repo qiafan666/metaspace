@@ -12,6 +12,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/grpc"
 	"github.com/blockfishio/metaspace-backend/grpc/proto"
 	"github.com/blockfishio/metaspace-backend/model/join"
+	"github.com/blockfishio/metaspace-backend/services/exchange"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
@@ -51,6 +52,8 @@ type PortalService interface {
 	GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error)
 	UserUpdate(info request.UserUpdate) (out response.UserUpdate, code commons.ResponseCode, err error)
 	UserHistory(info request.UserHistory) (out response.UserHistory, code commons.ResponseCode, err error)
+	ExchangePrice(info request.ExchangePrice) (out response.ExchangePrice, code commons.ResponseCode, err error)
+	AssetDetail(info request.AssetDetail) (out response.AssetDetail, code commons.ResponseCode, err error)
 }
 
 var portalConfig struct {
@@ -71,6 +74,8 @@ func init() {
 var portalServiceIns *portalServiceImp
 var portalServiceInitOnce sync.Once
 var ethClient *ethclient.Client
+var portalErr error
+var exchangeService exchange.Exchange
 
 func NewPortalServiceInstance() PortalService {
 	var err error
@@ -86,6 +91,8 @@ func NewPortalServiceInstance() PortalService {
 		slog.Slog.ErrorF(context.Background(), "eth client connect error %s", err.Error())
 		panic(err.Error())
 	}
+
+	exchangeService = exchange.NewExchangeService()
 	return portalServiceIns
 }
 
@@ -747,6 +754,70 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 	default:
 		slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserHistory error:history type not exists")
 		return out, common.HistoryError, errors.New("history type not exists")
+	}
+	return
+}
+
+func (p portalServiceImp) ExchangePrice(info request.ExchangePrice) (out response.ExchangePrice, code commons.ResponseCode, err error) {
+	price, err := exchangeService.Rate(info.Ctx, info.Quote, info.Base)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp ExchangePrice error:%s", err)
+		return out, 0, err
+	}
+	out.Price = price
+	return
+}
+
+func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.AssetDetail, code commons.ResponseCode, err error) {
+
+	var assetsOrders join.AssetsOrders
+	err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature,assets.updated_at," +
+		"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
+			Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
+			Where("assets.id=?", info.AssetId)
+		return db
+	}, &assetsOrders)
+
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find assetsOrders Error: %s", err.Error())
+		return out, common.AssetsNotExist, err
+	}
+
+	var subCategoryString string
+	subCategoryString, err = function.GetSubcategoryString(assetsOrders.Category, assetsOrders.Type)
+	if err != nil {
+		category := strconv.FormatInt(assetsOrders.Category, 10)
+		subCategory := strconv.FormatInt(assetsOrders.Type, 10)
+		slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp SubcategoryString Category:%s,type:%s,Error: %s", category, subCategory, err.Error())
+		subCategoryString = "unknown type"
+	}
+	out = response.AssetDetail{
+		AssetId:         assetsOrders.Id,
+		WalletAddress:   assetsOrders.Uid,
+		IsNft:           assetsOrders.IsNft,
+		TokenId:         assetsOrders.TokenId,
+		ContractAddress: "0xxxxx",
+		ContrainChain:   "BSC",
+		Name:            assetsOrders.Name,
+		IndexID:         assetsOrders.IndexID,
+		NickName:        assetsOrders.NickName,
+		Image:           assetsOrders.Image,
+		Description:     assetsOrders.Description,
+		Category:        function.GetCategoryString(assetsOrders.Category),
+		CategoryId:      assetsOrders.Category,
+		Rarity:          function.GetRarityString(assetsOrders.Rarity),
+		RarityId:        assetsOrders.Rarity,
+		MintSignature:   assetsOrders.MintSignature,
+		SubcategoryId:   assetsOrders.Type,
+		Subcategory:     subCategoryString,
+		Status:          assetsOrders.Status,
+		Price:           assetsOrders.Price,
+		OrderId:         int64(assetsOrders.OrderID),
+		ExpireTime:      assetsOrders.ExpireTime,
+		Signature:       assetsOrders.Signature,
+		StartTime:       assetsOrders.StartTime,
+		SaltNonce:       assetsOrders.SaltNonce,
 	}
 	return
 }

@@ -143,3 +143,35 @@ type HistoryList struct {
 	NickName      string    `gorm:"column:nick_name" json:"nick_name"` // nick name
 	IndexID       uint64    `gorm:"column:index_id" json:"index_id"`
 }
+
+type ExchangePrice struct {
+	Price float64 `json:"price"`
+}
+
+type AssetDetail struct {
+	AssetId         int64     `json:"asset_id"`
+	WalletAddress   string    `json:"wallet_address"`
+	IsNft           uint8     `json:"is_nft"`
+	TokenId         int64     `json:"token_id"`
+	ContrainChain   string    `json:"contract_chain"`
+	ContractAddress string    `json:"contract_address"`
+	Name            string    `json:"name"`
+	IndexID         uint64    `json:"index_id"`
+	NickName        string    `json:"nick_name"`
+	Image           string    `json:"image"`
+	Description     string    `json:"description"`
+	Category        string    `json:"category"`
+	CategoryId      int64     `json:"category_id"`
+	Rarity          string    `json:"rarity"`
+	RarityId        int64     `json:"rarity_id"`
+	MintSignature   string    `json:"mint_signature"`
+	Subcategory     string    `json:"subcategory"`
+	SubcategoryId   int64     `json:"subcategory_id"`
+	Status          uint8     `json:"status"`
+	Price           string    `json:"price"`
+	OrderId         int64     `json:"order_id"`
+	ExpireTime      time.Time `json:"expire_time"`
+	Signature       string    `json:"signature"`
+	SaltNonce       string    `json:"salt_nonce"`
+	StartTime       time.Time `json:"start_time"`
+}

@@ -42,6 +42,10 @@ type Dao interface {
 	SetRawMessage(ctx context.Context, RawMessage inner.RawMessage, expire time.Duration) (err error)
 	GetRawMessage(ctx context.Context, rawMessage string) (out inner.RawMessage, err error)
 	DelRawMessage(ctx context.Context, rawMessage string) (err error)
+
+	SetExchangePrice(ctx context.Context, exchangePrice inner.ExchangePrice, expire time.Duration) (err error)
+	GetExchangePrice(ctx context.Context, quote string, base string) (out inner.ExchangePrice, err error)
+	DelExchangePrice(ctx context.Context, quote string, base string) (err error)
 }
 
 type Imp struct {
@@ -205,4 +209,28 @@ func (i Imp) SetRawMessage(ctx context.Context, rawMessage inner.RawMessage, exp
 
 func (i Imp) DelRawMessage(ctx context.Context, rawMessage string) (err error) {
 	return i.redis.Del(ctx, fmt.Sprintf(common.RawMessage, rawMessage)).Err()
+}
+
+func (i Imp) GetExchangePrice(ctx context.Context, quote string, base string) (out inner.ExchangePrice, err error) {
+
+	result := i.redis.Get(ctx, fmt.Sprintf(common.ExchanagePrice, quote, base))
+	if result.Err() != nil {
+		return out, result.Err()
+	}
+	err = json.Unmarshal([]byte(result.Val()), &out)
+	return
+}
+
+func (i Imp) SetExchangePrice(ctx context.Context, exchangePrice inner.ExchangePrice, expire time.Duration) (err error) {
+
+	marshal, err := json.Marshal(exchangePrice)
+	if err != nil {
+		return err
+	}
+	return i.redis.SetNX(ctx, fmt.Sprintf(common.ExchanagePrice, exchangePrice.Quote, exchangePrice.Base), marshal, expire).Err()
+
+}
+
+func (i Imp) DelExchangePrice(ctx context.Context, quote string, base string) (err error) {
+	return i.redis.Del(ctx, fmt.Sprintf(common.ExchanagePrice, quote, base)).Err()
 }

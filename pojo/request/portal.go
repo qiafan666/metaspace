@@ -129,3 +129,16 @@ type UserHistory struct {
 	FilterTransaction uint8     `json:"filter_transaction"`
 	FilterTime        time.Time `json:"filter_time"`
 }
+
+type ExchangePrice struct {
+	BaseRequest
+	BasePortalRequest
+	Quote string `json:"quote" validate:"required"`
+	Base  string `json:"base"  validate:"required"`
+}
+
+type AssetDetail struct {
+	BaseRequest
+	BasePortalRequest
+	AssetId int64 `json:"asset_id" validate:"required"`
+}

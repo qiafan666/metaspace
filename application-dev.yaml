@@ -30,3 +30,6 @@ contract:
 thirdLogin:
   third_login_address: "127.0.0.7"
 
+coinMarket:
+  address: "https://pro-api.coinmarketcap.com/v2/tools/price-conversion"
+  api_key: "05ae21d8-c50e-4e8b-81ba-a67fde72b8f0"

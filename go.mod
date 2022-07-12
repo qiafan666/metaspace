@@ -11,6 +11,7 @@ require (
 	github.com/jau1jz/cornus v1.0.8
 	github.com/kataras/iris/v12 v12.2.0-alpha5
 	github.com/sirupsen/logrus v1.8.1
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	github.com/xuri/excelize/v2 v2.6.0
 	google.golang.org/grpc v1.41.0
 	gorm.io/driver/mysql v1.3.2
@@ -37,6 +38,7 @@ require (
 	github.com/xuri/nfp v0.0.0-20220409054826-5e722a1d9e22 // indirect
 	google.golang.org/genproto v0.0.0-20211013025323-ce878158c4d4 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
+	gorm.io/driver/mysql v1.3.2 // indirect
 )
 
 require (
@@ -116,7 +118,7 @@ require (
 	github.com/tdewolff/minify/v2 v2.9.22 // indirect
 	github.com/tdewolff/parse/v2 v2.5.22 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.23.0 // indirect
+	github.com/valyala/fasthttp v1.23.0
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/yosssi/ace v0.0.5 // indirect

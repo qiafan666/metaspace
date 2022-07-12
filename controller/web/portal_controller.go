@@ -234,6 +234,33 @@ func (receiver *PortalWebController) PostUserHistory() {
 		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
 	}
 }
+func (receiver *PortalWebController) PostExchangePrice() {
+	input := request.ExchangePrice{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostExchangePrice"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.PortalService.ExchangePrice(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
+func (receiver *PortalWebController) PostAssetDetail() {
+	input := request.AssetDetail{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostAssetDetail"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.PortalService.AssetDetail(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
 func (receiver *PortalWebController) GetHealth() {
 	receiver.Ctx.StatusCode(iris.StatusOK)
 	return

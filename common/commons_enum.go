@@ -84,6 +84,7 @@ const (
 	ThirdPartyUserToken = "third_party/user_token/%s/%s"
 	ThirdPartyTokenUser = "third_party/token_user/%s"
 	RawMessage          = "user/raw_message/%s"
+	ExchanagePrice      = "user/exchange/%s/%s"
 )
 
 const (
@@ -139,4 +140,9 @@ const (
 	Cancel    = 2
 	Sold      = 3
 	Purchased = 4
+)
+
+//get coin price
+const (
+	CoinMarket = "coin_market"
 )
