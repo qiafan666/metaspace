@@ -142,3 +142,9 @@ type AssetDetail struct {
 	BasePortalRequest
 	AssetId int64 `json:"asset_id" validate:"required"`
 }
+
+type GameCurrency struct {
+	BaseRequest
+	BasePortalRequest
+	Symbol string `json:"symbol" validate:"required"`
+}

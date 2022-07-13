@@ -91,7 +91,7 @@ func (i Imp) SetPublicKey(ctx context.Context, publicKey inner.PublicKey, expire
 	if err != nil {
 		return err
 	}
-	return i.redis.SetNX(ctx, fmt.Sprintf(common.ThirdPartyPublicKey, publicKey.ApiKey), marshal, expire).Err()
+	return i.redis.Set(ctx, fmt.Sprintf(common.ThirdPartyPublicKey, publicKey.ApiKey), marshal, expire).Err()
 }
 
 func (i Imp) DelPublicKey(ctx context.Context, apiKey string) (err error) {
@@ -227,7 +227,7 @@ func (i Imp) SetExchangePrice(ctx context.Context, exchangePrice inner.ExchangeP
 	if err != nil {
 		return err
 	}
-	return i.redis.SetNX(ctx, fmt.Sprintf(common.ExchanagePrice, exchangePrice.Quote, exchangePrice.Base), marshal, expire).Err()
+	return i.redis.Set(ctx, fmt.Sprintf(common.ExchanagePrice, exchangePrice.Quote, exchangePrice.Base), marshal, expire).Err()
 
 }
 

@@ -175,3 +175,7 @@ type AssetDetail struct {
 	SaltNonce       string    `json:"salt_nonce"`
 	StartTime       time.Time `json:"start_time"`
 }
+
+type GameCurrency struct {
+	Amount float64 `json:"amount"`
+}
