@@ -7,7 +7,7 @@ import (
 type Uri string
 
 const (
-	UriEventNotify Uri = "/metaspace/event/notify"
+	UrlEventMetaspaceNotify = "/metaspace/event/notify"
 )
 
 type ResponseCode int
@@ -23,6 +23,12 @@ type BaseResponse struct {
 	Data interface{}  `json:"data"`
 	Time int64        `json:"time"`
 }
+
+type BaseNotifyEvent struct {
+	Type      uint        `json:"type"`
+	EventData interface{} `json:"event_data"`
+}
+
 type BaseThirdParty struct {
 	ThirdPartyID uint64 `json:"third_party_id"`
 }
@@ -37,9 +43,10 @@ const (
 )
 
 type GameCurrencyRequest struct {
-	Symbol string `json:"symbol"`
+	WallAddress string `json:"wall_address"`
+	Symbol      string `json:"symbol"`
 }
 
 type GameCurrencyResponse struct {
-	Amount float64 `json:"amount"`
+	Amount int64 `json:"amount"`
 }

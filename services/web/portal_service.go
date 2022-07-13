@@ -832,13 +832,18 @@ func (p portalServiceImp) GameCurrency(info request.GameCurrency) (out response.
 	}
 
 	gameCurrencyRequest := thirdparty.GameCurrencyRequest{
-		Symbol: info.Symbol,
+		WallAddress: info.BaseWallet,
+		Symbol:      info.Symbol,
 	}
 
+	baseAssets := thirdparty.BaseNotifyEvent{
+		Type:      common.GetGMarsEvent,
+		EventData: gameCurrencyRequest,
+	}
 	var gameCurrencyResponse thirdparty.GameCurrencyResponse
 
 	//connect to game
-	_, err = p.thirdPartyService.Request(info.Ctx, thirdparty.UriEventNotify, party, gameCurrencyRequest, &gameCurrencyResponse)
+	_, err = p.thirdPartyService.Request(info.Ctx, thirdparty.UrlEventMetaspaceNotify, party, baseAssets, &gameCurrencyResponse)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "GameCurrency call thirdParty failed: %s", err)
 		return out, common.GameCurrencyError, err

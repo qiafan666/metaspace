@@ -148,3 +148,7 @@ const (
 const (
 	CoinMarket = "coin_market"
 )
+
+const (
+	GetGMarsEvent = 1
+)
