@@ -38,6 +38,7 @@ const (
 	UsedSignature                = 100020
 	WalletError                  = 100021
 	HistoryError                 = 100022
+	GameCurrencyError            = 100023
 )
 
 // EnglishCodeMsg local code and msg
@@ -65,6 +66,7 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	UsedSignature:                "Signatures is already used",
 	WalletError:                  "Inconsistent wallet addresses",
 	HistoryError:                 "History type doesn't exist",
+	GameCurrencyError:            "Failed to get game data",
 }
 
 // login type
@@ -145,4 +147,8 @@ const (
 //get coin price
 const (
 	CoinMarket = "coin_market"
+)
+
+const (
+	GetGMarsEvent = 1
 )

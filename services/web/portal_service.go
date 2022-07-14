@@ -13,6 +13,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/grpc/proto"
 	"github.com/blockfishio/metaspace-backend/model/join"
 	"github.com/blockfishio/metaspace-backend/services/exchange"
+	"github.com/blockfishio/metaspace-backend/thirdparty"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
@@ -54,6 +55,7 @@ type PortalService interface {
 	UserHistory(info request.UserHistory) (out response.UserHistory, code commons.ResponseCode, err error)
 	ExchangePrice(info request.ExchangePrice) (out response.ExchangePrice, code commons.ResponseCode, err error)
 	AssetDetail(info request.AssetDetail) (out response.AssetDetail, code commons.ResponseCode, err error)
+	GameCurrency(info request.GameCurrency) (out response.GameCurrency, code commons.ResponseCode, err error)
 }
 
 var portalConfig struct {
@@ -74,15 +76,15 @@ func init() {
 var portalServiceIns *portalServiceImp
 var portalServiceInitOnce sync.Once
 var ethClient *ethclient.Client
-var portalErr error
 var exchangeService exchange.Exchange
 
 func NewPortalServiceInstance() PortalService {
 	var err error
 	portalServiceInitOnce.Do(func() {
 		portalServiceIns = &portalServiceImp{
-			dao:   dao.Instance(),
-			redis: redis.Instance(),
+			dao:               dao.Instance(),
+			redis:             redis.Instance(),
+			thirdPartyService: thirdparty.NewThirdPartyService(),
 		}
 	})
 
@@ -97,8 +99,9 @@ func NewPortalServiceInstance() PortalService {
 }
 
 type portalServiceImp struct {
-	dao   dao.Dao
-	redis redis.Dao
+	dao               dao.Dao
+	redis             redis.Dao
+	thirdPartyService thirdparty.Service
 }
 
 func (p portalServiceImp) ThirdPartyLogin(info request.ThirdPartyLogin) (out response.ThirdPartyLogin, code commons.ResponseCode, err error) {
@@ -819,5 +822,32 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 		StartTime:       assetsOrders.StartTime,
 		SaltNonce:       assetsOrders.SaltNonce,
 	}
+	return
+}
+
+func (p portalServiceImp) GameCurrency(info request.GameCurrency) (out response.GameCurrency, code commons.ResponseCode, err error) {
+
+	party := thirdparty.BaseThirdParty{
+		ThirdPartyID: 1,
+	}
+
+	gameCurrencyRequest := thirdparty.GameCurrencyRequest{
+		WallAddress: info.BaseWallet,
+		Symbol:      info.Symbol,
+	}
+
+	baseAssets := thirdparty.BaseNotifyEvent{
+		Type:      common.GetGMarsEvent,
+		EventData: gameCurrencyRequest,
+	}
+	var gameCurrencyResponse thirdparty.GameCurrencyResponse
+
+	//connect to game
+	_, err = p.thirdPartyService.Request(info.Ctx, thirdparty.UrlEventMetaspaceNotify, party, baseAssets, &gameCurrencyResponse)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "GameCurrency call thirdParty failed: %s", err)
+		return out, common.GameCurrencyError, err
+	}
+	out.Amount = gameCurrencyResponse.Amount
 	return
 }
