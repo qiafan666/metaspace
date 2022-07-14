@@ -44,7 +44,7 @@ func (m *Assets) TableName() string {
 //excel data insert to db
 func main() {
 
-	// mysql connection url like : root:!devpass123456@tcp(3.20.122.137:3306)/spacetest?parseTime=true&charset=utf8mb4
+	// go run main.go -db "metaspacebf@metaspace2022@tcp(172.31.36.140:3306)/metaspace?parseTime=true&charset=utf8mb4"
 	var dbUrl string
 	flag.StringVar(&dbUrl, "db", "", "mysql connection url")
 	flag.Parse()
