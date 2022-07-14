@@ -7,7 +7,7 @@ import (
 type Uri string
 
 const (
-	UrlEventMetaspaceNotify = "/metaspace/event/notify"
+	UriWalletBalance Uri = "/metaspace/wallet/balance"
 )
 
 type ResponseCode int
