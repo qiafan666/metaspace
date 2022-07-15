@@ -37,7 +37,7 @@ type MarketService interface {
 
 var marketConfig struct {
 	Contract struct {
-		MarketAddress string `yaml:"market_address"`
+		Market string `yaml:"market"`
 	} `yaml:"contract"`
 }
 
@@ -66,8 +66,8 @@ type marketServiceImp struct {
 
 func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out response.ShelfSign, code commons.ResponseCode, err error) {
 
-	address := ethcommon.HexToAddress(marketConfig.Contract.MarketAddress)
-	instance, err := marketcontract.NewContracts(address, ethClient)
+	address := ethcommon.HexToAddress(marketConfig.Contract.Market)
+	instance, err := marketcontract.NewContracts(address, Client)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
 		return out, 0, err
@@ -87,8 +87,8 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 	if vAssets.TokenID > 0 {
 
 		// check is nft
-		addressOwner := ethcommon.HexToAddress(portalConfig.Contract.Erc721Address)
-		instanceOwner, errs := assetscontract.NewContracts(addressOwner, ethClient)
+		addressOwner := ethcommon.HexToAddress(portalConfig.Contract.Assets)
+		instanceOwner, errs := assetscontract.NewContracts(addressOwner, Client)
 		if errs != nil {
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
 			return out, 0, errs
@@ -136,7 +136,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 	startTime := time.Now()
 	endTime := info.ExpireTime
 
-	message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, big.NewInt(startTime.Unix()), big.NewInt(endTime.Unix()), saltNonce)
+	message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Assets), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, big.NewInt(startTime.Unix()), big.NewInt(endTime.Unix()), saltNonce)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
 		return out, 0, err
@@ -183,8 +183,8 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		return out, 0, err
 	}
 
-	address := ethcommon.HexToAddress(portalConfig.Contract.Erc721Address)
-	instance, err := assetscontract.NewContracts(address, ethClient)
+	address := ethcommon.HexToAddress(portalConfig.Contract.Assets)
+	instance, err := assetscontract.NewContracts(address, Client)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf NewContracts error:%s", err.Error())
 		return out, 0, err
@@ -206,8 +206,8 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		info.SignedMessage = "0x" + info.SignedMessage
 	}
 
-	marketAddress := ethcommon.HexToAddress(marketConfig.Contract.MarketAddress)
-	marketInstance, err := marketcontract.NewContracts(marketAddress, ethClient)
+	marketAddress := ethcommon.HexToAddress(marketConfig.Contract.Market)
+	marketInstance, err := marketcontract.NewContracts(marketAddress, Client)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf marketNewContracts error:%s", err.Error())
 		return out, 0, err

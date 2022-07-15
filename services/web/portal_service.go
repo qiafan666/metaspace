@@ -63,9 +63,9 @@ var portalConfig struct {
 		Secret string `yaml:"secret"`
 	} `yaml:"jwt"`
 	Contract struct {
-		EthClient     string `yaml:"eth_client"`
-		NftAddress    string `yaml:"nft_address"`
-		Erc721Address string `yaml:"erc721_address"`
+		Client string `yaml:"monitor_client"`
+		Mint   string `yaml:"mint"`
+		Assets string `yaml:"assets"`
 	} `yaml:"contract"`
 }
 
@@ -75,7 +75,7 @@ func init() {
 
 var portalServiceIns *portalServiceImp
 var portalServiceInitOnce sync.Once
-var ethClient *ethclient.Client
+var Client *ethclient.Client
 var exchangeService exchange.Exchange
 
 func NewPortalServiceInstance() PortalService {
@@ -88,7 +88,7 @@ func NewPortalServiceInstance() PortalService {
 		}
 	})
 
-	ethClient, err = ethclient.Dial(portalConfig.Contract.EthClient)
+	Client, err = ethclient.Dial(portalConfig.Contract.Client)
 	if err != nil {
 		slog.Slog.ErrorF(context.Background(), "eth client connect error %s", err.Error())
 		panic(err.Error())
@@ -548,8 +548,8 @@ func (p portalServiceImp) GetTowerStatus(info request.TowerStats) (out response.
 
 func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error) {
 
-	address := ethCommon.HexToAddress(portalConfig.Contract.NftAddress)
-	instance, err := bridgecontract.NewContracts(address, ethClient)
+	address := ethCommon.HexToAddress(portalConfig.Contract.Mint)
+	instance, err := bridgecontract.NewContracts(address, Client)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign NewContracts error")
 		return out, 0, err
@@ -595,7 +595,7 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 		rarity := big.NewInt(vAssets.Rarity)
 
 		var message [32]byte
-		message, err = instance.GetMessageHash(nil, ethCommon.HexToAddress(portalConfig.Contract.Erc721Address), tokenId, userAddress, category, subCategory, rarity)
+		message, err = instance.GetMessageHash(nil, ethCommon.HexToAddress(portalConfig.Contract.Assets), tokenId, userAddress, category, subCategory, rarity)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign GetMessageHash error:%s", err.Error())
 			return out, 0, err
