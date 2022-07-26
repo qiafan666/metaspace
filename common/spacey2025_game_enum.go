@@ -11,6 +11,7 @@ const (
 	Building AssetType = 4
 	Tower    AssetType = 5
 	Trap     AssetType = 6
+	Ship     AssetType = 7
 )
 
 const (
@@ -21,6 +22,7 @@ const (
 	BuildingString = "Building"
 	TowerString    = "Tower"
 	TrapString     = "Trap"
+	ShipString     = "Ship"
 )
 
 const (
@@ -31,6 +33,7 @@ const (
 	CategoryId4 int64 = 4
 	CategoryId5 int64 = 5
 	CategoryId6 int64 = 6
+	CategoryId7 int64 = 7
 )
 
 const (
@@ -49,25 +52,6 @@ const (
 	EpicString      = "Epic"
 	LegendaryString = "Legendary"
 	JunkString      = "Junk"
-)
-
-// CategoryId Type
-type CategoryIdInt uint8
-
-const (
-	CategoryId CategoryIdInt = 5
-)
-
-// RarityId Type
-type RarityIdInt uint8
-
-const (
-	RarityId RarityIdInt = 5
-)
-
-// Land Type
-const (
-	LandTypeString = "Land"
 )
 
 // Building Type

@@ -53,7 +53,7 @@ func GetSubcategoryString(Category int64, subCategory int64) (string, error) {
 	} else if Category == common.CategoryId2 { //Ticket
 		return common.TicketString, nil
 	} else if Category == common.CategoryId3 { //Land
-		return common.LandTypeString, nil
+		return common.LandString, nil
 	} else if Category == common.CategoryId4 { //Building
 		switch subCategory {
 		case int64(common.BuildingType1):
@@ -99,6 +99,8 @@ func GetSubcategoryString(Category int64, subCategory int64) (string, error) {
 		default:
 			return "", errors.New(" subCategory data Not found ")
 		}
+	} else if Category == common.CategoryId7 { //Land
+		return common.ShipString, nil
 	} else {
 		return "", errors.New(" GetSubcategoryString data By db Not found")
 	}

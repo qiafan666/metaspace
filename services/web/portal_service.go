@@ -752,7 +752,6 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 		out.PrePageCount = info.PageCount
 		out.Total = count
 		return out, 0, nil
-
 	case common.ListenHistory:
 	default:
 		slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserHistory error:history type not exists")
@@ -816,7 +815,7 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 		Subcategory:     subCategoryString,
 		Status:          assetsOrders.Status,
 		Price:           assetsOrders.Price,
-		OrderId:         int64(assetsOrders.OrderID),
+		OrderId:         assetsOrders.OrderID,
 		ExpireTime:      assetsOrders.ExpireTime,
 		Signature:       assetsOrders.Signature,
 		StartTime:       assetsOrders.StartTime,

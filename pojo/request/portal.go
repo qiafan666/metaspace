@@ -54,10 +54,10 @@ type GetGameAssets struct {
 	BaseRequest
 	BasePortalRequest
 	BasePagination
-	Category *int `json:"category"`
-	Rarity   *int `json:"rarity"`
-	IsNft    *int `json:"is_nft"`
-	IsSale   int  `json:"is_sale"`
+	Category *int `json:"category" validate:""`
+	Rarity   *int `json:"rarity" validate:""`
+	IsNft    *int `json:"is_nft" validate:""`
+	IsShelf  int  `json:"is_sale" validate:"max=2"`
 }
 
 type SubscribeNewsletterEmail struct {
@@ -100,12 +100,12 @@ type Orders struct {
 	BaseRequest
 	BasePagination
 	BasePortalRequest
-	Status   uint8 `json:"status,string"`
-	Category *int  `json:"category"`
-	Rarity   *int  `json:"rarity"`
+	Status   uint8 `json:"status,string" validate:"max=5"`
+	Category *int  `json:"category" validate:""`
+	Rarity   *int  `json:"rarity" validate:""`
 	//sort
-	SortPrice uint `json:"sort_price"`
-	SortTime  uint `json:"sort_time"`
+	SortPrice uint `json:"sort_price" validate:"max=2"`
+	SortTime  uint `json:"sort_time" validate:"max=2"`
 }
 
 type OrderCancel struct {

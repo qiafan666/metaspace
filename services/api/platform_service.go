@@ -85,6 +85,7 @@ func (p PlatformServiceImp) AddAssets(infos request.AddAssets) (out response.Add
 			URIContent:  info.UriContent,
 			Description: info.Description,
 			IsNft:       common.NotNft,
+			IsShelf:     common.NotShelf,
 			IndexID:     indexId,
 			Name:        function.GetCategoryString(info.Category),
 			NickName:    function.GetCategoryString(info.Category) + "#" + strconv.FormatUint(indexId, 10),

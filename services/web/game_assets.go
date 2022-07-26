@@ -57,10 +57,8 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		if info.Rarity != nil {
 			db = db.Where("assets.rarity=?", info.Rarity)
 		}
-		if info.IsSale == 1 {
-			db = db.Where("orders.status=?", common.OrderStatusActive)
-		} else if info.IsSale == 2 {
-			db = db.Where("orders.status!=?", common.OrderStatusActive)
+		if info.IsShelf > 0 {
+			db = db.Where("assets.is_shelf=?", info.IsShelf)
 		}
 		return db
 	})
@@ -70,7 +68,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	}
 
 	var assetsOrders []join.AssetsOrders
-	err = p.dao.WithContext(info.Ctx).Find([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature,assets.updated_at," +
+	err = p.dao.WithContext(info.Ctx).Find([]string{"assets.is_nft,assets.is_shelf,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature,assets.updated_at," +
 		"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 			Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
@@ -85,26 +83,33 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		if info.Rarity != nil {
 			db = db.Where("assets.rarity=?", info.Rarity)
 		}
-		if info.IsSale == 1 {
-			db = db.Where("orders.status=?", common.OrderStatusActive)
-		} else if info.IsSale == 2 {
-			db = db.Where("orders.status!=?", common.OrderStatusActive)
+		if info.IsShelf > 0 {
+			db = db.Where("assets.is_shelf=?", info.IsShelf)
 		}
 		db.Order(model.AssetsColumns.UpdatedAt + " desc")
 		return db
 	}, &assetsOrders)
-
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find assetsOrders Error: %s", err.Error())
 		return out, 0, err
 	}
+
+	tx := p.dao.Tx()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			_ = tx.Commit()
+		}
+	}()
+
 	for _, vAsset := range assetsOrders {
 		//check expireTime
 		if !vAsset.ExpireTime.IsZero() && vAsset.ExpireTime.Before(time.Now()) && vAsset.Status == common.OrderStatusActive {
 			vAsset.Status = common.OrderStatusExpire
 
 			//update order status
-			_, err = p.dao.WithContext(info.Ctx).Update(model.Orders{
+			_, err = tx.WithContext(info.Ctx).Update(model.Orders{
 				Status:      common.OrderStatusExpire,
 				UpdatedTime: time.Now(),
 			}, map[string]interface{}{
@@ -113,6 +118,32 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			}, nil)
 			if err != nil {
 				slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp Update Order Status error %s", err.Error())
+				return out, 0, err
+			}
+
+			//update assets is_nft
+			_, err = tx.WithContext(info.Ctx).Update(model.Assets{
+				IsShelf: common.NotShelf,
+			}, map[string]interface{}{
+				model.AssetsColumns.TokenID: vAsset.TokenId,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp Update assets is_nft error %s", err.Error())
+				return out, 0, err
+			}
+
+			//add expire history
+			newTransactionHistory := model.TransactionHistory{
+				WalletAddress: info.BaseWallet,
+				TokenID:       vAsset.TokenId,
+				Price:         vAsset.Price,
+				Status:        common.Expire,
+				UpdatedTime:   time.Now(),
+				CreatedTime:   time.Now(),
+			}
+			err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp TransactionHistory Create error %s", err.Error())
 				return out, 0, err
 			}
 
@@ -146,7 +177,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			Subcategory:     subCategoryString,
 			Status:          vAsset.Status,
 			Price:           vAsset.Price,
-			OrderId:         int64(vAsset.OrderID),
+			OrderId:         vAsset.OrderID,
 			ExpireTime:      vAsset.ExpireTime,
 			Signature:       vAsset.Signature,
 			StartTime:       vAsset.StartTime,

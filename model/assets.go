@@ -26,13 +26,14 @@ CREATE TABLE `assets` (
   `status` tinyint unsigned DEFAULT NULL COMMENT 'status',
   `mint_signature` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'mint signature',
   `is_nft` tinyint unsigned NOT NULL DEFAULT '2' COMMENT '1: is nft    2:not nft',
+  `is_shelf` tinyint unsigned NOT NULL DEFAULT '2' COMMENT '1:is shelf  2:not shelf',
   `created_at` timestamp(3) NOT NULL COMMENT 'create timestamp',
   `updated_at` timestamp(3) NOT NULL COMMENT 'update timestamp',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `Index_uid` (`uid`) USING BTREE,
   KEY `Index_uid_category_status` (`uid`,`category`,`status`) USING BTREE,
   KEY `token_id` (`token_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=343 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='asset table'
+) ENGINE=InnoDB AUTO_INCREMENT=353 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='asset table'
 ******sql******/
 // Assets asset table
 type Assets struct {
@@ -56,6 +57,7 @@ type Assets struct {
 	Status        uint8     `gorm:"column:status" json:"status"`                 // status
 	MintSignature string    `gorm:"column:mint_signature" json:"mint_signature"` // mint signature
 	IsNft         uint8     `gorm:"column:is_nft" json:"is_nft"`                 // 1: is nft    2:not nft
+	IsShelf       uint8     `gorm:"column:is_shelf" json:"is_shelf"`             // 1:is shelf  2:not shelf
 	CreatedAt     time.Time `gorm:"column:created_at" json:"created_at"`         // create timestamp
 	UpdatedAt     time.Time `gorm:"column:updated_at" json:"updated_at"`         // update timestamp
 }
@@ -87,6 +89,7 @@ var AssetsColumns = struct {
 	Status        string
 	MintSignature string
 	IsNft         string
+	IsShelf       string
 	CreatedAt     string
 	UpdatedAt     string
 }{
@@ -110,6 +113,7 @@ var AssetsColumns = struct {
 	Status:        "status",
 	MintSignature: "mint_signature",
 	IsNft:         "is_nft",
+	IsShelf:       "is_shelf",
 	CreatedAt:     "created_at",
 	UpdatedAt:     "updated_at",
 }

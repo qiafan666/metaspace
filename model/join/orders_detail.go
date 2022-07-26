@@ -14,7 +14,7 @@ type OrdersDetail struct {
 	StartTime   time.Time `gorm:"column:start_time" json:"start_time"`
 	ExpireTime  time.Time `gorm:"column:expire_time" json:"expire_time"`
 	Price       string    `gorm:"column:price" json:"price"`
-	NftID       string    `gorm:"column:nft_id" json:"nft_id"`
+	NftID       int64     `gorm:"column:nft_id" json:"nft_id"`
 	AssetId     int64     `gorm:"column:asset_id" json:"asset_id"`
 	Category    int64     `gorm:"column:category" json:"category"`
 	Type        int64     `gorm:"column:type" json:"type"`

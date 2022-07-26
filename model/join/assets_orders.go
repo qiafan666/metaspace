@@ -20,7 +20,8 @@ type AssetsOrders struct {
 	OriginChain   string `gorm:"column:origin_chain" json:"origin_chain"`
 	BlockNumber   int64  `gorm:"column:block_number" json:"block_number"`
 	MintSignature string `gorm:"column:mint_signature" json:"mint_signature"`
-	IsNft         uint8  `gorm:"column:is_nft" json:"is_nft"` // 1: is nft    2:not nft
+	IsNft         uint8  `gorm:"column:is_nft" json:"is_nft"`     // 1: is nft    2:not nft
+	IsShelf       uint8  `gorm:"column:is_shelf" json:"is_shelf"` // 1: is shelf    2:not shelf
 
 	Seller     string    `gorm:"column:seller" json:"seller"`
 	Buyer      string    `gorm:"column:buyer" json:"buyer"`

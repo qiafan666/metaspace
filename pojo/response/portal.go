@@ -60,7 +60,7 @@ type AssetBody struct {
 	SubcategoryId   int64     `json:"subcategory_id"`
 	Status          uint8     `json:"status"`
 	Price           string    `json:"price"`
-	OrderId         int64     `json:"order_id"`
+	OrderId         uint64    `json:"order_id"`
 	ExpireTime      time.Time `json:"expire_time"`
 	Signature       string    `json:"signature"`
 	SaltNonce       string    `json:"salt_nonce"`
@@ -104,7 +104,7 @@ type OrdersDetail struct {
 	Signature     string    `json:"signature"`
 	SaltNonce     int64     `json:"salt_nonce"`
 	Status        uint8     `json:"status"` // 1:active 2:expire 3:canceled 4:finished
-	NftID         string    `json:"nft_id"`
+	NftID         int64     `json:"nft_id"`
 	Category      int64     `json:"category_id"`
 	Type          int64     `json:"type"`
 	Rarity        int64     `json:"rarity_id"`
@@ -169,7 +169,7 @@ type AssetDetail struct {
 	SubcategoryId   int64     `json:"subcategory_id"`
 	Status          uint8     `json:"status"`
 	Price           string    `json:"price"`
-	OrderId         int64     `json:"order_id"`
+	OrderId         uint64    `json:"order_id"`
 	ExpireTime      time.Time `json:"expire_time"`
 	Signature       string    `json:"signature"`
 	SaltNonce       string    `json:"salt_nonce"`

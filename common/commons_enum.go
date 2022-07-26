@@ -131,6 +131,11 @@ const (
 )
 
 const (
+	IsShelf  = 1
+	NotShelf = 2
+)
+
+const (
 	TransactionHistory = 1
 	MintHistory        = 2
 	ListenHistory      = 3
@@ -142,6 +147,7 @@ const (
 	Cancel    = 2
 	Sold      = 3
 	Purchased = 4
+	Expire    = 5
 )
 
 //get coin price
