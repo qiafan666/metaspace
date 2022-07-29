@@ -104,8 +104,9 @@ type Orders struct {
 	Category *int  `json:"category" validate:""`
 	Rarity   *int  `json:"rarity" validate:""`
 	//sort
-	SortPrice uint `json:"sort_price" validate:"max=2"`
-	SortTime  uint `json:"sort_time" validate:"max=2"`
+	SortPrice uint   `json:"sort_price" validate:"max=2"`
+	SortTime  uint   `json:"sort_time" validate:"max=2"`
+	Search    string `json:"search" validate:"max=192"`
 }
 
 type OrderCancel struct {

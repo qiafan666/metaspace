@@ -378,23 +378,10 @@ redo:
 			db = db.Where("assets.rarity=?", info.Rarity)
 		}
 
-		if info.SortTime > 0 && info.SortPrice > 0 {
-			return db.Order("orders.updated_time desc")
+		if len(info.Search) > 0 {
+			return db.Where("LOWER(assets.nick_name) Like LOWER(?)", "%"+info.Search+"%")
 		}
 
-		if info.SortTime == 0 {
-		} else if info.SortTime == 1 {
-			return db.Order("orders.updated_time desc")
-		} else {
-			return db.Order("orders.updated_time desc")
-		}
-
-		if info.SortPrice == 0 {
-		} else if info.SortPrice == 1 {
-			return db.Order("--orders_detail.price desc")
-		} else {
-			return db.Order("--orders_detail.price asc")
-		}
 		return db
 	})
 	if err != nil {
@@ -408,12 +395,17 @@ redo:
 			Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
 			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
 			Where("orders.status=?", common.OrderStatusActive)
-
+		//filter
 		if info.Category != nil {
 			db = db.Where("assets.category=?", info.Category)
 		}
 		if info.Rarity != nil {
 			db = db.Where("assets.rarity=?", info.Rarity)
+		}
+
+		//search
+		if len(info.Search) > 0 {
+			return db.Where("LOWER(assets.nick_name) Like LOWER(?)", "%"+info.Search+"%")
 		}
 
 		if info.SortTime > 0 && info.SortPrice > 0 {
@@ -433,6 +425,7 @@ redo:
 		} else {
 			return db.Order("--" + model.OrdersDetailColumns.Price + " asc")
 		}
+
 		return db.Order(model.OrdersColumns.UpdatedTime + " desc")
 	}, &ordersDetail)
 	if err != nil {
