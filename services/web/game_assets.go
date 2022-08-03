@@ -9,6 +9,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/pojo/request"
 	"github.com/blockfishio/metaspace-backend/pojo/response"
 	"github.com/blockfishio/metaspace-backend/redis"
+	"github.com/jau1jz/cornus"
 	"github.com/jau1jz/cornus/commons"
 	slog "github.com/jau1jz/cornus/commons/log"
 	"gorm.io/gorm"
@@ -26,6 +27,17 @@ type GameAssetsService interface {
 
 var gameAssetsServiceIns *gameAssetsServiceImp
 var gameAssetsServiceInitOnce sync.Once
+
+var gameConfig struct {
+	Contract struct {
+		Assets string `yaml:"assets"`
+		Ship   string `yaml:"ship"`
+	} `yaml:"contract"`
+}
+
+func init() {
+	cornus.GetCornusInstance().LoadCustomizeConfig(&gameConfig)
+}
 
 func NewGameAssetsInstance() GameAssetsService {
 	gameAssetsServiceInitOnce.Do(func() {
@@ -156,12 +168,15 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp SubcategoryString Category:%s,type:%s,Error: %s", category, subCategory, err.Error())
 			subCategoryString = "unknown type"
 		}
-
+		contractAddress := gameConfig.Contract.Assets
+		if vAsset.Category == int64(common.Ship) {
+			contractAddress = gameConfig.Contract.Ship
+		}
 		out.Assets = append(out.Assets, response.AssetBody{
 			AssetsId:        vAsset.Id,
 			IsNft:           vAsset.IsNft,
 			TokenId:         vAsset.TokenId,
-			ContractAddress: "0xxxxx",
+			ContractAddress: contractAddress,
 			ContrainChain:   "BSC",
 			Name:            vAsset.Name,
 			IndexID:         vAsset.IndexID,

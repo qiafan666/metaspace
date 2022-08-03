@@ -78,7 +78,8 @@ type TowerStats struct {
 }
 
 type Sign struct {
-	SignMessage string `json:"sign_message"`
+	SignMessage     string `json:"sign_message"`
+	ContractAddress string `json:"contract_address"`
 }
 
 type ShelfSign struct {
@@ -97,27 +98,28 @@ type Orders struct {
 }
 
 type OrdersDetail struct {
-	AssetId       int64     `json:"asset_id"`
-	Id            int64     `json:"id"`
-	Seller        string    `json:"seller"`
-	Buyer         string    `json:"buyer"`
-	Signature     string    `json:"signature"`
-	SaltNonce     int64     `json:"salt_nonce"`
-	Status        uint8     `json:"status"` // 1:active 2:expire 3:canceled 4:finished
-	NftID         int64     `json:"nft_id"`
-	Category      int64     `json:"category_id"`
-	Type          int64     `json:"type"`
-	Rarity        int64     `json:"rarity_id"`
-	Image         string    `json:"image"`
-	Name          string    `json:"name"`
-	IndexID       uint64    `json:"index_id"`
-	NickName      string    `json:"nick_name"`
-	Description   string    `json:"description"`
-	TotalPrice    string    `json:"total_price"`
-	Price         string    `json:"price"`
-	ContractChain string    `json:"contract_chain"`
-	StartTime     time.Time `json:"start_time"`
-	ExpireTime    time.Time `json:"expire_time"`
+	AssetId         int64     `json:"asset_id"`
+	Id              int64     `json:"id"`
+	Seller          string    `json:"seller"`
+	Buyer           string    `json:"buyer"`
+	Signature       string    `json:"signature"`
+	SaltNonce       int64     `json:"salt_nonce"`
+	Status          uint8     `json:"status"` // 1:active 2:expire 3:canceled 4:finished
+	NftID           int64     `json:"nft_id"`
+	Category        int64     `json:"category_id"`
+	Type            int64     `json:"type"`
+	Rarity          int64     `json:"rarity_id"`
+	Image           string    `json:"image"`
+	Name            string    `json:"name"`
+	IndexID         uint64    `json:"index_id"`
+	NickName        string    `json:"nick_name"`
+	Description     string    `json:"description"`
+	TotalPrice      string    `json:"total_price"`
+	Price           string    `json:"price"`
+	ContractChain   string    `json:"contract_chain"`
+	StartTime       time.Time `json:"start_time"`
+	ExpireTime      time.Time `json:"expire_time"`
+	ContractAddress string    `json:"contract_address"`
 }
 
 type OrderCancel struct {

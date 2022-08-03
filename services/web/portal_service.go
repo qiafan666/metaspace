@@ -66,6 +66,7 @@ var portalConfig struct {
 		Client string `yaml:"monitor_client"`
 		Mint   string `yaml:"mint"`
 		Assets string `yaml:"assets"`
+		Ship   string `yaml:"ship"`
 	} `yaml:"contract"`
 }
 
@@ -571,28 +572,24 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 		//_tokenId
 		tokenId := new(big.Int).SetInt64(info.TokenId)
 
-		//_ownerAddress
-		var user model.User
-		err = p.dao.WithContext(info.Ctx).First([]string{model.UserColumns.WalletAddress}, map[string]interface{}{
-			model.UserColumns.UUID: info.BaseUUID,
-		}, nil, &user)
-		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign User by UUid not find error")
-			return out, 0, err
-		}
-
-		if false == function.StringCheck(user.WalletAddress, strconv.Itoa(int(vAssets.Category)), strconv.Itoa(int(vAssets.Type)), strconv.Itoa(int(vAssets.Rarity))) {
+		if false == function.StringCheck(strconv.Itoa(int(vAssets.Category)), strconv.Itoa(int(vAssets.Type)), strconv.Itoa(int(vAssets.Rarity))) {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp asset data not nil error")
 			return out, 0, err
 		}
 
-		userAddress := ethCommon.HexToAddress(user.WalletAddress)
+		userAddress := ethCommon.HexToAddress(info.BaseWallet)
 		//_category
 		category := big.NewInt(vAssets.Category)
 		//_subcategory
 		subCategory := big.NewInt(vAssets.Type)
 		//_rarity
 		rarity := big.NewInt(vAssets.Rarity)
+
+		out.ContractAddress = portalConfig.Contract.Assets
+		if vAssets.Category == int64(common.Ship) {
+			portalConfig.Contract.Assets = portalConfig.Contract.Ship
+			out.ContractAddress = portalConfig.Contract.Ship
+		}
 
 		var message [32]byte
 		message, err = instance.GetMessageHash(nil, ethCommon.HexToAddress(portalConfig.Contract.Assets), tokenId, userAddress, category, subCategory, rarity)
@@ -794,12 +791,17 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 		slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp SubcategoryString Category:%s,type:%s,Error: %s", category, subCategory, err.Error())
 		subCategoryString = "unknown type"
 	}
+
+	contractAddress := gameConfig.Contract.Assets
+	if assetsOrders.Category == int64(common.Ship) {
+		contractAddress = gameConfig.Contract.Ship
+	}
 	out = response.AssetDetail{
 		AssetId:         assetsOrders.Id,
 		WalletAddress:   assetsOrders.Uid,
 		IsNft:           assetsOrders.IsNft,
 		TokenId:         assetsOrders.TokenId,
-		ContractAddress: "0xxxxx",
+		ContractAddress: contractAddress,
 		ContrainChain:   "BSC",
 		Name:            assetsOrders.Name,
 		IndexID:         assetsOrders.IndexID,

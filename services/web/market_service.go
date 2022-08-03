@@ -38,6 +38,8 @@ type MarketService interface {
 var marketConfig struct {
 	Contract struct {
 		Market string `yaml:"market"`
+		Assets string `yaml:"assets"`
+		Ship   string `yaml:"ship"`
 	} `yaml:"contract"`
 }
 
@@ -437,6 +439,7 @@ redo:
 
 	out.Data = make([]response.OrdersDetail, 0, len(ordersDetail))
 	redoFlag := false
+	var contractAddress string
 	for _, v := range ordersDetail {
 		//check expireTime
 		if v.ExpireTime.Before(time.Now()) {
@@ -483,28 +486,36 @@ redo:
 				return out, 0, err
 			}
 		} else {
+
+			if v.Category == int64(common.Ship) {
+				contractAddress = gameConfig.Contract.Ship
+			} else {
+				contractAddress = gameConfig.Contract.Assets
+			}
+
 			out.Data = append(out.Data, response.OrdersDetail{
-				AssetId:       v.AssetId,
-				Id:            v.Id,
-				Seller:        v.Seller,
-				Buyer:         v.Buyer,
-				Signature:     v.Signature,
-				SaltNonce:     v.SaltNonce,
-				Status:        v.Status,
-				NftID:         v.NftID,
-				Category:      v.Category,
-				Type:          v.Type,
-				Rarity:        v.Rarity,
-				Image:         v.Image,
-				Name:          v.Name,
-				IndexID:       v.IndexID,
-				NickName:      v.NickName,
-				Description:   v.Description,
-				TotalPrice:    v.TotalPrice,
-				Price:         v.Price,
-				StartTime:     v.StartTime,
-				ExpireTime:    v.ExpireTime,
-				ContractChain: "BSC",
+				AssetId:         v.AssetId,
+				Id:              v.Id,
+				Seller:          v.Seller,
+				Buyer:           v.Buyer,
+				Signature:       v.Signature,
+				SaltNonce:       v.SaltNonce,
+				Status:          v.Status,
+				NftID:           v.NftID,
+				Category:        v.Category,
+				Type:            v.Type,
+				Rarity:          v.Rarity,
+				Image:           v.Image,
+				Name:            v.Name,
+				IndexID:         v.IndexID,
+				NickName:        v.NickName,
+				Description:     v.Description,
+				TotalPrice:      v.TotalPrice,
+				Price:           v.Price,
+				StartTime:       v.StartTime,
+				ExpireTime:      v.ExpireTime,
+				ContractChain:   "BSC",
+				ContractAddress: contractAddress,
 			})
 		}
 	}
