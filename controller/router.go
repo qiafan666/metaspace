@@ -39,4 +39,6 @@ func RegisterRouter(ctx *iris.Application) {
 				PlatformService: api2.NewPlatformInstance(),
 			})
 		})
+	//avatar router
+	ctx.Get("/avatar/web/token/{id:int}", web2.NewAvatarServiceInstance().Token)
 }
