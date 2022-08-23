@@ -24,6 +24,7 @@ type OrdersDetail struct {
 	IndexID     uint64    `gorm:"column:index_id" json:"index_id"`
 	NickName    string    `gorm:"column:nick_name" json:"nick_name"`
 	Description string    `gorm:"column:description" json:"description"`
+	OriginChain uint8     `gorm:"column:origin_chain" json:"origin_chain"` // 1:eth 2:bsc
 }
 
 // TableName

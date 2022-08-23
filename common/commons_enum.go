@@ -39,6 +39,7 @@ const (
 	WalletError                  = 100021
 	HistoryError                 = 100022
 	GameCurrencyError            = 100023
+	ChainNetError                = 100024
 )
 
 // EnglishCodeMsg local code and msg
@@ -67,6 +68,7 @@ var EnglishCodeMsg = map[commons.ResponseCode]string{
 	WalletError:                  "Inconsistent wallet addresses",
 	HistoryError:                 "History type doesn't exist",
 	GameCurrencyError:            "Failed to get game data",
+	ChainNetError:                "Current network is not supported",
 }
 
 // login type
@@ -157,4 +159,15 @@ const (
 
 const (
 	GetGMarsEvent = 1
+)
+
+//Chain
+const (
+	ETH = 1
+	BSC = 2
+)
+
+const (
+	ETHString = "ETH"
+	BSCString = "BSC"
 )

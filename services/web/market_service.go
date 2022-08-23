@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/common/function"
-	"github.com/blockfishio/metaspace-backend/contract/assetscontract"
-	marketcontract "github.com/blockfishio/metaspace-backend/contract/marketcontract"
+	"github.com/blockfishio/metaspace-backend/contract/eth/eth_assets"
+	"github.com/blockfishio/metaspace-backend/contract/eth/eth_market"
 	"github.com/blockfishio/metaspace-backend/dao"
 	"github.com/blockfishio/metaspace-backend/model"
 	"github.com/blockfishio/metaspace-backend/model/join"
@@ -14,7 +14,6 @@ import (
 	"github.com/blockfishio/metaspace-backend/pojo/response"
 	"github.com/blockfishio/metaspace-backend/redis"
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	"github.com/jau1jz/cornus"
 	"github.com/jau1jz/cornus/commons"
 	slog "github.com/jau1jz/cornus/commons/log"
 	"gorm.io/gorm"
@@ -33,18 +32,6 @@ type MarketService interface {
 	GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error)
 	GetUserOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error)
 	OrderCancel(info request.OrderCancel) (out response.OrderCancel, code commons.ResponseCode, err error)
-}
-
-var marketConfig struct {
-	Contract struct {
-		Market string `yaml:"market"`
-		Assets string `yaml:"assets"`
-		Ship   string `yaml:"ship"`
-	} `yaml:"contract"`
-}
-
-func init() {
-	cornus.GetCornusInstance().LoadCustomizeConfig(&marketConfig)
 }
 
 var marketServiceIns *marketServiceImp
@@ -68,31 +55,36 @@ type marketServiceImp struct {
 
 func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out response.ShelfSign, code commons.ResponseCode, err error) {
 
-	address := ethcommon.HexToAddress(marketConfig.Contract.Market)
-	instance, err := marketcontract.NewContracts(address, Client)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
-		return out, 0, err
-	}
-	//_nftAddress
 	//tokenId
 	var vAssets model.Assets
-	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenID, model.AssetsColumns.UID}, map[string]interface{}{
+	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenID, model.AssetsColumns.UID, model.AssetsColumns.Category, model.AssetsColumns.OriginChain}, map[string]interface{}{
 		model.AssetsColumns.ID: info.AssetId,
 	}, nil, &vAssets)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature assets by AssetId not find error:%s", err.Error())
 		return out, 0, err
 	}
+
+	_, ship, market, assets, client, err := function.JudgeChain(vAssets.OriginChain)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
+		return out, common.ChainNetError, errors.New("current network is not supported")
+	}
+
 	tokenId := big.NewInt(vAssets.TokenID)
-
 	if vAssets.TokenID > 0 {
-
 		// check is nft
-		addressOwner := ethcommon.HexToAddress(portalConfig.Contract.Assets)
-		instanceOwner, errs := assetscontract.NewContracts(addressOwner, Client)
+
+		var address ethcommon.Address
+		if vAssets.Category == int64(common.Ship) {
+			address = ethcommon.HexToAddress(ship)
+		} else {
+			address = ethcommon.HexToAddress(assets)
+		}
+
+		instanceOwner, errs := eth_assets.NewContracts(address, client)
 		if errs != nil {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature address not match error:%s", err.Error())
 			return out, 0, errs
 		}
 
@@ -138,7 +130,14 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 	startTime := time.Now()
 	endTime := info.ExpireTime
 
-	message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(portalConfig.Contract.Assets), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, big.NewInt(startTime.Unix()), big.NewInt(endTime.Unix()), saltNonce)
+	address := ethcommon.HexToAddress(market)
+	instance, err := eth_market.NewContracts(address, client)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
+		return out, 0, err
+	}
+
+	message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(assets), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, big.NewInt(startTime.Unix()), big.NewInt(endTime.Unix()), saltNonce)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
 		return out, 0, err
@@ -154,7 +153,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetTokenUser error %s", err.Error())
 		return out, 0, err
 	}
-	return
+	return out, 0, nil
 }
 
 func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellShelf, code commons.ResponseCode, err error) {
@@ -177,7 +176,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 	}
 	//itemId
 	var vAssets model.Assets
-	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenID}, map[string]interface{}{
+	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenID, model.AssetsColumns.Category, model.AssetsColumns.OriginChain}, map[string]interface{}{
 		model.AssetsColumns.ID: info.ItemId,
 	}, nil, &vAssets)
 	if err != nil {
@@ -185,8 +184,20 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		return out, 0, err
 	}
 
-	address := ethcommon.HexToAddress(portalConfig.Contract.Assets)
-	instance, err := assetscontract.NewContracts(address, Client)
+	_, ship, market, assets, client, err := function.JudgeChain(vAssets.OriginChain)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
+		return out, common.ChainNetError, errors.New("current network is not supported")
+	}
+
+	var address ethcommon.Address
+	if vAssets.Category == int64(common.Ship) {
+		address = ethcommon.HexToAddress(ship)
+	} else {
+		address = ethcommon.HexToAddress(assets)
+	}
+
+	instance, err := eth_assets.NewContracts(address, client)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf NewContracts error:%s", err.Error())
 		return out, 0, err
@@ -194,7 +205,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 
 	of, err := instance.OwnerOf(nil, big.NewInt(vAssets.TokenID))
 	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp get userAddress error")
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp get userAddress error: %s", err.Error())
 		return out, 0, err
 	}
 
@@ -208,8 +219,8 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		info.SignedMessage = "0x" + info.SignedMessage
 	}
 
-	marketAddress := ethcommon.HexToAddress(marketConfig.Contract.Market)
-	marketInstance, err := marketcontract.NewContracts(marketAddress, Client)
+	marketAddress := ethcommon.HexToAddress(market)
+	marketInstance, err := eth_market.NewContracts(marketAddress, client)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf marketNewContracts error:%s", err.Error())
 		return out, 0, err
@@ -363,8 +374,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		out.RawMessage = info.RawMessage
 		out.SignMessage = info.SignedMessage
 	}
-
-	return
+	return out, 0, nil
 }
 
 func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
@@ -392,7 +402,7 @@ redo:
 	}
 
 	var ordersDetail []join.OrdersDetail
-	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 			Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
 			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
@@ -514,7 +524,7 @@ redo:
 				Price:           v.Price,
 				StartTime:       v.StartTime,
 				ExpireTime:      v.ExpireTime,
-				ContractChain:   "BSC",
+				ContractChain:   v.OriginChain,
 				ContractAddress: contractAddress,
 			})
 		}

@@ -22,15 +22,27 @@ jwt:
 grpc:
   host: "127.0.0.1"
   port: "10011"
-contract:
+eth_contract:
   monitor_client: "https://rinkeby.infura.io/v3/059609bf2c8e433d8ad4a895a98278ed"
   mint: "0xc10641031430cF29579f829952b118f1d873bbc2"
   assets: "0xe88A806D31de758762d93a0e6682042Ec1AFe6ac"
   market: "0x22Bc2260153CC4363465Fe729EE24f06043D4519"
   ship: "0x916f9f041cE163bDF7dDA67f39F1cA49fe8D1D05"
+
+bsc_contract:
+  monitor_client: "https://rinkeby.infura.io/v3/059609bf2c8e433d8ad4a895a98278ed"
+  mint: "0xc10641031430cF29579f829952b118f1d873bbc2"
+  assets: "0xe88A806D31de758762d93a0e6682042Ec1AFe6ac"
+  market: "0x22Bc2260153CC4363465Fe729EE24f06043D4519"
+  ship: "0x916f9f041cE163bDF7dDA67f39F1cA49fe8D1D05"
+
 thirdLogin:
   third_login_address: "127.0.0.7"
 
 coinMarket:
   address: "https://pro-api.coinmarketcap.com/v2/tools/price-conversion"
   api_key: "05ae21d8-c50e-4e8b-81ba-a67fde72b8f0"
+
+chain:
+  eth: 4
+  bsc: 97

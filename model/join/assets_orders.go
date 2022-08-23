@@ -17,7 +17,7 @@ type AssetsOrders struct {
 	Description   string `gorm:"column:description" json:"description"`
 	Uri           string `gorm:"column:uri" json:"uri"`
 	UriContent    string `gorm:"column:uri_content" json:"uri_content"`
-	OriginChain   string `gorm:"column:origin_chain" json:"origin_chain"`
+	OriginChain   uint8  `gorm:"column:origin_chain" json:"origin_chain"`
 	BlockNumber   int64  `gorm:"column:block_number" json:"block_number"`
 	MintSignature string `gorm:"column:mint_signature" json:"mint_signature"`
 	IsNft         uint8  `gorm:"column:is_nft" json:"is_nft"`     // 1: is nft    2:not nft

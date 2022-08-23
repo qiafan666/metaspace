@@ -8,14 +8,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/blockfishio/metaspace-backend/contract/bridgecontract"
+	"github.com/blockfishio/metaspace-backend/contract/eth/eth_mint"
 	"github.com/blockfishio/metaspace-backend/grpc"
 	"github.com/blockfishio/metaspace-backend/grpc/proto"
 	"github.com/blockfishio/metaspace-backend/model/join"
 	"github.com/blockfishio/metaspace-backend/services/exchange"
 	"github.com/blockfishio/metaspace-backend/thirdparty"
 	ethCommon "github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
 	"strconv"
 	"strings"
@@ -62,12 +61,24 @@ var portalConfig struct {
 	JWT struct {
 		Secret string `yaml:"secret"`
 	} `yaml:"jwt"`
-	Contract struct {
+	ETHContract struct {
 		Client string `yaml:"monitor_client"`
 		Mint   string `yaml:"mint"`
 		Assets string `yaml:"assets"`
 		Ship   string `yaml:"ship"`
-	} `yaml:"contract"`
+		Market string `yaml:"market"`
+	} `yaml:"eth_contract"`
+	BSCContract struct {
+		Client string `yaml:"monitor_client"`
+		Mint   string `yaml:"mint"`
+		Assets string `yaml:"assets"`
+		Ship   string `yaml:"ship"`
+		Market string `yaml:"market"`
+	} `yaml:"bsc_contract"`
+	Chain struct {
+		ETH uint8 `yaml:"eth"`
+		BSC uint8 `yaml:"bsc"`
+	} `yaml:"chain"`
 }
 
 func init() {
@@ -76,11 +87,10 @@ func init() {
 
 var portalServiceIns *portalServiceImp
 var portalServiceInitOnce sync.Once
-var Client *ethclient.Client
 var exchangeService exchange.Exchange
 
 func NewPortalServiceInstance() PortalService {
-	var err error
+
 	portalServiceInitOnce.Do(func() {
 		portalServiceIns = &portalServiceImp{
 			dao:               dao.Instance(),
@@ -88,12 +98,6 @@ func NewPortalServiceInstance() PortalService {
 			thirdPartyService: thirdparty.NewThirdPartyService(),
 		}
 	})
-
-	Client, err = ethclient.Dial(portalConfig.Contract.Client)
-	if err != nil {
-		slog.Slog.ErrorF(context.Background(), "eth client connect error %s", err.Error())
-		panic(err.Error())
-	}
 
 	exchangeService = exchange.NewExchangeService()
 	return portalServiceIns
@@ -549,8 +553,14 @@ func (p portalServiceImp) GetTowerStatus(info request.TowerStats) (out response.
 
 func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error) {
 
-	address := ethCommon.HexToAddress(portalConfig.Contract.Mint)
-	instance, err := bridgecontract.NewContracts(address, Client)
+	mint, ship, _, assets, client, err := function.JudgeChain(info.Chain)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
+		return out, common.ChainNetError, errors.New("current network is not supported")
+	}
+
+	address := ethCommon.HexToAddress(mint)
+	instance, err := eth_mint.NewContracts(address, client)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign NewContracts error")
 		return out, 0, err
@@ -585,17 +595,22 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 		//_rarity
 		rarity := big.NewInt(vAssets.Rarity)
 
-		out.ContractAddress = portalConfig.Contract.Assets
-		if vAssets.Category == int64(common.Ship) {
-			portalConfig.Contract.Assets = portalConfig.Contract.Ship
-			out.ContractAddress = portalConfig.Contract.Ship
-		}
-
 		var message [32]byte
-		message, err = instance.GetMessageHash(nil, ethCommon.HexToAddress(portalConfig.Contract.Assets), tokenId, userAddress, category, subCategory, rarity)
-		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign GetMessageHash error:%s", err.Error())
-			return out, 0, err
+
+		if vAssets.Category == int64(common.Ship) {
+			message, err = instance.GetMessageHash(nil, ethCommon.HexToAddress(ship), tokenId, userAddress, category, subCategory, rarity)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign GetMessageHash error:%s", err.Error())
+				return out, 0, err
+			}
+			out.ContractAddress = ship
+		} else {
+			message, err = instance.GetMessageHash(nil, ethCommon.HexToAddress(assets), tokenId, userAddress, category, subCategory, rarity)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign GetMessageHash error:%s", err.Error())
+				return out, 0, err
+			}
+			out.ContractAddress = assets
 		}
 
 		// 调用方法
@@ -604,6 +619,7 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 		var res *proto.SigResponse
 
 		ctx, cancel := context.WithTimeout(info.Ctx, common.GrpcTimeoutIn)
+
 		defer cancel()
 		res, err = grpc.SignGrpc.SignClient.Sign(ctx, req)
 		if err != nil {
@@ -611,9 +627,8 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 			return out, 0, err
 		}
 		out.SignMessage = res.Value
-		return
+		return out, 0, nil
 	}
-
 }
 
 func (p portalServiceImp) UserUpdate(info request.UserUpdate) (out response.UserUpdate, code commons.ResponseCode, err error) {
@@ -770,7 +785,7 @@ func (p portalServiceImp) ExchangePrice(info request.ExchangePrice) (out respons
 func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.AssetDetail, code commons.ResponseCode, err error) {
 
 	var assetsOrders join.AssetsOrders
-	err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature,assets.updated_at," +
+	err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.origin_chain,assets.mint_signature,assets.updated_at," +
 		"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
 			Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
@@ -802,7 +817,7 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 		IsNft:           assetsOrders.IsNft,
 		TokenId:         assetsOrders.TokenId,
 		ContractAddress: contractAddress,
-		ContrainChain:   "BSC",
+		ContrainChain:   assetsOrders.OriginChain,
 		Name:            assetsOrders.Name,
 		IndexID:         assetsOrders.IndexID,
 		NickName:        assetsOrders.NickName,

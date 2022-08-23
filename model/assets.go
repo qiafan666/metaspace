@@ -20,7 +20,7 @@ CREATE TABLE `assets` (
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'description',
   `uri` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'uri',
   `uri_content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'uri content',
-  `origin_chain` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT 'origin chain',
+  `origin_chain` tinyint unsigned NOT NULL COMMENT '1:eth 2:bsc',
   `block_number` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'block number',
   `tx_hash` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'transaction hash',
   `status` tinyint unsigned DEFAULT NULL COMMENT 'status',
@@ -32,8 +32,9 @@ CREATE TABLE `assets` (
   PRIMARY KEY (`id`) USING BTREE,
   KEY `Index_uid` (`uid`) USING BTREE,
   KEY `Index_uid_category_status` (`uid`,`category`,`status`) USING BTREE,
-  KEY `token_id` (`token_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=353 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='asset table'
+  KEY `token_id` (`token_id`) USING BTREE,
+  KEY `nick_name` (`nick_name`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=441 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='asset table'
 ******sql******/
 // Assets asset table
 type Assets struct {
@@ -51,7 +52,7 @@ type Assets struct {
 	Description   string    `gorm:"column:description" json:"description"`       // description
 	URI           string    `gorm:"column:uri" json:"uri"`                       // uri
 	URIContent    string    `gorm:"column:uri_content" json:"uri_content"`       // uri content
-	OriginChain   string    `gorm:"column:origin_chain" json:"origin_chain"`     // origin chain
+	OriginChain   uint8     `gorm:"column:origin_chain" json:"origin_chain"`     // 1:eth 2:bsc
 	BlockNumber   string    `gorm:"column:block_number" json:"block_number"`     // block number
 	TxHash        string    `gorm:"column:tx_hash" json:"tx_hash"`               // transaction hash
 	Status        uint8     `gorm:"column:status" json:"status"`                 // status

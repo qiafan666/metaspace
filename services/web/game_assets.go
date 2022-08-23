@@ -80,7 +80,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 	}
 
 	var assetsOrders []join.AssetsOrders
-	err = p.dao.WithContext(info.Ctx).Find([]string{"assets.is_nft,assets.is_shelf,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.mint_signature,assets.updated_at," +
+	err = p.dao.WithContext(info.Ctx).Find([]string{"assets.is_nft,assets.is_shelf,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.origin_chain,assets.mint_signature,assets.updated_at," +
 		"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 		db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 			Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
@@ -177,7 +177,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			IsNft:           vAsset.IsNft,
 			TokenId:         vAsset.TokenId,
 			ContractAddress: contractAddress,
-			ContrainChain:   "BSC",
+			ContrainChain:   vAsset.OriginChain,
 			Name:            vAsset.Name,
 			IndexID:         vAsset.IndexID,
 			NickName:        vAsset.NickName,
