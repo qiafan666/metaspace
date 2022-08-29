@@ -181,3 +181,55 @@ type AssetDetail struct {
 type GameCurrency struct {
 	Amount int64 `json:"amount"`
 }
+
+type OrdersGroup struct {
+	ID            int64     `json:"-"`        // asset id
+	UID           string    `json:"uid"`      // user id
+	UUID          string    `json:"uuid"`     // third_party association
+	TokenID       int64     `json:"token_id"` // token id of erc721; should be the same as id
+	Category      int64     `json:"category"` // category
+	Type          int64     `json:"type"`     // type
+	Rarity        int64     `json:"rarity"`   // rarity
+	Sku           string    `json:"sku"`
+	Image         string    `json:"image"` // image
+	Name          string    `json:"name"`  // name
+	IndexID       uint64    `json:"index_id"`
+	NickName      string    `json:"nick_name"`      // nick name
+	Description   string    `json:"description"`    // description
+	URI           string    `json:"uri"`            // uri
+	URIContent    string    `json:"uri_content"`    // uri content
+	OriginChain   uint8     `json:"origin_chain"`   // 1:eth 2:bsc
+	BlockNumber   string    `json:"block_number"`   // block number
+	TxHash        string    `json:"tx_hash"`        // transaction hash
+	Status        uint8     `json:"status"`         // status
+	MintSignature string    `json:"mint_signature"` // mint signature
+	IsNft         uint8     `json:"is_nft"`         // 1: is nft    2:not nft
+	IsShelf       uint8     `json:"is_shelf"`       // 1:is shelf  2:not shelf
+	CreatedAt     time.Time `json:"created_at"`     // create timestamp
+	UpdatedAt     time.Time `json:"updated_at"`     // update timestamp
+}
+
+type OrdersGroupDetail struct {
+	AssetId         int64     `json:"asset_id"`
+	Id              int64     `json:"id"`
+	Seller          string    `json:"seller"`
+	Buyer           string    `json:"buyer"`
+	Signature       string    `json:"signature"`
+	SaltNonce       int64     `json:"salt_nonce"`
+	Status          uint8     `json:"status"` // 1:active 2:expire 3:canceled 4:finished
+	NftID           int64     `json:"nft_id"`
+	Category        int64     `json:"category_id"`
+	Type            int64     `json:"type"`
+	Rarity          int64     `json:"rarity_id"`
+	Image           string    `json:"image"`
+	Name            string    `json:"name"`
+	IndexID         uint64    `json:"index_id"`
+	NickName        string    `json:"nick_name"`
+	Description     string    `json:"description"`
+	TotalPrice      string    `json:"total_price"`
+	Price           string    `json:"price"`
+	ContractChain   uint8     `json:"contract_chain"`
+	StartTime       time.Time `json:"start_time"`
+	ExpireTime      time.Time `json:"expire_time"`
+	ContractAddress string    `json:"contract_address"`
+}

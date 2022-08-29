@@ -72,6 +72,9 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		if info.IsShelf > 0 {
 			db = db.Where("assets.is_shelf=?", info.IsShelf)
 		}
+		if info.ChainId > 0 {
+			db = db.Where("assets.origin_chain= 0 or assets.origin_chain=?", info.ChainId)
+		}
 		return db
 	})
 	if err != nil {
@@ -97,6 +100,9 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 		}
 		if info.IsShelf > 0 {
 			db = db.Where("assets.is_shelf=?", info.IsShelf)
+		}
+		if info.ChainId > 0 {
+			db = db.Where("assets.origin_chain= 0 or assets.origin_chain=?", info.ChainId)
 		}
 		db.Order(model.AssetsColumns.UpdatedAt + " desc")
 		return db
@@ -149,6 +155,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 				WalletAddress: info.BaseWallet,
 				TokenID:       vAsset.TokenId,
 				Price:         vAsset.Price,
+				OriginChain:   vAsset.OriginChain,
 				Status:        common.Expire,
 				UpdatedTime:   time.Now(),
 				CreatedTime:   time.Now(),

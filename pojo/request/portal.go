@@ -54,10 +54,11 @@ type GetGameAssets struct {
 	BaseRequest
 	BasePortalRequest
 	BasePagination
-	Category *int `json:"category" validate:""`
-	Rarity   *int `json:"rarity" validate:""`
-	IsNft    *int `json:"is_nft" validate:""`
-	IsShelf  int  `json:"is_sale" validate:"max=2"`
+	Category *int  `json:"category" validate:""`
+	Rarity   *int  `json:"rarity" validate:""`
+	IsNft    *int  `json:"is_nft" validate:""`
+	IsShelf  int   `json:"is_sale" validate:"max=2"`
+	ChainId  uint8 `json:"chain_id"`
 }
 
 type SubscribeNewsletterEmail struct {
@@ -108,6 +109,8 @@ type Orders struct {
 	SortPrice uint   `json:"sort_price" validate:"max=2"`
 	SortTime  uint   `json:"sort_time" validate:"max=2"`
 	Search    string `json:"search" validate:"max=192"`
+
+	ChainId uint8 `json:"chain_id"`
 }
 
 type OrderCancel struct {
@@ -130,6 +133,7 @@ type UserHistory struct {
 	Type              uint8     `json:"type" validate:"required"` //1:transaction history  //2:mint history //3:Listing history
 	FilterTransaction uint8     `json:"filter_transaction"`
 	FilterTime        time.Time `json:"filter_time"`
+	ChainId           uint8     `json:"chain_id"`
 }
 
 type ExchangePrice struct {
@@ -149,4 +153,16 @@ type GameCurrency struct {
 	BaseRequest
 	BasePortalRequest
 	Symbol string `json:"symbol" validate:"required"`
+}
+
+type OrdersGroup struct {
+	BaseRequest
+	Id string `json:"id"`
+}
+
+type OrdersGroupDetail struct {
+	BaseRequest
+	Sku       string `json:"sku" validate:"required"`
+	SortPrice uint   `json:"sort_price" validate:"max=2"`
+	ChainId   uint8  `json:"chain_id"`
 }

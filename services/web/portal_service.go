@@ -658,6 +658,9 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 		count, err := p.dao.WithContext(info.Ctx).Count(model.TransactionHistory{}, map[string]interface{}{
 			model.TransactionHistoryColumns.WalletAddress: info.BaseWallet,
 		}, func(db *gorm.DB) *gorm.DB {
+			if info.ChainId > 0 {
+				db = db.Where("transaction_history.origin_chain=?", info.ChainId)
+			}
 			if info.FilterTransaction > 0 {
 				db = db.Where("transaction_history.status=?", info.FilterTransaction)
 			}
@@ -672,10 +675,13 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 		}
 		var transactionHistoryAssets []join.TransactionHistoryAssets
 		err = p.dao.WithContext(info.Ctx).Find([]string{"transaction_history.wallet_address,transaction_history.token_id,transaction_history.price," +
-			"transaction_history.unit,transaction_history.status,transaction_history.created_time,assets.name,assets.index_id,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			"transaction_history.unit,transaction_history.origin_chain,transaction_history.status,transaction_history.created_time,assets.name,assets.index_id,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 			db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 				Joins("LEFT JOIN assets ON transaction_history.token_id = assets.token_id").
 				Where("transaction_history.wallet_address=?", info.BaseWallet)
+			if info.ChainId > 0 {
+				db = db.Where("transaction_history.origin_chain=?", info.ChainId)
+			}
 			if info.FilterTransaction > 0 {
 				db = db.Where("transaction_history.status=?", info.FilterTransaction)
 			}
@@ -715,6 +721,9 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 		count, err := p.dao.WithContext(info.Ctx).Count(model.MintHistory{}, map[string]interface{}{
 			model.MintHistoryColumns.WalletAddress: info.BaseWallet,
 		}, func(db *gorm.DB) *gorm.DB {
+			if info.ChainId > 0 {
+				db = db.Where("mint_history.origin_chain=?", info.ChainId)
+			}
 			if info.FilterTransaction > 0 {
 				db = db.Where("mint_history.status=?", info.FilterTransaction)
 			}
@@ -729,10 +738,13 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 		}
 		var mintHistoryAssets []join.MintHistoryAssets
 		err = p.dao.WithContext(info.Ctx).Find([]string{"mint_history.wallet_address,mint_history.token_id," +
-			"mint_history.status,mint_history.created_time,assets.name,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			"mint_history.origin_chain,mint_history.status,mint_history.created_time,assets.name,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 			db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 				Joins("LEFT JOIN assets ON mint_history.token_id = assets.token_id").
 				Where("mint_history.wallet_address=?", info.BaseWallet)
+			if info.ChainId > 0 {
+				db = db.Where("mint_history.origin_chain=?", info.ChainId)
+			}
 			if info.FilterTransaction > 0 {
 				db = db.Where("mint_history.status=?", info.FilterTransaction)
 			}

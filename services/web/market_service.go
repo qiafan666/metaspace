@@ -32,6 +32,8 @@ type MarketService interface {
 	GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error)
 	GetUserOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error)
 	OrderCancel(info request.OrderCancel) (out response.OrderCancel, code commons.ResponseCode, err error)
+	GetOrdersGroup(info request.OrdersGroup) (out []response.OrdersGroup, code commons.ResponseCode, err error)
+	GetOrdersGroupDetail(info request.OrdersGroupDetail) (out []response.OrdersGroupDetail, code commons.ResponseCode, err error)
 }
 
 var marketServiceIns *marketServiceImp
@@ -291,6 +293,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 			WalletAddress: info.BaseWallet,
 			TokenID:       vAssets.TokenID,
 			Price:         info.Price,
+			OriginChain:   vAssets.OriginChain,
 			Status:        common.Shelf,
 			UpdatedTime:   time.Now(),
 			CreatedTime:   time.Now(),
@@ -349,6 +352,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 			WalletAddress: info.BaseWallet,
 			TokenID:       vAssets.TokenID,
 			Price:         info.Price,
+			OriginChain:   vAssets.OriginChain,
 			Status:        common.Shelf,
 			UpdatedTime:   time.Now(),
 			CreatedTime:   time.Now(),
@@ -383,6 +387,9 @@ redo:
 		db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
 			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
 			Where("orders.status=?", common.OrderStatusActive)
+		if info.ChainId > 0 {
+			db = db.Where("assets.origin_chain=?", info.ChainId)
+		}
 		if info.Category != nil {
 			db = db.Where("assets.category=?", info.Category)
 		}
@@ -408,6 +415,10 @@ redo:
 			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
 			Where("orders.status=?", common.OrderStatusActive)
 		//filter
+		if info.ChainId > 0 {
+			db = db.Where("assets.origin_chain=?", info.ChainId)
+		}
+
 		if info.Category != nil {
 			db = db.Where("assets.category=?", info.Category)
 		}
@@ -442,7 +453,7 @@ redo:
 	}, &ordersDetail)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetOrders detail error %s", err.Error())
-		return response.Orders{}, 0, err
+		return out, 0, err
 	}
 
 	tx := m.dao.Tx()
@@ -485,6 +496,7 @@ redo:
 				WalletAddress: v.Seller,
 				TokenID:       v.NftID,
 				Price:         v.Price,
+				OriginChain:   v.OriginChain,
 				Status:        common.Expire,
 				UpdatedTime:   time.Now(),
 				CreatedTime:   time.Now(),
@@ -623,4 +635,141 @@ func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.Or
 	out.OrderId = info.OrderId
 	return
 
+}
+
+func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out []response.OrdersGroup, code commons.ResponseCode, err error) {
+
+	var assets []model.Assets
+	err = m.dao.WithContext(info.Ctx).Raw("select aa.* from assets as aa right join ( select sku, max(id+0) as max from assets group by sku) as bb on bb.max = aa.id and bb.sku = aa.sku", &assets)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetOrdersGroup error %s", err.Error())
+		return out, 0, err
+	}
+
+	out = make([]response.OrdersGroup, 0, len(assets))
+	for _, v := range assets {
+		out = append(out, response.OrdersGroup{
+			Sku:         v.Sku,
+			Image:       v.Image,
+			Description: v.Description,
+			URI:         v.URI,
+			URIContent:  v.URIContent,
+		})
+	}
+	return
+}
+
+func (m marketServiceImp) GetOrdersGroupDetail(info request.OrdersGroupDetail) (out []response.OrdersGroupDetail, code commons.ResponseCode, err error) {
+
+	var ordersDetail []join.OrdersDetail
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain,assets.sku"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
+			Where("orders.status=?", common.OrderStatusActive).
+			Where("assets.sku=?", info.Sku).Limit(50)
+		//filter
+		if info.ChainId > 0 {
+			db = db.Where("assets.origin_chain=?", info.ChainId)
+		}
+
+		//search
+		if info.SortPrice == 0 {
+		} else if info.SortPrice == 1 {
+			return db.Order("--" + model.OrdersDetailColumns.Price + " desc")
+		} else {
+			return db.Order("--" + model.OrdersDetailColumns.Price + " asc")
+		}
+
+		return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+	}, &ordersDetail)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp  GetOrdersGroupDetail error %s", err.Error())
+		return out, 0, err
+	}
+
+	tx := m.dao.Tx()
+
+	out = make([]response.OrdersGroupDetail, 0, len(ordersDetail))
+	var contractAddress string
+	for _, v := range ordersDetail {
+		//check expireTime
+		if v.ExpireTime.Before(time.Now()) {
+			//update order status
+			result, err := tx.WithContext(info.Ctx).Update(model.Orders{
+				Status: common.OrderStatusExpire,
+			}, map[string]interface{}{
+				model.OrdersColumns.ID: v.Id,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update Order Status error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+			if result == 0 {
+				continue
+			}
+			//update assets is_nft
+			_, err = tx.WithContext(info.Ctx).Update(model.Assets{
+				IsShelf: common.NotShelf,
+			}, map[string]interface{}{
+				model.AssetsColumns.TokenID: v.NftID,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets is_nft error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+
+			//add expire history
+			newTransactionHistory := model.TransactionHistory{
+				WalletAddress: v.Seller,
+				TokenID:       v.NftID,
+				Price:         v.Price,
+				OriginChain:   v.OriginChain,
+				Status:        common.Expire,
+				UpdatedTime:   time.Now(),
+				CreatedTime:   time.Now(),
+			}
+			err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+		} else {
+
+			if v.Category == int64(common.Ship) {
+				contractAddress = gameConfig.Contract.Ship
+			} else {
+				contractAddress = gameConfig.Contract.Assets
+			}
+
+			out = append(out, response.OrdersGroupDetail{
+				AssetId:         v.AssetId,
+				Id:              v.Id,
+				Seller:          v.Seller,
+				Buyer:           v.Buyer,
+				Signature:       v.Signature,
+				SaltNonce:       v.SaltNonce,
+				Status:          v.Status,
+				NftID:           v.NftID,
+				Category:        v.Category,
+				Type:            v.Type,
+				Rarity:          v.Rarity,
+				Image:           v.Image,
+				Name:            v.Name,
+				IndexID:         v.IndexID,
+				NickName:        v.NickName,
+				Description:     v.Description,
+				TotalPrice:      v.TotalPrice,
+				Price:           v.Price,
+				StartTime:       v.StartTime,
+				ExpireTime:      v.ExpireTime,
+				ContractChain:   v.OriginChain,
+				ContractAddress: contractAddress,
+			})
+		}
+	}
+
+	return
 }

@@ -3,6 +3,7 @@ package function
 import (
 	"errors"
 	"github.com/blockfishio/metaspace-backend/common"
+	"strconv"
 )
 
 func GetCategoryString(mType int64) string {
@@ -21,6 +22,8 @@ func GetCategoryString(mType int64) string {
 		return common.TowerString
 	case common.CategoryId6:
 		return common.TrapString
+	case common.CategoryId7:
+		return common.ShipString
 	}
 
 	return ""
@@ -113,4 +116,8 @@ func StringCheck(ins ...string) bool {
 		}
 	}
 	return true
+}
+
+func AddSku(category, subcategory, rarity int64) string {
+	return "spaceY" + strconv.FormatInt(category, 10) + strconv.FormatInt(subcategory, 10) + strconv.FormatInt(rarity, 10)
 }

@@ -18,6 +18,7 @@ type Dao interface {
 	Update(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
 	Delete(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
 	Count(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
+	Raw(string, interface{}) error
 }
 
 type Imp struct {
@@ -85,6 +86,9 @@ func (s Imp) Rollback() {
 }
 func (s Imp) Commit() error {
 	return s.db.Commit().Error
+}
+func (s Imp) Raw(sql string, output interface{}) error {
+	return s.db.Raw(sql).Scan(output).Error
 }
 
 var db *gorm.DB

@@ -35,6 +35,8 @@ var witheList = map[string]string{
 	"/metaspace/web/login/third":                "",
 	"/metaspace/web/exchange/price":             "",
 	"/metaspace/web/asset/detail":               "",
+	"/metaspace/web/orders/group":               "",
+	"/metaspace/web/orders/detail":              "",
 }
 
 func CheckPortalAuth(ctx iris.Context) {

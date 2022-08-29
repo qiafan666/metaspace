@@ -53,12 +53,14 @@ func JudgeChain(chain uint8) (mint, ship, market, assets string, client *ethclie
 	if chain == config.Chain.ETH {
 		mint = config.ETHContract.Mint
 		ship = config.ETHContract.Ship
+		market = config.ETHContract.Market
 		assets = config.ETHContract.Assets
 		client = ethClient
 		return
 	} else if chain == config.Chain.BSC {
 		mint = config.BSCContract.Mint
 		ship = config.BSCContract.Ship
+		market = config.ETHContract.Market
 		assets = config.BSCContract.Assets
 		client = bscClient
 		return

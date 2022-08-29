@@ -80,6 +80,7 @@ func (p PlatformServiceImp) AddAssets(infos request.AddAssets) (out response.Add
 			Category:    info.Category,
 			Type:        info.Type,
 			Rarity:      info.Rarity,
+			Sku:         function.AddSku(info.Category, info.Type, info.Rarity),
 			Image:       info.Image,
 			URI:         info.Uri,
 			URIContent:  info.UriContent,
