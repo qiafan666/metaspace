@@ -157,12 +157,22 @@ type GameCurrency struct {
 
 type OrdersGroup struct {
 	BaseRequest
-	Id string `json:"id"`
+	BasePagination
+	BasePortalRequest
+	Status   uint8 `json:"status,string" validate:"max=5"`
+	Category *int  `json:"category" validate:""`
+	Rarity   *int  `json:"rarity" validate:""`
+	//sort
+	SortPrice uint   `json:"sort_price" validate:"max=2"`
+	SortTime  uint   `json:"sort_time" validate:"max=2"`
+	Search    string `json:"search" validate:"max=192"`
+
+	ChainId uint8 `json:"chain_id"`
 }
 
 type OrdersGroupDetail struct {
 	BaseRequest
-	Sku       string `json:"sku" validate:"required"`
+	GroupName string `json:"group_name" validate:"required"`
 	SortPrice uint   `json:"sort_price" validate:"max=2"`
 	ChainId   uint8  `json:"chain_id"`
 }

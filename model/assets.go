@@ -13,7 +13,6 @@ CREATE TABLE `assets` (
   `category` bigint NOT NULL COMMENT 'category',
   `type` bigint NOT NULL COMMENT 'type',
   `rarity` bigint NOT NULL DEFAULT '0' COMMENT 'rarity',
-  `sku` varchar(192) COLLATE utf8mb4_bin NOT NULL,
   `image` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'image',
   `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'name',
   `index_id` bigint unsigned NOT NULL,
@@ -44,9 +43,8 @@ type Assets struct {
 	Category      int64     `gorm:"column:category" json:"category"` // category
 	Type          int64     `gorm:"column:type" json:"type"`         // type
 	Rarity        int64     `gorm:"column:rarity" json:"rarity"`     // rarity
-	Sku           string    `gorm:"column:sku" json:"sku"`
-	Image         string    `gorm:"column:image" json:"image"` // image
-	Name          string    `gorm:"column:name" json:"name"`   // name
+	Image         string    `gorm:"column:image" json:"image"`       // image
+	Name          string    `gorm:"column:name" json:"name"`         // name
 	IndexID       uint64    `gorm:"column:index_id" json:"index_id"`
 	NickName      string    `gorm:"column:nick_name" json:"nick_name"`           // nick name
 	Description   string    `gorm:"column:description" json:"description"`       // description
@@ -77,7 +75,6 @@ var AssetsColumns = struct {
 	Category      string
 	Type          string
 	Rarity        string
-	Sku           string
 	Image         string
 	Name          string
 	IndexID       string
@@ -102,7 +99,6 @@ var AssetsColumns = struct {
 	Category:      "category",
 	Type:          "type",
 	Rarity:        "rarity",
-	Sku:           "sku",
 	Image:         "image",
 	Name:          "name",
 	IndexID:       "index_id",

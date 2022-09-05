@@ -32,7 +32,7 @@ type MarketService interface {
 	GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error)
 	GetUserOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error)
 	OrderCancel(info request.OrderCancel) (out response.OrderCancel, code commons.ResponseCode, err error)
-	GetOrdersGroup(info request.OrdersGroup) (out []response.OrdersGroup, code commons.ResponseCode, err error)
+	GetOrdersGroup(info request.OrdersGroup) (out response.OrdersGroup, code commons.ResponseCode, err error)
 	GetOrdersGroupDetail(info request.OrdersGroupDetail) (out []response.OrdersGroupDetail, code commons.ResponseCode, err error)
 }
 
@@ -637,51 +637,442 @@ func (m marketServiceImp) OrderCancel(info request.OrderCancel) (out response.Or
 
 }
 
-func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out []response.OrdersGroup, code commons.ResponseCode, err error) {
-
-	var assets []model.Assets
-	err = m.dao.WithContext(info.Ctx).Raw("select aa.* from assets as aa right join ( select sku, max(id+0) as max from assets group by sku) as bb on bb.max = aa.id and bb.sku = aa.sku", &assets)
+func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response.OrdersGroup, code commons.ResponseCode, err error) {
+	var num int64
+	var landOrdersDetail []join.OrdersDetail
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce," +
+		"orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time," +
+		"orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`," +
+		"assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain,`group`.group_name"},
+		map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+				Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
+				Joins("INNER JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
+				Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
+				Where("orders.status=?", common.OrderStatusActive).
+				Where("`group`.group_name=?", common.GroupLand)
+			//filter
+			if info.ChainId > 0 {
+				db = db.Where("assets.origin_chain=?", info.ChainId)
+			}
+			return db.Order("--" + model.OrdersDetailColumns.Price + " asc")
+		}, &landOrdersDetail)
 	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetOrdersGroup error %s", err.Error())
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp landOrdersDetail error %s", err.Error())
+	}
+
+	GroupData := make([]response.OrdersDetail, 0, 2)
+	tx := m.dao.Tx()
+	for _, landOrder := range landOrdersDetail {
+		if landOrder.ExpireTime.Before(time.Now()) {
+			//update order status
+			_, err := tx.WithContext(info.Ctx).Update(model.Orders{
+				Status: common.OrderStatusExpire,
+			}, map[string]interface{}{
+				model.OrdersColumns.ID: landOrder.Id,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update Order Status error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+
+			//update assets is_nft
+			_, err = tx.WithContext(info.Ctx).Update(model.Assets{
+				IsShelf: common.NotShelf,
+			}, map[string]interface{}{
+				model.AssetsColumns.TokenID: landOrder.NftID,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets is_nft error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+
+			//add expire history
+			newTransactionHistory := model.TransactionHistory{
+				WalletAddress: landOrder.Seller,
+				TokenID:       landOrder.NftID,
+				Price:         landOrder.Price,
+				OriginChain:   landOrder.OriginChain,
+				Status:        common.Expire,
+				UpdatedTime:   time.Now(),
+				CreatedTime:   time.Now(),
+			}
+			err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+		} else {
+			if num == 1 {
+				continue
+			}
+			GroupData = append(GroupData, response.OrdersDetail{
+				AssetId:       landOrder.AssetId,
+				Id:            landOrder.Id,
+				Seller:        landOrder.Seller,
+				Buyer:         landOrder.Buyer,
+				Signature:     landOrder.Signature,
+				SaltNonce:     landOrder.SaltNonce,
+				Status:        landOrder.Status,
+				NftID:         landOrder.NftID,
+				Category:      landOrder.Category,
+				Type:          landOrder.Type,
+				Rarity:        landOrder.Rarity,
+				Image:         landOrder.Image,
+				Name:          landOrder.Name,
+				IndexID:       landOrder.IndexID,
+				NickName:      landOrder.NickName,
+				Description:   landOrder.Description,
+				TotalPrice:    landOrder.TotalPrice,
+				Price:         landOrder.Price,
+				StartTime:     landOrder.StartTime,
+				ExpireTime:    landOrder.ExpireTime,
+				ContractChain: landOrder.OriginChain,
+				GroupName:     landOrder.GroupName,
+			})
+			num = num + 1
+		}
+	}
+
+	if info.Category != nil {
+		if *info.Category == int(common.Land) {
+			out.Data = GroupData
+			return
+		}
+	}
+	var ticketOrdersDetail []join.OrdersDetail
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce," +
+		"orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time," +
+		"orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`," +
+		"assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain,`group`.group_name"},
+		map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+				Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
+				Joins("INNER JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
+				Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
+				Where("orders.status=?", common.OrderStatusActive).
+				Where("`group`.group_name=?", common.GroupTicket)
+			//filter
+			if info.ChainId > 0 {
+				db = db.Where("assets.origin_chain=?", info.ChainId)
+			}
+
+			return db.Order("--" + model.OrdersDetailColumns.Price + " asc")
+		}, &ticketOrdersDetail)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp ticketOrdersDetail error %s", err.Error())
 		return out, 0, err
 	}
 
-	out = make([]response.OrdersGroup, 0, len(assets))
-	for _, v := range assets {
-		out = append(out, response.OrdersGroup{
-			Sku:         v.Sku,
-			Image:       v.Image,
-			Description: v.Description,
-			URI:         v.URI,
-			URIContent:  v.URIContent,
-		})
+	var flag bool
+
+	for _, ticketOrder := range ticketOrdersDetail {
+		if ticketOrder.ExpireTime.Before(time.Now()) {
+			//update order status
+			_, err := tx.WithContext(info.Ctx).Update(model.Orders{
+				Status: common.OrderStatusExpire,
+			}, map[string]interface{}{
+				model.OrdersColumns.ID: ticketOrder.Id,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update Order Status error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+
+			//update assets is_nft
+			_, err = tx.WithContext(info.Ctx).Update(model.Assets{
+				IsShelf: common.NotShelf,
+			}, map[string]interface{}{
+				model.AssetsColumns.TokenID: ticketOrder.NftID,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets is_nft error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+
+			//add expire history
+			newTransactionHistory := model.TransactionHistory{
+				WalletAddress: ticketOrder.Seller,
+				TokenID:       ticketOrder.NftID,
+				Price:         ticketOrder.Price,
+				OriginChain:   ticketOrder.OriginChain,
+				Status:        common.Expire,
+				UpdatedTime:   time.Now(),
+				CreatedTime:   time.Now(),
+			}
+			err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+		} else {
+			if flag == false {
+				GroupData = append(GroupData, response.OrdersDetail{
+					AssetId:       ticketOrder.AssetId,
+					Id:            ticketOrder.Id,
+					Seller:        ticketOrder.Seller,
+					Buyer:         ticketOrder.Buyer,
+					Signature:     ticketOrder.Signature,
+					SaltNonce:     ticketOrder.SaltNonce,
+					Status:        ticketOrder.Status,
+					NftID:         ticketOrder.NftID,
+					Category:      ticketOrder.Category,
+					Type:          ticketOrder.Type,
+					Rarity:        ticketOrder.Rarity,
+					Image:         ticketOrder.Image,
+					Name:          ticketOrder.Name,
+					IndexID:       ticketOrder.IndexID,
+					NickName:      ticketOrder.NickName,
+					Description:   ticketOrder.Description,
+					TotalPrice:    ticketOrder.TotalPrice,
+					Price:         ticketOrder.Price,
+					StartTime:     ticketOrder.StartTime,
+					ExpireTime:    ticketOrder.ExpireTime,
+					ContractChain: ticketOrder.OriginChain,
+					GroupName:     ticketOrder.GroupName,
+				})
+				flag = true
+				num = num + 1
+			}
+			continue
+		}
 	}
+
+	if info.Category != nil {
+		if *info.Category == int(common.Ticket) {
+			out.Data = GroupData
+			return
+		}
+	}
+
+redo:
+	count, err := m.dao.WithContext(info.Ctx).Count(join.OrdersDetail{}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
+			Where("orders.status=?", common.OrderStatusActive).
+			Where("assets.category !=?", common.Land).
+			Where("assets.category !=?", common.Ticket)
+		if info.ChainId > 0 {
+			db = db.Where("assets.origin_chain=?", info.ChainId)
+		}
+		if info.Category != nil {
+			db = db.Where("assets.category=?", info.Category)
+		}
+		if info.Rarity != nil {
+			db = db.Where("assets.rarity=?", info.Rarity)
+		}
+
+		if len(info.Search) > 0 {
+			return db.Where("LOWER(assets.nick_name) Like LOWER(?)", "%"+info.Search+"%")
+		}
+
+		return db
+	})
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Count error %s", err.Error())
+		return out, 0, err
+	}
+
+	count = count + num
+
+	var ordersDetail []join.OrdersDetail
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce," +
+		"orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time," +
+		"orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`," +
+		"assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain"},
+		map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			db.Scopes(marketPaginate(info.CurrentPage, info.PageCount, num)).
+				Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+				Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
+				Where("orders.status=?", common.OrderStatusActive).
+				Where("assets.category !=?", common.Land).
+				Where("assets.category !=?", common.Ticket)
+			//filter
+			if info.ChainId > 0 {
+				db = db.Where("assets.origin_chain=?", info.ChainId)
+			}
+
+			if info.Category != nil {
+				db = db.Where("assets.category=?", info.Category)
+			}
+			if info.Rarity != nil {
+				db = db.Where("assets.rarity=?", info.Rarity)
+			}
+
+			//search
+			if len(info.Search) > 0 {
+				return db.Where("LOWER(assets.nick_name) Like LOWER(?)", "%"+info.Search+"%")
+			}
+
+			if info.SortTime > 0 && info.SortPrice > 0 {
+				return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+			}
+
+			if info.SortTime == 0 {
+			} else if info.SortTime == 1 {
+				return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+			} else {
+				return db.Order(model.OrdersColumns.UpdatedTime + " asc")
+			}
+
+			if info.SortPrice == 0 {
+			} else if info.SortPrice == 1 {
+				return db.Order("--" + model.OrdersDetailColumns.Price + " desc")
+			} else {
+				return db.Order("--" + model.OrdersDetailColumns.Price + " asc")
+			}
+
+			return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+		}, &ordersDetail)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetOrders detail error %s", err.Error())
+		return out, 0, err
+	}
+
+	out.Data = make([]response.OrdersDetail, 0, len(ordersDetail))
+	redoFlag := false
+	var contractAddress string
+
+	if info.CurrentPage == 1 {
+		out.Data = append(out.Data, GroupData...)
+	}
+
+	for _, v := range ordersDetail {
+		//check expireTime
+		if v.ExpireTime.Before(time.Now()) {
+			//update order status
+			result, err := tx.WithContext(info.Ctx).Update(model.Orders{
+				Status: common.OrderStatusExpire,
+			}, map[string]interface{}{
+				model.OrdersColumns.ID: v.Id,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update Order Status error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+			if result == 0 {
+				redoFlag = true
+				continue
+			}
+			//update assets is_nft
+			_, err = tx.WithContext(info.Ctx).Update(model.Assets{
+				IsShelf: common.NotShelf,
+			}, map[string]interface{}{
+				model.AssetsColumns.TokenID: v.NftID,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets is_nft error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+
+			//add expire history
+			newTransactionHistory := model.TransactionHistory{
+				WalletAddress: v.Seller,
+				TokenID:       v.NftID,
+				Price:         v.Price,
+				OriginChain:   v.OriginChain,
+				Status:        common.Expire,
+				UpdatedTime:   time.Now(),
+				CreatedTime:   time.Now(),
+			}
+			err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+		} else {
+
+			if v.Category == int64(common.Ship) {
+				contractAddress = gameConfig.Contract.Ship
+			} else {
+				contractAddress = gameConfig.Contract.Assets
+			}
+
+			out.Data = append(out.Data, response.OrdersDetail{
+				AssetId:         v.AssetId,
+				Id:              v.Id,
+				Seller:          v.Seller,
+				Buyer:           v.Buyer,
+				Signature:       v.Signature,
+				SaltNonce:       v.SaltNonce,
+				Status:          v.Status,
+				NftID:           v.NftID,
+				Category:        v.Category,
+				Type:            v.Type,
+				Rarity:          v.Rarity,
+				Image:           v.Image,
+				Name:            v.Name,
+				IndexID:         v.IndexID,
+				NickName:        v.NickName,
+				Description:     v.Description,
+				TotalPrice:      v.TotalPrice,
+				Price:           v.Price,
+				StartTime:       v.StartTime,
+				ExpireTime:      v.ExpireTime,
+				ContractChain:   v.OriginChain,
+				ContractAddress: contractAddress,
+			})
+		}
+	}
+	_ = tx.Commit()
+	if redoFlag {
+		goto redo
+
+	}
+	out.Total = count
+	out.CurrentPage = info.CurrentPage
+	out.PrePageCount = info.PageCount
 	return
+
 }
 
 func (m marketServiceImp) GetOrdersGroupDetail(info request.OrdersGroupDetail) (out []response.OrdersGroupDetail, code commons.ResponseCode, err error) {
 
+	var group string
+	if info.GroupName == common.GroupLand {
+		group = common.GroupLand
+	} else if info.GroupName == common.GroupTicket {
+		group = common.GroupTicket
+	} else {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetOrdersGroupDetail group_name error")
+		return out, 0, err
+	}
+
 	var ordersDetail []join.OrdersDetail
-	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`,assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain,assets.sku"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-		db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
-			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
-			Where("orders.status=?", common.OrderStatusActive).
-			Where("assets.sku=?", info.Sku).Limit(50)
-		//filter
-		if info.ChainId > 0 {
-			db = db.Where("assets.origin_chain=?", info.ChainId)
-		}
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price," +
+		"orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image," +
+		"assets.`name`,assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain"},
+		map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+				Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
+				Joins("INNER JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
+				Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
+				Where("orders.status=?", common.OrderStatusActive).
+				Where("`group`.group_name=?", group)
+			//filter
+			if info.ChainId > 0 {
+				db = db.Where("assets.origin_chain=?", info.ChainId)
+			}
 
-		//search
-		if info.SortPrice == 0 {
-		} else if info.SortPrice == 1 {
-			return db.Order("--" + model.OrdersDetailColumns.Price + " desc")
-		} else {
-			return db.Order("--" + model.OrdersDetailColumns.Price + " asc")
-		}
+			//search
+			if info.SortPrice == 0 {
+			} else if info.SortPrice == 1 {
+				return db.Order("--" + model.OrdersDetailColumns.Price + " desc")
+			} else {
+				return db.Order("--" + model.OrdersDetailColumns.Price + " asc")
+			}
 
-		return db.Order(model.OrdersColumns.UpdatedTime + " desc")
-	}, &ordersDetail)
+			return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+		}, &ordersDetail)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp  GetOrdersGroupDetail error %s", err.Error())
 		return out, 0, err
@@ -772,4 +1163,26 @@ func (m marketServiceImp) GetOrdersGroupDetail(info request.OrdersGroupDetail) (
 	}
 
 	return
+}
+
+func marketPaginate(pageNum int, pageSize int, num int64) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		if pageNum <= 0 {
+			pageNum = 1
+		}
+
+		if pageNum == 1 {
+			offset := (pageNum - 1) * pageSize
+			return db.Offset(offset).Limit(pageSize - int(num))
+		}
+		switch {
+		case pageSize > 50:
+			pageSize = 50
+		case pageSize <= 0:
+			pageSize = 8
+		}
+
+		offset := (pageNum-1)*(pageSize) - int(num)
+		return db.Offset(offset).Limit(pageSize)
+	}
 }

@@ -30,11 +30,11 @@ eth_contract:
   ship: "0x916f9f041cE163bDF7dDA67f39F1cA49fe8D1D05"
 
 bsc_contract:
-  monitor_client: "https://rinkeby.infura.io/v3/059609bf2c8e433d8ad4a895a98278ed"
-  mint: "0xc10641031430cF29579f829952b118f1d873bbc2"
-  assets: "0xe88A806D31de758762d93a0e6682042Ec1AFe6ac"
-  market: "0x22Bc2260153CC4363465Fe729EE24f06043D4519"
-  ship: "0x916f9f041cE163bDF7dDA67f39F1cA49fe8D1D05"
+  monitor_client: "https://nd-131-927-076.p2pify.com/3b956aac3a8f41716b700133d8855f40"
+  mint: "0x6865b1a5150b982c1eb30397c6af886b98aadffb"
+  assets: "0xd0300c1CdB5aa481D1631Acd886898c3AD93D520"
+  market: "0x962d264829a70CDB4D7a0c5968Be1F28E950b173"
+  ship: "0x9DB1fdf0FF36756a4B20BF488032fb99D65Ce63B"
 
 thirdLogin:
   third_login_address: "127.0.0.7"

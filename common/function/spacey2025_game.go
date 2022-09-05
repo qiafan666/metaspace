@@ -3,7 +3,6 @@ package function
 import (
 	"errors"
 	"github.com/blockfishio/metaspace-backend/common"
-	"strconv"
 )
 
 func GetCategoryString(mType int64) string {
@@ -116,8 +115,4 @@ func StringCheck(ins ...string) bool {
 		}
 	}
 	return true
-}
-
-func AddSku(category, subcategory, rarity int64) string {
-	return "spaceY" + strconv.FormatInt(category, 10) + strconv.FormatInt(subcategory, 10) + strconv.FormatInt(rarity, 10)
 }

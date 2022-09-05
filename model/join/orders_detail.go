@@ -25,7 +25,7 @@ type OrdersDetail struct {
 	NickName    string    `gorm:"column:nick_name" json:"nick_name"`
 	Description string    `gorm:"column:description" json:"description"`
 	OriginChain uint8     `gorm:"column:origin_chain" json:"origin_chain"`
-	Sku         string    `gorm:"column:sku" json:"sku"`
+	GroupName   string    `gorm:"column:group_name" json:"group_name"`
 }
 
 // TableName

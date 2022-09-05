@@ -127,3 +127,8 @@ const (
 	RarityConfigs5 = "5"
 	RarityConfigs6 = "6"
 )
+
+const (
+	GroupLand   string = "land"
+	GroupTicket string = "ticket"
+)

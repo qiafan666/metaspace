@@ -120,6 +120,7 @@ type OrdersDetail struct {
 	StartTime       time.Time `json:"start_time"`
 	ExpireTime      time.Time `json:"expire_time"`
 	ContractAddress string    `json:"contract_address"`
+	GroupName       string    `json:"group_name"`
 }
 
 type OrderCancel struct {
@@ -183,30 +184,8 @@ type GameCurrency struct {
 }
 
 type OrdersGroup struct {
-	ID            int64     `json:"-"`        // asset id
-	UID           string    `json:"uid"`      // user id
-	UUID          string    `json:"uuid"`     // third_party association
-	TokenID       int64     `json:"token_id"` // token id of erc721; should be the same as id
-	Category      int64     `json:"category"` // category
-	Type          int64     `json:"type"`     // type
-	Rarity        int64     `json:"rarity"`   // rarity
-	Sku           string    `json:"sku"`
-	Image         string    `json:"image"` // image
-	Name          string    `json:"name"`  // name
-	IndexID       uint64    `json:"index_id"`
-	NickName      string    `json:"nick_name"`      // nick name
-	Description   string    `json:"description"`    // description
-	URI           string    `json:"uri"`            // uri
-	URIContent    string    `json:"uri_content"`    // uri content
-	OriginChain   uint8     `json:"origin_chain"`   // 1:eth 2:bsc
-	BlockNumber   string    `json:"block_number"`   // block number
-	TxHash        string    `json:"tx_hash"`        // transaction hash
-	Status        uint8     `json:"status"`         // status
-	MintSignature string    `json:"mint_signature"` // mint signature
-	IsNft         uint8     `json:"is_nft"`         // 1: is nft    2:not nft
-	IsShelf       uint8     `json:"is_shelf"`       // 1:is shelf  2:not shelf
-	CreatedAt     time.Time `json:"created_at"`     // create timestamp
-	UpdatedAt     time.Time `json:"updated_at"`     // update timestamp
+	BasePagination
+	Data []OrdersDetail `json:"orders_list"`
 }
 
 type OrdersGroupDetail struct {
