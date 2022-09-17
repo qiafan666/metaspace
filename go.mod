@@ -10,6 +10,7 @@ require (
 	github.com/iris-contrib/middleware/cors v0.0.0-20211207164801-081c558a02bb
 	github.com/jau1jz/cornus v1.0.8
 	github.com/kataras/iris/v12 v12.2.0-alpha5
+	github.com/sendgrid/sendgrid-go v3.11.1+incompatible
 	github.com/sirupsen/logrus v1.8.1
 	github.com/xuri/excelize/v2 v2.6.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
@@ -31,6 +32,7 @@ require (
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.1 // indirect
 	github.com/rjeczalik/notify v0.9.1 // indirect
+	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect
 	github.com/tklauser/go-sysconf v0.3.5 // indirect
 	github.com/tklauser/numcpus v0.2.2 // indirect

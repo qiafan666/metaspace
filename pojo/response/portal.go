@@ -212,3 +212,6 @@ type OrdersGroupDetail struct {
 	ExpireTime      time.Time `json:"expire_time"`
 	ContractAddress string    `json:"contract_address"`
 }
+
+type SendCode struct {
+}

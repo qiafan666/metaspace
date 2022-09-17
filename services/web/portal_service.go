@@ -55,6 +55,7 @@ type PortalService interface {
 	ExchangePrice(info request.ExchangePrice) (out response.ExchangePrice, code commons.ResponseCode, err error)
 	AssetDetail(info request.AssetDetail) (out response.AssetDetail, code commons.ResponseCode, err error)
 	GameCurrency(info request.GameCurrency) (out response.GameCurrency, code commons.ResponseCode, err error)
+	SendCode(info request.SendCode) (out response.SendCode, code commons.ResponseCode, err error)
 }
 
 var portalConfig struct {
@@ -395,9 +396,22 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 		if info.Type == common.LoginTypeEmail {
 			AccountType = model.UserColumns.Email
 		}
+
+		emailCode, err := p.redis.GetEmailCode(info.Ctx, info.Account)
+		if err != nil {
+			return response.UserLogin{}, 0, err
+		}
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetEmailCode error %s", err.Error())
+			return out, 0, err
+		}
+		if emailCode.Code != info.Password {
+			slog.Slog.InfoF(info.Ctx, "portalServiceImp Register account or password error")
+			return out, common.PasswordOrAccountError, errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, info.Language))
+		}
+
 		err = p.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.Email}, map[string]interface{}{
-			AccountType:                info.Account,
-			model.UserColumns.Password: utils.StringToSha256(info.Password),
+			AccountType: info.Account,
 		}, nil, &user)
 
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -877,5 +891,41 @@ func (p portalServiceImp) GameCurrency(info request.GameCurrency) (out response.
 		return out, common.GameCurrencyError, err
 	}
 	out.Amount = gameCurrencyResponse.Amount
+	return
+}
+
+func (p portalServiceImp) SendCode(info request.SendCode) (out response.SendCode, code commons.ResponseCode, err error) {
+
+	var user model.User
+	err = p.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UserName}, map[string]interface{}{
+		model.UserColumns.Email: info.Email,
+	}, nil, &user)
+
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SendCode find user error %s", err.Error())
+		return out, 0, err
+	}
+
+	emailCode := (utils.GenerateUUID())[0:5]
+	err = p.redis.SetEmailCode(info.Ctx, inner.EmailCode{
+		Code:  emailCode,
+		Email: info.Email,
+	}, 3*time.Minute)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SendCode set redis error %s", err.Error())
+		return out, 0, err
+	}
+
+	to := function.NewEmailUser(user.UserName, info.Email)
+	subject := "Sending with Twilio SendGrid is Fun"
+	plainTextContent := "example"
+	htmlContent := "<strong>example</strong>"
+
+	responseBody, err := function.SendEmail(to, subject, plainTextContent, htmlContent)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SendEmail error %s", err.Error())
+		return out, 0, err
+	}
+	slog.Slog.InfoF(info.Ctx, "portalServiceImp SendEmail message %s", responseBody)
 	return
 }

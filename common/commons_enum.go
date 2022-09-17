@@ -89,6 +89,7 @@ const (
 	ThirdPartyTokenUser = "third_party/token_user/%s"
 	RawMessage          = "user/raw_message/%s"
 	ExchanagePrice      = "user/exchange/%s/%s"
+	EmailCode           = "user/emailCode/%s"
 )
 
 const (
