@@ -176,3 +176,8 @@ type OrdersGroupDetail struct {
 	SortPrice uint   `json:"sort_price" validate:"max=2"`
 	ChainId   uint8  `json:"chain_id"`
 }
+
+type SendCode struct {
+	BaseRequest
+	Email string `json:"email" validate:"required,email"`
+}

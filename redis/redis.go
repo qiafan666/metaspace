@@ -46,6 +46,10 @@ type Dao interface {
 	SetExchangePrice(ctx context.Context, exchangePrice inner.ExchangePrice, expire time.Duration) (err error)
 	GetExchangePrice(ctx context.Context, quote string, base string) (out inner.ExchangePrice, err error)
 	DelExchangePrice(ctx context.Context, quote string, base string) (err error)
+
+	SetEmailCode(ctx context.Context, emailCode inner.EmailCode, expire time.Duration) (err error)
+	GetEmailCode(ctx context.Context, email string) (out inner.EmailCode, err error)
+	DelEmailCode(ctx context.Context, email string) (err error)
 }
 
 type Imp struct {
@@ -233,4 +237,28 @@ func (i Imp) SetExchangePrice(ctx context.Context, exchangePrice inner.ExchangeP
 
 func (i Imp) DelExchangePrice(ctx context.Context, quote string, base string) (err error) {
 	return i.redis.Del(ctx, fmt.Sprintf(common.ExchanagePrice, quote, base)).Err()
+}
+
+func (i Imp) GetEmailCode(ctx context.Context, email string) (out inner.EmailCode, err error) {
+
+	result := i.redis.Get(ctx, fmt.Sprintf(common.EmailCode, email))
+	if result.Err() != nil {
+		return out, result.Err()
+	}
+	err = json.Unmarshal([]byte(result.Val()), &out)
+	return
+}
+
+func (i Imp) SetEmailCode(ctx context.Context, emailCode inner.EmailCode, expire time.Duration) (err error) {
+
+	marshal, err := json.Marshal(emailCode)
+	if err != nil {
+		return err
+	}
+	return i.redis.Set(ctx, fmt.Sprintf(common.EmailCode, emailCode.Email), marshal, expire).Err()
+
+}
+
+func (i Imp) DelEmailCode(ctx context.Context, email string) (err error) {
+	return i.redis.Del(ctx, fmt.Sprintf(common.EmailCode, email)).Err()
 }

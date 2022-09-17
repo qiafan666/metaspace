@@ -46,3 +46,7 @@ coinMarket:
 chain:
   eth: 4
   bsc: 97
+
+email:
+  key: "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"
+  from: "kevin.huang@blockfish.io"
