@@ -215,3 +215,7 @@ type OrdersGroupDetail struct {
 
 type SendCode struct {
 }
+
+type PaperMint struct {
+	SdkClientSecret string `json:"sdkClientSecret"`
+}

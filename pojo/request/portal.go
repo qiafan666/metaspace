@@ -181,3 +181,39 @@ type SendCode struct {
 	BaseRequest
 	Email string `json:"email" validate:"required,email"`
 }
+
+type PaperMint struct {
+	BaseRequest
+	TokenId       int64  `json:"token_id"`
+	ChainId       uint8  `json:"chain_id"`
+	Email         string `json:"email"`
+	WalletAddress string `json:"wallet_address"`
+}
+
+type PaperMintRequest struct {
+	Quantity int `json:"quantity"`
+	Metadata struct {
+	} `json:"metadata"`
+	ExpiresInMinutes      int    `json:"expiresInMinutes"`
+	UsePaperKey           bool   `json:"usePaperKey"`
+	HideApplePayGooglePay bool   `json:"hideApplePayGooglePay"`
+	ContractId            string `json:"contractId"`
+	WalletAddress         string `json:"walletAddress"`
+	Email                 string `json:"email"`
+	MintMethod            struct {
+		Name string `json:"name"`
+		Args struct {
+			NftAddress  string `json:"nftAddress"`
+			UserAddress string `json:"userAddress"`
+			TokenId     int64  `json:"tokenId"`
+			Category    int64  `json:"category"`
+			Subcategory int64  `json:"subcategory"`
+			Rarity      int64  `json:"rarity"`
+			Signature   string `json:"signature"`
+		} `json:"args"`
+		Payment struct {
+			Value    string `json:"value"`
+			Currency string `json:"currency"`
+		} `json:"payment"`
+	} `json:"mintMethod"`
+}

@@ -15,7 +15,9 @@ import (
 	"github.com/blockfishio/metaspace-backend/services/exchange"
 	"github.com/blockfishio/metaspace-backend/thirdparty"
 	ethCommon "github.com/ethereum/go-ethereum/common"
+	"io/ioutil"
 	"math/big"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -56,6 +58,7 @@ type PortalService interface {
 	AssetDetail(info request.AssetDetail) (out response.AssetDetail, code commons.ResponseCode, err error)
 	GameCurrency(info request.GameCurrency) (out response.GameCurrency, code commons.ResponseCode, err error)
 	SendCode(info request.SendCode) (out response.SendCode, code commons.ResponseCode, err error)
+	PaperMint(info request.PaperMint) (out response.PaperMint, code commons.ResponseCode, err error)
 }
 
 var portalConfig struct {
@@ -80,6 +83,14 @@ var portalConfig struct {
 		ETH uint8 `yaml:"eth"`
 		BSC uint8 `yaml:"bsc"`
 	} `yaml:"chain"`
+	Paper struct {
+		ETH struct {
+			Url           string `yaml:"url"`
+			ContractId    string `yaml:"contract_id"`
+			Authorization string `yaml:"authorization"`
+			Currency      string `yaml:"currency"`
+		} `yaml:"eth"`
+	} `yaml:"paper"`
 }
 
 func init() {
@@ -401,9 +412,6 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 
 		emailCode, err := p.redis.GetEmailCode(info.Ctx, info.Account)
 		if err != nil {
-			return response.UserLogin{}, 0, err
-		}
-		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetEmailCode error %s", err.Error())
 			return out, 0, err
 		}
@@ -583,7 +591,7 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 	}
 
 	var vAssets model.Assets
-	err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.Category, model.AssetsColumns.Rarity, model.AssetsColumns.Type}, map[string]interface{}{
+	err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.Category, model.AssetsColumns.Rarity, model.AssetsColumns.Type, model.AssetsColumns.IsNft}, map[string]interface{}{
 		model.AssetsColumns.TokenID: info.TokenId,
 	}, nil, &vAssets)
 
@@ -594,7 +602,11 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign assets not find error")
 		return out, common.AssetsNotExist, errors.New(commons.GetCodeAndMsg(common.AssetsNotExist, info.Language))
 	} else {
-		//_nftAddress
+		// check is nft
+		if vAssets.IsNft == common.IsNft {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign asset is nft,do not repeat signatures ")
+			return out, 0, errors.New(commons.GetCodeAndMsg(common.AssetsNotExist, info.Language))
+		}
 		//_tokenId
 		tokenId := new(big.Int).SetInt64(info.TokenId)
 
@@ -908,9 +920,9 @@ func (p portalServiceImp) SendCode(info request.SendCode) (out response.SendCode
 		return out, 0, err
 	}
 
-	emailCode := (utils.GenerateUUID())[0:5]
+	emailCode := time.Now().UnixNano()
 	err = p.redis.SetEmailCode(info.Ctx, inner.EmailCode{
-		Code:  emailCode,
+		Code:  strconv.FormatInt(emailCode, 10),
 		Email: info.Email,
 	}, 3*time.Minute)
 	if err != nil {
@@ -929,5 +941,136 @@ func (p portalServiceImp) SendCode(info request.SendCode) (out response.SendCode
 		return out, 0, err
 	}
 	slog.Slog.InfoF(info.Ctx, "portalServiceImp SendEmail message %s", responseBody)
+	return
+}
+
+func (p portalServiceImp) PaperMint(info request.PaperMint) (out response.PaperMint, code commons.ResponseCode, err error) {
+	var paperMintRequest request.PaperMintRequest
+	paperMintRequest.Quantity = 1
+	paperMintRequest.ExpiresInMinutes = 15
+	paperMintRequest.UsePaperKey = false
+	paperMintRequest.HideApplePayGooglePay = false
+	paperMintRequest.ContractId = portalConfig.Paper.ETH.ContractId
+	paperMintRequest.WalletAddress = info.WalletAddress
+	paperMintRequest.Email = info.Email
+
+	paperMintRequest.MintMethod.Name = "matchMintPaper"
+	paperMintRequest.MintMethod.Payment.Value = "0"
+	paperMintRequest.MintMethod.Payment.Currency = portalConfig.Paper.ETH.Currency
+
+	//sign
+	mint, ship, _, assets, client, err := function.JudgeChain(info.ChainId)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint Chain error")
+		return out, common.ChainNetError, errors.New("current network is not supported")
+	}
+
+	address := ethCommon.HexToAddress(mint)
+	instance, err := eth_mint.NewContracts(address, client)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint NewContracts error")
+		return out, 0, err
+	}
+
+	var vAssets model.Assets
+	err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.Category, model.AssetsColumns.Rarity, model.AssetsColumns.Type, model.AssetsColumns.IsNft}, map[string]interface{}{
+		model.AssetsColumns.TokenID: info.TokenId,
+	}, nil, &vAssets)
+
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint error:%s", err.Error())
+		return out, 0, err
+	} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint assets not find error")
+		return out, common.AssetsNotExist, errors.New(commons.GetCodeAndMsg(common.AssetsNotExist, info.Language))
+	} else {
+		// check is nft
+		if vAssets.IsNft == common.IsNft {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign asset is nft,do not repeat signatures ")
+			return out, 0, errors.New(commons.GetCodeAndMsg(common.AssetsNotExist, info.Language))
+		}
+
+		//_tokenId
+		tokenId := new(big.Int).SetInt64(info.TokenId)
+
+		if false == function.StringCheck(strconv.Itoa(int(vAssets.Category)), strconv.Itoa(int(vAssets.Type)), strconv.Itoa(int(vAssets.Rarity))) {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint asset data not nil error")
+			return out, 0, err
+		}
+
+		userAddress := ethCommon.HexToAddress(info.WalletAddress)
+		//_category
+		category := big.NewInt(vAssets.Category)
+		//_subcategory
+		subCategory := big.NewInt(vAssets.Type)
+		//_rarity
+		rarity := big.NewInt(vAssets.Rarity)
+
+		var message [32]byte
+		var nftAddress string
+		if vAssets.Category == int64(common.Ship) {
+			message, err = instance.GetMessageHash(nil, ethCommon.HexToAddress(ship), tokenId, userAddress, category, subCategory, rarity)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint GetMessageHash error:%s", err.Error())
+				return out, 0, err
+			}
+			nftAddress = ship
+		} else {
+			message, err = instance.GetMessageHash(nil, ethCommon.HexToAddress(assets), tokenId, userAddress, category, subCategory, rarity)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint GetMessageHash error:%s", err.Error())
+				return out, 0, err
+			}
+			nftAddress = assets
+		}
+
+		// 调用方法
+		req := &proto.SigRequest{Mess: fmt.Sprintf(hex.EncodeToString(message[:]))}
+
+		var res *proto.SigResponse
+
+		ctx, cancel := context.WithTimeout(info.Ctx, common.GrpcTimeoutIn)
+
+		defer cancel()
+		res, err = grpc.SignGrpc.SignClient.Sign(ctx, req)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint Sign error:%s", err)
+			return out, 0, err
+		}
+
+		paperMintRequest.MintMethod.Args.NftAddress = nftAddress
+		paperMintRequest.MintMethod.Args.UserAddress = info.WalletAddress
+		paperMintRequest.MintMethod.Args.TokenId = info.TokenId
+		paperMintRequest.MintMethod.Args.Category = vAssets.Category
+		paperMintRequest.MintMethod.Args.Subcategory = vAssets.Type
+		paperMintRequest.MintMethod.Args.Rarity = vAssets.Rarity
+
+		if strings.HasPrefix(res.Value, "0x") == false {
+			res.Value = "0x" + res.Value
+		}
+		paperMintRequest.MintMethod.Args.Signature = res.Value
+	}
+
+	marshal, err := json.Marshal(&paperMintRequest)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint Sign error:%s", err)
+		return out, 0, err
+	}
+	reader := bytes.NewReader(marshal)
+	req, _ := http.NewRequest("POST", portalConfig.Paper.ETH.Url, reader)
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("content-type", "application/json")
+	req.Header.Add("Authorization", portalConfig.Paper.ETH.Authorization)
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+	body, _ := ioutil.ReadAll(res.Body)
+	err = json.Unmarshal(body, &out)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint Unmarshal error:%s", err)
+		return out, 0, err
+	}
 	return
 }

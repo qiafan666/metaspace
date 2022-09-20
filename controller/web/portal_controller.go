@@ -318,6 +318,20 @@ func (receiver *PortalWebController) PostSendCode() {
 	}
 }
 
+func (receiver *PortalWebController) PostPaperMint() {
+	input := request.PaperMint{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostPaperMint"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.PortalService.PaperMint(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
 func (receiver *PortalWebController) GetHealth() {
 	receiver.Ctx.StatusCode(iris.StatusOK)
 	return
