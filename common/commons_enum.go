@@ -161,14 +161,3 @@ const (
 const (
 	GetGMarsEvent = 1
 )
-
-//Chain
-const (
-	ETH = 1
-	BSC = 2
-)
-
-const (
-	ETHString = "ETH"
-	BSCString = "BSC"
-)
