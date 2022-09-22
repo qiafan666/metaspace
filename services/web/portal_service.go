@@ -330,9 +330,10 @@ func (p portalServiceImp) Register(info request.RegisterUser) (out response.Regi
 		return out, common.AccountAlreadyExists, errors.New(commons.GetCodeAndMsg(common.AccountAlreadyExists, info.Language))
 	}
 	user := model.User{
-		UUID:     utils.GenerateUUID(),
-		Email:    info.Email,
-		Password: utils.StringToSha256(info.Password),
+		UUID:          utils.GenerateUUID(),
+		Email:         info.Email,
+		Password:      utils.StringToSha256(info.Password),
+		AvatarAddress: common.DefaultAvatar,
 	}
 	err = p.dao.WithContext(info.Ctx).Create(&user)
 	if err != nil {
@@ -384,6 +385,7 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 				UUID:          utils.GenerateUUID(),
 				WalletAddress: vWalletAddress,
 				UserName:      userName,
+				AvatarAddress: common.DefaultAvatar,
 			}
 			if err := p.dao.Create(&user); err != nil {
 				slog.Slog.InfoF(info.Ctx, "portalServiceImp Create error %s", err.Error())

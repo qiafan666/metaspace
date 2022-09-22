@@ -171,3 +171,6 @@ const (
 	ETHString = "ETH"
 	BSCString = "BSC"
 )
+
+//default avatar
+const DefaultAvatar = "0"
