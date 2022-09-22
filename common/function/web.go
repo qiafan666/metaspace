@@ -3,6 +3,7 @@ package function
 import (
 	"context"
 	"errors"
+
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/jau1jz/cornus"
 	slog "github.com/jau1jz/cornus/commons/log"
@@ -60,7 +61,7 @@ func JudgeChain(chain uint8) (mint, ship, market, assets string, client *ethclie
 	} else if chain == config.Chain.BSC {
 		mint = config.BSCContract.Mint
 		ship = config.BSCContract.Ship
-		market = config.ETHContract.Market
+		market = config.BSCContract.Market
 		assets = config.BSCContract.Assets
 		client = bscClient
 		return
