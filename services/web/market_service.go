@@ -740,6 +740,7 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 	if info.Category != nil {
 		if *info.Category == int(common.Land) {
 			out.Data = GroupData
+			_ = tx.Commit()
 			return
 		}
 	}
@@ -764,6 +765,7 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 		}, &ticketOrdersDetail)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp ticketOrdersDetail error %s", err.Error())
+		tx.Rollback()
 		return out, 0, err
 	}
 
@@ -847,6 +849,7 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 	if info.Category != nil {
 		if *info.Category == int(common.Ticket) {
 			out.Data = GroupData
+			_ = tx.Commit()
 			return
 		}
 	}
@@ -876,6 +879,7 @@ redo:
 	})
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Count error %s", err.Error())
+		tx.Rollback()
 		return out, 0, err
 	}
 
@@ -932,6 +936,7 @@ redo:
 		}, &ordersDetail)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetOrders detail error %s", err.Error())
+		tx.Rollback()
 		return out, 0, err
 	}
 
@@ -1161,7 +1166,7 @@ func (m marketServiceImp) GetOrdersGroupDetail(info request.OrdersGroupDetail) (
 			})
 		}
 	}
-
+	_ = tx.Commit()
 	return
 }
 
