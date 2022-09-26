@@ -837,7 +837,8 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 	} else {
 		var asset model.Assets
 		err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.ID}, map[string]interface{}{
-			model.AssetsColumns.TokenID: info.TokenId,
+			model.AssetsColumns.TokenID:     info.TokenId,
+			model.AssetsColumns.OriginChain: info.ChainId,
 		}, nil, &asset)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find asset by token_id Error: %s", err.Error())
