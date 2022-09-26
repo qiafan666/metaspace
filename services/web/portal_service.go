@@ -849,7 +849,7 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 			"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 			db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
 				Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
-				Where("assets.id=?", info.AssetId)
+				Where("assets.id=?", asset.ID)
 			return db
 		}, &assetsOrders)
 		if err != nil {
