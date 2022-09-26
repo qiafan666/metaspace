@@ -825,17 +825,37 @@ func (p portalServiceImp) ExchangePrice(info request.ExchangePrice) (out respons
 func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.AssetDetail, code commons.ResponseCode, err error) {
 
 	var assetsOrders join.AssetsOrders
-	err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.origin_chain,assets.mint_signature,assets.updated_at," +
-		"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-		db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
-			Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
-			Where("assets.id=?", info.AssetId)
-		return db
-	}, &assetsOrders)
 
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find assetsOrders Error: %s", err.Error())
-		return out, common.AssetsNotExist, err
+	if info.AssetId > 0 {
+		err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.origin_chain,assets.mint_signature,assets.updated_at," +
+			"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
+				Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
+				Where("assets.id=?", info.AssetId)
+			return db
+		}, &assetsOrders)
+	} else {
+		var asset model.Assets
+		err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.ID}, map[string]interface{}{
+			model.AssetsColumns.TokenID: info.TokenId,
+		}, nil, &asset)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find asset by token_id Error: %s", err.Error())
+			return out, common.AssetsNotExist, err
+		}
+
+		err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.origin_chain,assets.mint_signature,assets.updated_at," +
+			"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
+				Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
+				Where("assets.id=?", info.AssetId)
+			return db
+		}, &assetsOrders)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find assetsOrders Error: %s", err.Error())
+			return out, common.AssetsNotExist, err
+		}
+
 	}
 
 	var subCategoryString string

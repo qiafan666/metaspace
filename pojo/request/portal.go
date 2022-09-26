@@ -146,7 +146,9 @@ type ExchangePrice struct {
 type AssetDetail struct {
 	BaseRequest
 	BasePortalRequest
-	AssetId int64 `json:"asset_id" validate:"required"`
+	AssetId         int64  `json:"asset_id"`
+	ContractAddress string `json:"contract_address"`
+	TokenId         string `json:"token_id"`
 }
 
 type GameCurrency struct {
