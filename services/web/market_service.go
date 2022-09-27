@@ -1314,7 +1314,7 @@ redo:
 	if redoFlag {
 		goto redo
 	}
-	out.Total = count
+	out.Total = count + 1
 	out.CurrentPage = info.CurrentPage
 	out.PrePageCount = info.PageCount
 	return
