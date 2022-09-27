@@ -829,7 +829,7 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 	if info.AssetId > 0 {
 		err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id," +
 			"assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.origin_chain,assets.mint_signature,assets.updated_at," +
-			"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"},
+			"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce,`group`.group_name"},
 			map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 				db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
 					Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
@@ -852,7 +852,7 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 
 		err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image," +
 			"assets.description,assets.category,assets.rarity,assets.type,assets.origin_chain,assets.mint_signature,assets.updated_at," +
-			"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"},
+			"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce,`group`.group_name"},
 			map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 				db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
 					Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
