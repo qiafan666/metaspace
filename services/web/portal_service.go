@@ -827,13 +827,18 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 	var assetsOrders join.AssetsOrders
 
 	if info.AssetId > 0 {
-		err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.origin_chain,assets.mint_signature,assets.updated_at," +
-			"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-			db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
-				Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
-				Where("assets.id=?", info.AssetId)
-			return db
-		}, &assetsOrders)
+		err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id," +
+			"assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.origin_chain,assets.mint_signature,assets.updated_at," +
+			"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"},
+			map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+				db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
+					Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
+					Joins("INNER JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
+					Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
+					Where("assets.id=?", info.AssetId)
+
+				return db
+			}, &assetsOrders)
 	} else {
 		var asset model.Assets
 		err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.ID}, map[string]interface{}{
@@ -845,13 +850,17 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 			return out, common.AssetsNotExist, err
 		}
 
-		err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.origin_chain,assets.mint_signature,assets.updated_at," +
-			"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-			db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
-				Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
-				Where("assets.id=?", asset.ID)
-			return db
-		}, &assetsOrders)
+		err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image," +
+			"assets.description,assets.category,assets.rarity,assets.type,assets.origin_chain,assets.mint_signature,assets.updated_at," +
+			"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"},
+			map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+				db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
+					Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
+					Joins("INNER JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
+					Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
+					Where("assets.id=?", asset.ID)
+				return db
+			}, &assetsOrders)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find assetsOrders Error: %s", err.Error())
 			return out, common.AssetsNotExist, err
@@ -898,6 +907,7 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 		Signature:       assetsOrders.Signature,
 		StartTime:       assetsOrders.StartTime,
 		SaltNonce:       assetsOrders.SaltNonce,
+		GroupName:       assetsOrders.GroupName,
 	}
 	return
 }

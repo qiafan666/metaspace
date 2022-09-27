@@ -177,6 +177,7 @@ type AssetDetail struct {
 	Signature       string    `json:"signature"`
 	SaltNonce       string    `json:"salt_nonce"`
 	StartTime       time.Time `json:"start_time"`
+	GroupName       string    `json:"group_name"`
 }
 
 type GameCurrency struct {
