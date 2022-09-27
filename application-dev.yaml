@@ -57,3 +57,6 @@ paper:
     contract_id: "df9dbe67-4195-4098-83ef-4cf016aceaf0"
     authorization: "Bearer 4cedf19c-32bf-43e1-a211-380b3a0f3ab7"
     currency: "ETH"
+
+system:
+  official: "0xe573f3bcb67c022d1ba5427a3b5959f0f0d5a260"

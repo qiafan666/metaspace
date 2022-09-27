@@ -14,6 +14,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/pojo/response"
 	"github.com/blockfishio/metaspace-backend/redis"
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/jau1jz/cornus"
 	"github.com/jau1jz/cornus/commons"
 	slog "github.com/jau1jz/cornus/commons/log"
 	"gorm.io/gorm"
@@ -34,6 +35,17 @@ type MarketService interface {
 	OrderCancel(info request.OrderCancel) (out response.OrderCancel, code commons.ResponseCode, err error)
 	GetOrdersGroup(info request.OrdersGroup) (out response.OrdersGroup, code commons.ResponseCode, err error)
 	GetOrdersGroupDetail(info request.OrdersGroupDetail) (out []response.OrdersGroupDetail, code commons.ResponseCode, err error)
+	GetOrdersOfficial(info request.OrdersOfficial) (out response.OrdersOfficial, code commons.ResponseCode, err error)
+}
+
+var marketPortalConfig struct {
+	System struct {
+		Official string `yaml:"official"`
+	} `yaml:"system"`
+}
+
+func init() {
+	cornus.GetCornusInstance().LoadCustomizeConfig(&marketPortalConfig)
 }
 
 var marketServiceIns *marketServiceImp
@@ -642,7 +654,7 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 	var landOrdersDetail []join.OrdersDetail
 	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce," +
 		"orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time," +
-		"orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`," +
+		"orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.uid,assets.description,assets.image,assets.`name`," +
 		"assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain,`group`.group_name"},
 		map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 			db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
@@ -650,7 +662,8 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 				Joins("INNER JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
 				Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
 				Where("orders.status=?", common.OrderStatusActive).
-				Where("`group`.group_name=?", common.GroupLand)
+				Where("`group`.group_name=?", common.GroupLand).
+				Where("assets.uid !=?", marketPortalConfig.System.Official)
 			//filter
 			if info.ChainId > 0 {
 				db = db.Where("assets.origin_chain=?", info.ChainId)
@@ -747,7 +760,7 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 	var ticketOrdersDetail []join.OrdersDetail
 	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce," +
 		"orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time," +
-		"orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`," +
+		"orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.uid,assets.description,assets.image,assets.`name`," +
 		"assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain,`group`.group_name"},
 		map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 			db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
@@ -755,7 +768,8 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 				Joins("INNER JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
 				Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
 				Where("orders.status=?", common.OrderStatusActive).
-				Where("`group`.group_name=?", common.GroupTicket)
+				Where("`group`.group_name=?", common.GroupTicket).
+				Where("assets.uid !=?", marketPortalConfig.System.Official)
 			//filter
 			if info.ChainId > 0 {
 				db = db.Where("assets.origin_chain=?", info.ChainId)
@@ -860,7 +874,8 @@ redo:
 			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
 			Where("orders.status=?", common.OrderStatusActive).
 			Where("assets.category !=?", common.Land).
-			Where("assets.category !=?", common.Ticket)
+			Where("assets.category !=?", common.Ticket).
+			Where("assets.uid !=?", marketPortalConfig.System.Official)
 		if info.ChainId > 0 {
 			db = db.Where("assets.origin_chain=?", info.ChainId)
 		}
@@ -888,7 +903,7 @@ redo:
 	var ordersDetail []join.OrdersDetail
 	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce," +
 		"orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time," +
-		"orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image,assets.`name`," +
+		"orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.uid,assets.description,assets.image,assets.`name`," +
 		"assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain"},
 		map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 			db.Scopes(marketPaginate(info.CurrentPage, info.PageCount, num)).
@@ -896,7 +911,8 @@ redo:
 				Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
 				Where("orders.status=?", common.OrderStatusActive).
 				Where("assets.category !=?", common.Land).
-				Where("assets.category !=?", common.Ticket)
+				Where("assets.category !=?", common.Ticket).
+				Where("assets.uid !=?", marketPortalConfig.System.Official)
 			//filter
 			if info.ChainId > 0 {
 				db = db.Where("assets.origin_chain=?", info.ChainId)
@@ -1055,14 +1071,15 @@ func (m marketServiceImp) GetOrdersGroupDetail(info request.OrdersGroupDetail) (
 	var ordersDetail []join.OrdersDetail
 	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer,orders.seller,orders.total_price," +
 		"orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.description,assets.image," +
-		"assets.`name`,assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain"},
+		"assets.`name`,assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain,assets.uid"},
 		map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 			db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
 				Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
 				Joins("INNER JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
 				Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
 				Where("orders.status=?", common.OrderStatusActive).
-				Where("`group`.group_name=?", group)
+				Where("`group`.group_name=?", group).
+				Where("assets.uid !=?", marketPortalConfig.System.Official)
 			//filter
 			if info.ChainId > 0 {
 				db = db.Where("assets.origin_chain=?", info.ChainId)
@@ -1170,6 +1187,140 @@ func (m marketServiceImp) GetOrdersGroupDetail(info request.OrdersGroupDetail) (
 	return
 }
 
+func (m marketServiceImp) GetOrdersOfficial(info request.OrdersOfficial) (out response.OrdersOfficial, code commons.ResponseCode, err error) {
+
+redo:
+	count, err := m.dao.WithContext(info.Ctx).Count(join.OrdersDetail{}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
+			Where("orders.status=?", common.OrderStatusActive).
+			Where("assets.uid=?", marketPortalConfig.System.Official)
+		return db
+	})
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetOrdersOfficial orders Count error %s", err.Error())
+		return out, 0, err
+	}
+
+	var ordersDetail []join.OrdersDetail
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce," +
+		"orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time," +
+		"orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.uid,assets.description,assets.image,assets.`name`," +
+		"assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain"},
+		map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+			db.Scopes(officialPaginate(info.CurrentPage, info.PageCount)).
+				Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+				Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
+				Where("orders.status=?", common.OrderStatusActive).
+				Where("assets.uid=?", marketPortalConfig.System.Official)
+			//filter
+			if info.ChainId > 0 {
+				db = db.Where("assets.origin_chain=?", info.ChainId)
+			}
+
+			return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+		}, &ordersDetail)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetOrders detail error %s", err.Error())
+		return out, 0, err
+	}
+
+	tx := m.dao.Tx()
+	out.Data = make([]response.OrdersDetail, 0, len(ordersDetail))
+	redoFlag := false
+	var contractAddress string
+
+	for _, v := range ordersDetail {
+		//check expireTime
+		if v.ExpireTime.Before(time.Now()) {
+			//update order status
+			result, err := tx.WithContext(info.Ctx).Update(model.Orders{
+				Status: common.OrderStatusExpire,
+			}, map[string]interface{}{
+				model.OrdersColumns.ID: v.Id,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update Order Status error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+			if result == 0 {
+				redoFlag = true
+				continue
+			}
+			//update assets is_nft
+			_, err = tx.WithContext(info.Ctx).Update(model.Assets{
+				IsShelf: common.NotShelf,
+			}, map[string]interface{}{
+				model.AssetsColumns.TokenID: v.NftID,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets is_nft error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+
+			//add expire history
+			newTransactionHistory := model.TransactionHistory{
+				WalletAddress: v.Seller,
+				TokenID:       v.NftID,
+				Price:         v.Price,
+				OriginChain:   v.OriginChain,
+				Status:        common.Expire,
+				UpdatedTime:   time.Now(),
+				CreatedTime:   time.Now(),
+			}
+			err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+		} else {
+
+			if v.Category == int64(common.Ship) {
+				contractAddress = gameConfig.Contract.Ship
+			} else {
+				contractAddress = gameConfig.Contract.Assets
+			}
+
+			out.Data = append(out.Data, response.OrdersDetail{
+				AssetId:         v.AssetId,
+				Id:              v.Id,
+				Seller:          v.Seller,
+				Buyer:           v.Buyer,
+				Signature:       v.Signature,
+				SaltNonce:       v.SaltNonce,
+				Status:          v.Status,
+				NftID:           v.NftID,
+				Category:        v.Category,
+				Type:            v.Type,
+				Rarity:          v.Rarity,
+				Image:           v.Image,
+				Name:            v.Name,
+				IndexID:         v.IndexID,
+				NickName:        v.NickName,
+				Description:     v.Description,
+				TotalPrice:      v.TotalPrice,
+				Price:           v.Price,
+				StartTime:       v.StartTime,
+				ExpireTime:      v.ExpireTime,
+				ContractChain:   v.OriginChain,
+				ContractAddress: contractAddress,
+			})
+		}
+	}
+	_ = tx.Commit()
+	if redoFlag {
+		goto redo
+	}
+	out.Total = count
+	out.CurrentPage = info.CurrentPage
+	out.PrePageCount = info.PageCount
+	return
+
+}
+
 func marketPaginate(pageNum int, pageSize int, num int64) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		if pageNum <= 0 {
@@ -1188,6 +1339,28 @@ func marketPaginate(pageNum int, pageSize int, num int64) func(db *gorm.DB) *gor
 		}
 
 		offset := (pageNum-1)*(pageSize) - int(num)
+		return db.Offset(offset).Limit(pageSize)
+	}
+}
+
+func officialPaginate(pageNum int, pageSize int) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		if pageNum <= 0 {
+			pageNum = 1
+		}
+
+		if pageNum == 1 {
+			offset := (pageNum - 1) * pageSize
+			return db.Offset(offset).Limit(pageSize - 1)
+		}
+		switch {
+		case pageSize > 50:
+			pageSize = 50
+		case pageSize <= 0:
+			pageSize = 8
+		}
+
+		offset := (pageNum-1)*(pageSize) - 1
 		return db.Offset(offset).Limit(pageSize)
 	}
 }
