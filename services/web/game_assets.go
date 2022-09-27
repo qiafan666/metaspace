@@ -180,7 +180,7 @@ func (p gameAssetsServiceImp) GetGameAssets(info request.GetGameAssets) (out res
 			contractAddress = gameConfig.Contract.Ship
 		}
 		out.Assets = append(out.Assets, response.AssetBody{
-			AssetsId:        vAsset.Id,
+			AssetId:         vAsset.Id,
 			IsNft:           vAsset.IsNft,
 			TokenId:         vAsset.TokenId,
 			ContractAddress: contractAddress,

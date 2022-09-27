@@ -53,3 +53,8 @@ type ExchangePrice struct {
 	Price      float64   `json:"price"`
 	ExpireTime time.Time `json:"expire_time"`
 }
+
+type EmailCode struct {
+	Email string `json:"email"`
+	Code  string `json:"code"`
+}

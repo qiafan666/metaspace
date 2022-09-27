@@ -15,7 +15,9 @@ import (
 	"github.com/blockfishio/metaspace-backend/services/exchange"
 	"github.com/blockfishio/metaspace-backend/thirdparty"
 	ethCommon "github.com/ethereum/go-ethereum/common"
+	"io/ioutil"
 	"math/big"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -55,6 +57,8 @@ type PortalService interface {
 	ExchangePrice(info request.ExchangePrice) (out response.ExchangePrice, code commons.ResponseCode, err error)
 	AssetDetail(info request.AssetDetail) (out response.AssetDetail, code commons.ResponseCode, err error)
 	GameCurrency(info request.GameCurrency) (out response.GameCurrency, code commons.ResponseCode, err error)
+	SendCode(info request.SendCode) (out response.SendCode, code commons.ResponseCode, err error)
+	PaperMint(info request.PaperMint) (out response.PaperMint, code commons.ResponseCode, err error)
 }
 
 var portalConfig struct {
@@ -79,6 +83,14 @@ var portalConfig struct {
 		ETH uint8 `yaml:"eth"`
 		BSC uint8 `yaml:"bsc"`
 	} `yaml:"chain"`
+	Paper struct {
+		ETH struct {
+			Url           string `yaml:"url"`
+			ContractId    string `yaml:"contract_id"`
+			Authorization string `yaml:"authorization"`
+			Currency      string `yaml:"currency"`
+		} `yaml:"eth"`
+	} `yaml:"paper"`
 }
 
 func init() {
@@ -397,9 +409,19 @@ func (p portalServiceImp) Login(info request.UserLogin) (out response.UserLogin,
 		if info.Type == common.LoginTypeEmail {
 			AccountType = model.UserColumns.Email
 		}
+
+		emailCode, err := p.redis.GetEmailCode(info.Ctx, info.Account)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetEmailCode error %s", err.Error())
+			return out, 0, err
+		}
+		if emailCode.Code != info.Password {
+			slog.Slog.InfoF(info.Ctx, "portalServiceImp Register account or password error")
+			return out, common.PasswordOrAccountError, errors.New(commons.GetCodeAndMsg(common.PasswordOrAccountError, info.Language))
+		}
+
 		err = p.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UUID, model.UserColumns.Email}, map[string]interface{}{
-			AccountType:                info.Account,
-			model.UserColumns.Password: utils.StringToSha256(info.Password),
+			AccountType: info.Account,
 		}, nil, &user)
 
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -569,7 +591,7 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 	}
 
 	var vAssets model.Assets
-	err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.Category, model.AssetsColumns.Rarity, model.AssetsColumns.Type}, map[string]interface{}{
+	err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.Category, model.AssetsColumns.Rarity, model.AssetsColumns.Type, model.AssetsColumns.IsNft}, map[string]interface{}{
 		model.AssetsColumns.TokenID: info.TokenId,
 	}, nil, &vAssets)
 
@@ -580,7 +602,11 @@ func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code co
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign assets not find error")
 		return out, common.AssetsNotExist, errors.New(commons.GetCodeAndMsg(common.AssetsNotExist, info.Language))
 	} else {
-		//_nftAddress
+		// check is nft
+		if vAssets.IsNft == common.IsNft {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign asset is nft,do not repeat signatures ")
+			return out, 0, errors.New(commons.GetCodeAndMsg(common.AssetsNotExist, info.Language))
+		}
 		//_tokenId
 		tokenId := new(big.Int).SetInt64(info.TokenId)
 
@@ -799,17 +825,47 @@ func (p portalServiceImp) ExchangePrice(info request.ExchangePrice) (out respons
 func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.AssetDetail, code commons.ResponseCode, err error) {
 
 	var assetsOrders join.AssetsOrders
-	err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.origin_chain,assets.mint_signature,assets.updated_at," +
-		"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
-		db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
-			Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
-			Where("assets.id=?", info.AssetId)
-		return db
-	}, &assetsOrders)
 
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find assetsOrders Error: %s", err.Error())
-		return out, common.AssetsNotExist, err
+	if info.AssetId > 0 {
+		err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id," +
+			"assets.image,assets.description,assets.category,assets.rarity,assets.type,assets.origin_chain,assets.mint_signature,assets.updated_at," +
+			"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce,`group`.group_name"},
+			map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+				db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
+					Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
+					Joins("LEFT JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
+					Joins("LEFT JOIN `group` ON `group`.sku = sku.sku_name").
+					Where("assets.id=?", info.AssetId)
+
+				return db
+			}, &assetsOrders)
+	} else {
+		var asset model.Assets
+		err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.ID}, map[string]interface{}{
+			model.AssetsColumns.TokenID:     info.TokenId,
+			model.AssetsColumns.OriginChain: info.ChainId,
+		}, nil, &asset)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find asset by token_id Error: %s", err.Error())
+			return out, common.AssetsNotExist, err
+		}
+
+		err = p.dao.WithContext(info.Ctx).First([]string{"assets.is_nft,assets.id,assets.uid,assets.token_id,assets.`name`,assets.nick_name,assets.index_id,assets.image," +
+			"assets.description,assets.category,assets.rarity,assets.type,assets.origin_chain,assets.mint_signature,assets.updated_at," +
+			"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.`status`,orders.signature,orders.salt_nonce,`group`.group_name"},
+			map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+				db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
+					Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
+					Joins("LEFT JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
+					Joins("LEFT JOIN `group` ON `group`.sku = sku.sku_name").
+					Where("assets.id=?", asset.ID)
+				return db
+			}, &assetsOrders)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find assetsOrders Error: %s", err.Error())
+			return out, common.AssetsNotExist, err
+		}
+
 	}
 
 	var subCategoryString string
@@ -851,6 +907,7 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 		Signature:       assetsOrders.Signature,
 		StartTime:       assetsOrders.StartTime,
 		SaltNonce:       assetsOrders.SaltNonce,
+		GroupName:       assetsOrders.GroupName,
 	}
 	return
 }
@@ -879,5 +936,172 @@ func (p portalServiceImp) GameCurrency(info request.GameCurrency) (out response.
 		return out, common.GameCurrencyError, err
 	}
 	out.Amount = gameCurrencyResponse.Amount
+	return
+}
+
+func (p portalServiceImp) SendCode(info request.SendCode) (out response.SendCode, code commons.ResponseCode, err error) {
+
+	var user model.User
+	err = p.dao.WithContext(info.Ctx).First([]string{model.UserColumns.UserName}, map[string]interface{}{
+		model.UserColumns.Email: info.Email,
+	}, nil, &user)
+
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SendCode find user error %s", err.Error())
+		return out, 0, err
+	}
+
+	emailCode := time.Now().UnixNano()
+	err = p.redis.SetEmailCode(info.Ctx, inner.EmailCode{
+		Code:  strconv.FormatInt(emailCode, 10),
+		Email: info.Email,
+	}, 3*time.Minute)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SendCode set redis error %s", err.Error())
+		return out, 0, err
+	}
+
+	to := function.NewEmailUser(user.UserName, info.Email)
+	subject := "Sending with Twilio SendGrid is Fun"
+	plainTextContent := "example"
+	htmlContent := "<strong>example</strong>"
+
+	responseBody, err := function.SendEmail(to, subject, plainTextContent, htmlContent)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SendEmail error %s", err.Error())
+		return out, 0, err
+	}
+	slog.Slog.InfoF(info.Ctx, "portalServiceImp SendEmail message %s", responseBody)
+	return
+}
+
+func (p portalServiceImp) PaperMint(info request.PaperMint) (out response.PaperMint, code commons.ResponseCode, err error) {
+	var paperMintRequest request.PaperMintRequest
+	paperMintRequest.Quantity = 1
+	paperMintRequest.ExpiresInMinutes = 15
+	paperMintRequest.UsePaperKey = false
+	paperMintRequest.HideApplePayGooglePay = false
+	paperMintRequest.ContractId = portalConfig.Paper.ETH.ContractId
+	paperMintRequest.WalletAddress = info.WalletAddress
+	paperMintRequest.Email = info.Email
+
+	paperMintRequest.MintMethod.Name = "matchMintPaper"
+	paperMintRequest.MintMethod.Payment.Value = "0"
+	paperMintRequest.MintMethod.Payment.Currency = portalConfig.Paper.ETH.Currency
+
+	//sign
+	mint, ship, _, assets, client, err := function.JudgeChain(info.ChainId)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint Chain error")
+		return out, common.ChainNetError, errors.New("current network is not supported")
+	}
+
+	address := ethCommon.HexToAddress(mint)
+	instance, err := eth_mint.NewContracts(address, client)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint NewContracts error")
+		return out, 0, err
+	}
+
+	var vAssets model.Assets
+	err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.Category, model.AssetsColumns.Rarity, model.AssetsColumns.Type, model.AssetsColumns.IsNft}, map[string]interface{}{
+		model.AssetsColumns.TokenID: info.TokenId,
+	}, nil, &vAssets)
+
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint error:%s", err.Error())
+		return out, 0, err
+	} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint assets not find error")
+		return out, common.AssetsNotExist, errors.New(commons.GetCodeAndMsg(common.AssetsNotExist, info.Language))
+	} else {
+		// check is nft
+		if vAssets.IsNft == common.IsNft {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign asset is nft,do not repeat signatures ")
+			return out, 0, errors.New(commons.GetCodeAndMsg(common.AssetsNotExist, info.Language))
+		}
+
+		//_tokenId
+		tokenId := new(big.Int).SetInt64(info.TokenId)
+
+		if false == function.StringCheck(strconv.Itoa(int(vAssets.Category)), strconv.Itoa(int(vAssets.Type)), strconv.Itoa(int(vAssets.Rarity))) {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint asset data not nil error")
+			return out, 0, err
+		}
+
+		userAddress := ethCommon.HexToAddress(info.WalletAddress)
+		//_category
+		category := big.NewInt(vAssets.Category)
+		//_subcategory
+		subCategory := big.NewInt(vAssets.Type)
+		//_rarity
+		rarity := big.NewInt(vAssets.Rarity)
+
+		var message [32]byte
+		var nftAddress string
+		if vAssets.Category == int64(common.Ship) {
+			message, err = instance.GetMessageHash(nil, ethCommon.HexToAddress(ship), tokenId, userAddress, category, subCategory, rarity)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint GetMessageHash error:%s", err.Error())
+				return out, 0, err
+			}
+			nftAddress = ship
+		} else {
+			message, err = instance.GetMessageHash(nil, ethCommon.HexToAddress(assets), tokenId, userAddress, category, subCategory, rarity)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint GetMessageHash error:%s", err.Error())
+				return out, 0, err
+			}
+			nftAddress = assets
+		}
+
+		// 调用方法
+		req := &proto.SigRequest{Mess: fmt.Sprintf(hex.EncodeToString(message[:]))}
+
+		var res *proto.SigResponse
+
+		ctx, cancel := context.WithTimeout(info.Ctx, common.GrpcTimeoutIn)
+
+		defer cancel()
+		res, err = grpc.SignGrpc.SignClient.Sign(ctx, req)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint Sign error:%s", err)
+			return out, 0, err
+		}
+
+		paperMintRequest.MintMethod.Args.NftAddress = nftAddress
+		paperMintRequest.MintMethod.Args.UserAddress = info.WalletAddress
+		paperMintRequest.MintMethod.Args.TokenId = info.TokenId
+		paperMintRequest.MintMethod.Args.Category = vAssets.Category
+		paperMintRequest.MintMethod.Args.Subcategory = vAssets.Type
+		paperMintRequest.MintMethod.Args.Rarity = vAssets.Rarity
+
+		if strings.HasPrefix(res.Value, "0x") == false {
+			res.Value = "0x" + res.Value
+		}
+		paperMintRequest.MintMethod.Args.Signature = res.Value
+	}
+
+	marshal, err := json.Marshal(&paperMintRequest)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint Sign error:%s", err)
+		return out, 0, err
+	}
+	reader := bytes.NewReader(marshal)
+	req, _ := http.NewRequest("POST", portalConfig.Paper.ETH.Url, reader)
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("content-type", "application/json")
+	req.Header.Add("Authorization", portalConfig.Paper.ETH.Authorization)
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+	body, _ := ioutil.ReadAll(res.Body)
+	err = json.Unmarshal(body, &out)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint Unmarshal error:%s", err)
+		return out, 0, err
+	}
 	return
 }
