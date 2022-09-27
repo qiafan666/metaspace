@@ -833,8 +833,8 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 			map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 				db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
 					Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
-					Joins("INNER JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
-					Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
+					Joins("LEFT JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
+					Joins("LEFT JOIN `group` ON `group`.sku = sku.sku_name").
 					Where("assets.id=?", info.AssetId)
 
 				return db
@@ -856,8 +856,8 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 			map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 				db = db.Joins("LEFT JOIN orders_detail ON orders_detail.nft_id = assets.token_id").
 					Joins("LEFT JOIN orders ON orders.id = orders_detail.order_id").
-					Joins("INNER JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
-					Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
+					Joins("LEFT JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
+					Joins("LEFT JOIN `group` ON `group`.sku = sku.sku_name").
 					Where("assets.id=?", asset.ID)
 				return db
 			}, &assetsOrders)
