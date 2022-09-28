@@ -161,9 +161,8 @@ type OrdersGroup struct {
 	BaseRequest
 	BasePagination
 	BasePortalRequest
-	Status   uint8 `json:"status,string" validate:"max=5"`
-	Category *int  `json:"category" validate:""`
-	Rarity   *int  `json:"rarity" validate:""`
+	Category *int `json:"category" validate:""`
+	Rarity   *int `json:"rarity" validate:""`
 	//sort
 	SortPrice uint   `json:"sort_price" validate:"max=2"`
 	SortTime  uint   `json:"sort_time" validate:"max=2"`
@@ -224,5 +223,12 @@ type OrdersOfficial struct {
 	BaseRequest
 	BasePagination
 	BasePortalRequest
+	Category *int `json:"category" validate:""`
+	Rarity   *int `json:"rarity" validate:""`
+	//sort
+	SortPrice uint   `json:"sort_price" validate:"max=2"`
+	SortTime  uint   `json:"sort_time" validate:"max=2"`
+	Search    string `json:"search" validate:"max=192"`
+
 	ChainId uint8 `json:"chain_id" validate:"required"`
 }

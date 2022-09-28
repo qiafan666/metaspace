@@ -750,13 +750,30 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 		}
 	}
 
-	if info.Category != nil {
+	if info.Category == nil && info.Rarity == nil {
+	} else if info.Category != nil && info.Rarity == nil {
 		if *info.Category == int(common.Land) {
 			out.Data = GroupData
 			_ = tx.Commit()
 			return
+		} else {
+			num = 0
+			GroupData = make([]response.OrdersDetail, 0, 2)
+		}
+	} else if info.Category == nil && info.Rarity != nil {
+		num = 0
+		GroupData = make([]response.OrdersDetail, 0, 2)
+	} else if info.Category != nil && info.Rarity != nil {
+		if *info.Category == int(common.Land) {
+			out.Data = GroupData
+			_ = tx.Commit()
+			return
+		} else {
+			num = 0
+			GroupData = make([]response.OrdersDetail, 0, 2)
 		}
 	}
+
 	var ticketOrdersDetail []join.OrdersDetail
 	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce," +
 		"orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time," +
@@ -860,11 +877,27 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 		}
 	}
 
-	if info.Category != nil {
-		if *info.Category == int(common.Ticket) {
+	if info.Category == nil && info.Rarity == nil {
+	} else if info.Category != nil && info.Rarity == nil {
+		if *info.Category == int(common.Land) {
 			out.Data = GroupData
 			_ = tx.Commit()
 			return
+		} else {
+			num = 0
+			GroupData = make([]response.OrdersDetail, 0, 2)
+		}
+	} else if info.Category == nil && info.Rarity != nil {
+		num = 0
+		GroupData = make([]response.OrdersDetail, 0, 2)
+	} else if info.Category != nil && info.Rarity != nil {
+		if *info.Category == int(common.Land) {
+			out.Data = GroupData
+			_ = tx.Commit()
+			return
+		} else {
+			num = 0
+			GroupData = make([]response.OrdersDetail, 0, 2)
 		}
 	}
 
@@ -1216,6 +1249,36 @@ redo:
 			//filter
 			if info.ChainId > 0 {
 				db = db.Where("assets.origin_chain=?", info.ChainId)
+			}
+
+			if info.Category != nil {
+				db = db.Where("assets.category=?", info.Category)
+			}
+			if info.Rarity != nil {
+				db = db.Where("assets.rarity=?", info.Rarity)
+			}
+
+			//search
+			if len(info.Search) > 0 {
+				return db.Where("LOWER(assets.nick_name) Like LOWER(?)", "%"+info.Search+"%")
+			}
+
+			if info.SortTime > 0 && info.SortPrice > 0 {
+				return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+			}
+
+			if info.SortTime == 0 {
+			} else if info.SortTime == 1 {
+				return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+			} else {
+				return db.Order(model.OrdersColumns.UpdatedTime + " asc")
+			}
+
+			if info.SortPrice == 0 {
+			} else if info.SortPrice == 1 {
+				return db.Order("--" + model.OrdersDetailColumns.Price + " desc")
+			} else {
+				return db.Order("--" + model.OrdersDetailColumns.Price + " asc")
 			}
 
 			return db.Order(model.OrdersColumns.UpdatedTime + " desc")
