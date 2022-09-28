@@ -37,12 +37,12 @@ const (
 )
 
 const (
-	SubCategoryId0 int64 = 0
-	SubCategoryId1 int64 = 1
-	SubCategoryId2 int64 = 2
-	SubCategoryId3 int64 = 3
-	SubCategoryId4 int64 = 4
-	SubCategoryId5 int64 = 5
+	RarityId0 int64 = 0
+	RarityId1 int64 = 1
+	RarityId2 int64 = 2
+	RarityId3 int64 = 3
+	RarityId4 int64 = 4
+	RarityId5 int64 = 5
 )
 
 const (
@@ -82,14 +82,20 @@ const (
 	TowerType3 TowerType = 3
 	TowerType4 TowerType = 4
 	TowerType5 TowerType = 5
+	TowerType6 TowerType = 6
+	TowerType7 TowerType = 7
+	TowerType8 TowerType = 8
 )
 
 const (
-	TowerType1String = "TowerType1"
-	TowerType2String = "TowerType2"
-	TowerType3String = "TowerType3"
-	TowerType4String = "TowerType4"
-	TowerType5String = "TowerType5"
+	TowerType1String = "Sentry"
+	TowerType2String = "Missile"
+	TowerType3String = "Mortar"
+	TowerType4String = "Shockwave"
+	TowerType5String = "Laser"
+	TowerType6String = "ThrowerFire"
+	TowerType7String = "Sniper"
+	TowerType8String = "Gatling"
 )
 
 // Trap Type
