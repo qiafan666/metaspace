@@ -30,17 +30,17 @@ func GetCategoryString(mType int64) string {
 
 func GetRarityString(mType int64) string {
 	switch mType {
-	case common.SubCategoryId0:
+	case common.RarityId0:
 		return common.CommonString
-	case common.SubCategoryId1:
+	case common.RarityId1:
 		return common.UncommonString
-	case common.SubCategoryId2:
+	case common.RarityId2:
 		return common.RareString
-	case common.SubCategoryId3:
+	case common.RarityId3:
 		return common.EpicString
-	case common.SubCategoryId4:
+	case common.RarityId4:
 		return common.LegendaryString
-	case common.SubCategoryId5:
+	case common.RarityId5:
 		return common.JunkString
 	}
 
@@ -83,6 +83,12 @@ func GetSubcategoryString(Category int64, subCategory int64) (string, error) {
 			return common.TowerType4String, nil
 		case int64(common.TowerType5):
 			return common.TowerType5String, nil
+		case int64(common.TowerType6):
+			return common.TowerType6String, nil
+		case int64(common.TowerType7):
+			return common.TowerType7String, nil
+		case int64(common.TowerType8):
+			return common.TowerType8String, nil
 		default:
 			return "", errors.New(" subCategory data Not found ")
 		}

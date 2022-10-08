@@ -332,6 +332,20 @@ func (receiver *PortalWebController) PostPaperMint() {
 	}
 }
 
+func (receiver *PortalWebController) PostOrdersOfficial() {
+	input := request.OrdersOfficial{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostOrdersOfficial"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.MarketService.GetOrdersOfficial(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
 func (receiver *PortalWebController) GetHealth() {
 	receiver.Ctx.StatusCode(iris.StatusOK)
 	return

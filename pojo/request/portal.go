@@ -161,9 +161,8 @@ type OrdersGroup struct {
 	BaseRequest
 	BasePagination
 	BasePortalRequest
-	Status   uint8 `json:"status,string" validate:"max=5"`
-	Category *int  `json:"category" validate:""`
-	Rarity   *int  `json:"rarity" validate:""`
+	Category *int `json:"category" validate:""`
+	Rarity   *int `json:"rarity" validate:""`
 	//sort
 	SortPrice uint   `json:"sort_price" validate:"max=2"`
 	SortTime  uint   `json:"sort_time" validate:"max=2"`
@@ -186,10 +185,10 @@ type SendCode struct {
 
 type PaperMint struct {
 	BaseRequest
-	TokenId       int64  `json:"token_id"`
-	ChainId       uint8  `json:"chain_id"`
-	Email         string `json:"email"`
-	WalletAddress string `json:"wallet_address"`
+	TokenId       int64  `json:"token_id" validate:"required"`
+	ChainId       uint8  `json:"chain_id" validate:"required"`
+	Email         string `json:"email"  validate:"required"`
+	WalletAddress string `json:"wallet_address"  validate:"required"`
 }
 
 type PaperMintRequest struct {
@@ -218,4 +217,18 @@ type PaperMintRequest struct {
 			Currency string `json:"currency"`
 		} `json:"payment"`
 	} `json:"mintMethod"`
+}
+
+type OrdersOfficial struct {
+	BaseRequest
+	BasePagination
+	BasePortalRequest
+	Category *int `json:"category" validate:""`
+	Rarity   *int `json:"rarity" validate:""`
+	//sort
+	SortPrice uint   `json:"sort_price" validate:"max=2"`
+	SortTime  uint   `json:"sort_time" validate:"max=2"`
+	Search    string `json:"search" validate:"max=192"`
+
+	ChainId uint8 `json:"chain_id" validate:"required"`
 }

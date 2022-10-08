@@ -220,3 +220,8 @@ type SendCode struct {
 type PaperMint struct {
 	SdkClientSecret string `json:"sdkClientSecret"`
 }
+
+type OrdersOfficial struct {
+	BasePagination
+	Data []OrdersDetail `json:"orders_list"`
+}
