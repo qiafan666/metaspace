@@ -24,13 +24,22 @@ var config struct {
 		Ship   string `yaml:"ship"`
 		Market string `yaml:"market"`
 	} `yaml:"bsc_contract"`
+	PolygonContract struct {
+		Client string `yaml:"monitor_client"`
+		Mint   string `yaml:"mint"`
+		Assets string `yaml:"assets"`
+		Ship   string `yaml:"ship"`
+		Market string `yaml:"market"`
+	} `yaml:"polygon_contract"`
 	Chain struct {
-		ETH uint8 `yaml:"eth"`
-		BSC uint8 `yaml:"bsc"`
+		ETH     uint64 `yaml:"eth"`
+		BSC     uint64 `yaml:"bsc"`
+		Polygon uint64 `yaml:"polygon"`
 	} `yaml:"chain"`
 }
 var ethClient *ethclient.Client
 var bscClient *ethclient.Client
+var polygonClient *ethclient.Client
 
 func init() {
 	cornus.GetCornusInstance().LoadCustomizeConfig(&config)
@@ -48,9 +57,14 @@ func init() {
 		panic(err.Error())
 	}
 
+	polygonClient, err = ethclient.Dial(config.PolygonContract.Client)
+	if err != nil {
+		slog.Slog.ErrorF(context.Background(), "eth client connect error %s", err.Error())
+		panic(err.Error())
+	}
 }
 
-func JudgeChain(chain uint8) (mint, ship, market, assets string, client *ethclient.Client, err error) {
+func JudgeChain(chain uint64) (mint, ship, market, assets string, client *ethclient.Client, err error) {
 	if chain == config.Chain.ETH {
 		mint = config.ETHContract.Mint
 		ship = config.ETHContract.Ship
@@ -64,6 +78,13 @@ func JudgeChain(chain uint8) (mint, ship, market, assets string, client *ethclie
 		market = config.BSCContract.Market
 		assets = config.BSCContract.Assets
 		client = bscClient
+		return
+	} else if chain == config.Chain.Polygon {
+		mint = config.PolygonContract.Mint
+		ship = config.PolygonContract.Ship
+		market = config.PolygonContract.Market
+		assets = config.PolygonContract.Assets
+		client = polygonClient
 		return
 	} else {
 		return "", "", "", "", nil, errors.New("chain type error")

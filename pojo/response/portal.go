@@ -44,7 +44,7 @@ type AssetBody struct {
 	AssetId         int64     `json:"asset_id"`
 	IsNft           uint8     `json:"is_nft"`
 	TokenId         int64     `json:"token_id"`
-	ContrainChain   uint8     `json:"contract_chain"`
+	ContrainChain   uint64    `json:"contract_chain"`
 	ContractAddress string    `json:"contract_address"`
 	Name            string    `json:"name"`
 	IndexID         uint64    `json:"index_id"`
@@ -116,7 +116,7 @@ type OrdersDetail struct {
 	Description     string    `json:"description"`
 	TotalPrice      string    `json:"total_price"`
 	Price           string    `json:"price"`
-	ContractChain   uint8     `json:"contract_chain"`
+	ContractChain   uint64    `json:"contract_chain"`
 	StartTime       time.Time `json:"start_time"`
 	ExpireTime      time.Time `json:"expire_time"`
 	ContractAddress string    `json:"contract_address"`
@@ -156,7 +156,7 @@ type AssetDetail struct {
 	WalletAddress   string    `json:"wallet_address"`
 	IsNft           uint8     `json:"is_nft"`
 	TokenId         int64     `json:"token_id"`
-	ContrainChain   uint8     `json:"contract_chain"`
+	ContrainChain   uint64    `json:"contract_chain"`
 	ContractAddress string    `json:"contract_address"`
 	Name            string    `json:"name"`
 	IndexID         uint64    `json:"index_id"`
@@ -208,7 +208,7 @@ type OrdersGroupDetail struct {
 	Description     string    `json:"description"`
 	TotalPrice      string    `json:"total_price"`
 	Price           string    `json:"price"`
-	ContractChain   uint8     `json:"contract_chain"`
+	ContractChain   uint64    `json:"contract_chain"`
 	StartTime       time.Time `json:"start_time"`
 	ExpireTime      time.Time `json:"expire_time"`
 	ContractAddress string    `json:"contract_address"`

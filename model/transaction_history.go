@@ -11,13 +11,14 @@ CREATE TABLE `transaction_history` (
   `token_id` bigint NOT NULL,
   `price` varchar(192) NOT NULL,
   `Unit` varchar(192) NOT NULL,
-  `origin_chain` tinyint unsigned NOT NULL,
+  `origin_chain` bigint unsigned NOT NULL,
   `status` tinyint unsigned NOT NULL COMMENT '1:上架 2:下架 3:买 4:卖',
+  `market_type` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '1:assets 2:avatar',
   `updated_time` timestamp(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update timestamp',
   `created_time` timestamp(3) NOT NULL COMMENT 'create timestamp',
   PRIMARY KEY (`id`),
   KEY `token_id` (`token_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=241 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+) ENGINE=InnoDB AUTO_INCREMENT=571 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 ******sql******/
 // TransactionHistory [...]
 type TransactionHistory struct {
@@ -26,8 +27,9 @@ type TransactionHistory struct {
 	TokenID       int64     `gorm:"column:token_id" json:"token_id"`
 	Price         string    `gorm:"column:price" json:"price"`
 	Unit          string    `gorm:"column:Unit" json:"unit"`
-	OriginChain   uint8     `gorm:"column:origin_chain" json:"origin_chain"`
+	OriginChain   uint64    `gorm:"column:origin_chain" json:"origin_chain"`
 	Status        uint8     `gorm:"column:status" json:"status"`             // 1:上架 2:下架 3:买 4:卖
+	MarketType    uint8     `gorm:"column:market_type" json:"market_type"`   // 1:assets 2:avatar
 	UpdatedTime   time.Time `gorm:"column:updated_time" json:"updated_time"` // update timestamp
 	CreatedTime   time.Time `gorm:"column:created_time" json:"created_time"` // create timestamp
 }
@@ -46,6 +48,7 @@ var TransactionHistoryColumns = struct {
 	Unit          string
 	OriginChain   string
 	Status        string
+	MarketType    string
 	UpdatedTime   string
 	CreatedTime   string
 }{
@@ -56,6 +59,7 @@ var TransactionHistoryColumns = struct {
 	Unit:          "Unit",
 	OriginChain:   "origin_chain",
 	Status:        "status",
+	MarketType:    "market_type",
 	UpdatedTime:   "updated_time",
 	CreatedTime:   "created_time",
 }

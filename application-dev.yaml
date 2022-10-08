@@ -24,10 +24,10 @@ grpc:
   port: "10011"
 eth_contract:
   monitor_client: "https://rinkeby.infura.io/v3/059609bf2c8e433d8ad4a895a98278ed"
-  mint: "0x4a085208D0c3f19E2708b58B2d0519029e93DB7A"
-  assets: "0x38d988Fd15E2ca53602713680e95024D9081c592"
-  market: "0x22Bc2260153CC4363465Fe729EE24f06043D4519"
-  ship: "0x916f9f041cE163bDF7dDA67f39F1cA49fe8D1D05"
+  mint: "0x2f93498E75cd50A4c15b27Fd6dD7665B0f872D29"
+  assets: "0xCa6c673435dEeDA188Ffd6636eAbC75114b87869"
+  market: "0x75C89f0CF8a960c22DF62C182bAaf3Ff42dD5A76"
+  ship: ""
 
 bsc_contract:
   monitor_client: "https://nd-131-927-076.p2pify.com/3b956aac3a8f41716b700133d8855f40"
@@ -35,6 +35,13 @@ bsc_contract:
   assets: "0xd0300c1CdB5aa481D1631Acd886898c3AD93D520"
   market: "0x962d264829a70CDB4D7a0c5968Be1F28E950b173"
   ship: "0x9DB1fdf0FF36756a4B20BF488032fb99D65Ce63B"
+
+polygon_contract:
+  monitor_client: "https://polygon-mumbai.infura.io/v3/e4286e0fd98b4ef9a3c53f93dbd53634"
+  mint: "0xfa5eE3834B809CB6A6226b4CDE2E11CF4b36a28C"
+  assets: "0x398E70961975aB0Fe5D9B147e99D46eb1a32f905"
+  market: "0x75B0aA9c90Cb5758BA770683ad79BfDD89B13137"
+  ship: ""
 
 thirdLogin:
   third_login_address: "127.0.0.7"
@@ -46,6 +53,7 @@ coinMarket:
 chain:
   eth: 4
   bsc: 97
+  polygon: 80001
 
 email:
   key: "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"
