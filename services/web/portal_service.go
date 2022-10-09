@@ -59,6 +59,7 @@ type PortalService interface {
 	GameCurrency(info request.GameCurrency) (out response.GameCurrency, code commons.ResponseCode, err error)
 	SendCode(info request.SendCode) (out response.SendCode, code commons.ResponseCode, err error)
 	PaperMint(info request.PaperMint) (out response.PaperMint, code commons.ResponseCode, err error)
+	PaperTransaction(info request.PaperTransaction) (out response.PaperTransaction, code commons.ResponseCode, err error)
 }
 
 var portalConfig struct {
@@ -84,12 +85,13 @@ var portalConfig struct {
 		BSC uint8 `yaml:"bsc"`
 	} `yaml:"chain"`
 	Paper struct {
-		ETH struct {
-			Url           string `yaml:"url"`
-			ContractId    string `yaml:"contract_id"`
-			Authorization string `yaml:"authorization"`
-			Currency      string `yaml:"currency"`
-		} `yaml:"eth"`
+		Payment struct {
+			Url              string `yaml:"url"`
+			MintContractId   string `yaml:"mint_contract_id"`
+			MarketContractId string `yaml:"market_contract_id"`
+			Authorization    string `yaml:"authorization"`
+			Currency         string `yaml:"currency"`
+		} `yaml:"payment"`
 	} `yaml:"paper"`
 }
 
@@ -577,7 +579,7 @@ func (p portalServiceImp) GetTowerStatus(info request.TowerStats) (out response.
 
 func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error) {
 
-	mint, ship, _, assets, client, err := function.JudgeChain(info.Chain)
+	mint, ship, _, assets, _, client, err := function.JudgeChain(info.Chain)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
 		return out, common.ChainNetError, errors.New("current network is not supported")
@@ -981,16 +983,16 @@ func (p portalServiceImp) PaperMint(info request.PaperMint) (out response.PaperM
 	paperMintRequest.ExpiresInMinutes = 15
 	paperMintRequest.UsePaperKey = false
 	paperMintRequest.HideApplePayGooglePay = false
-	paperMintRequest.ContractId = portalConfig.Paper.ETH.ContractId
+	paperMintRequest.ContractId = portalConfig.Paper.Payment.MintContractId
 	paperMintRequest.WalletAddress = info.WalletAddress
 	paperMintRequest.Email = info.Email
 
-	paperMintRequest.MintMethod.Name = "matchMintPaper"
+	paperMintRequest.MintMethod.Name = "matchMintPaperBSCDummy"
 	paperMintRequest.MintMethod.Payment.Value = "0"
-	paperMintRequest.MintMethod.Payment.Currency = portalConfig.Paper.ETH.Currency
+	paperMintRequest.MintMethod.Payment.Currency = portalConfig.Paper.Payment.Currency
 
 	//sign
-	mint, ship, _, assets, client, err := function.JudgeChain(info.ChainId)
+	mint, ship, _, assets, _, client, err := function.JudgeChain(info.ChainId)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint Chain error")
 		return out, common.ChainNetError, errors.New("current network is not supported")
@@ -1088,11 +1090,11 @@ func (p portalServiceImp) PaperMint(info request.PaperMint) (out response.PaperM
 		return out, 0, err
 	}
 	reader := bytes.NewReader(marshal)
-	req, _ := http.NewRequest("POST", portalConfig.Paper.ETH.Url, reader)
+	req, _ := http.NewRequest("POST", portalConfig.Paper.Payment.Url, reader)
 
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("content-type", "application/json")
-	req.Header.Add("Authorization", portalConfig.Paper.ETH.Authorization)
+	req.Header.Add("Authorization", portalConfig.Paper.Payment.Authorization)
 
 	res, _ := http.DefaultClient.Do(req)
 
@@ -1101,6 +1103,94 @@ func (p portalServiceImp) PaperMint(info request.PaperMint) (out response.PaperM
 	err = json.Unmarshal(body, &out)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint Unmarshal error:%s", err)
+		return out, 0, err
+	}
+	return
+}
+
+func (p portalServiceImp) PaperTransaction(info request.PaperTransaction) (out response.PaperTransaction, code commons.ResponseCode, err error) {
+	var paperTransactionRequest request.PaperTransactionRequest
+	paperTransactionRequest.Quantity = 1
+	paperTransactionRequest.ExpiresInMinutes = 15
+	paperTransactionRequest.UsePaperKey = false
+	paperTransactionRequest.HideApplePayGooglePay = false
+	paperTransactionRequest.ContractId = portalConfig.Paper.Payment.MarketContractId
+	paperTransactionRequest.WalletAddress = info.WalletAddress
+	paperTransactionRequest.Email = info.Email
+
+	paperTransactionRequest.MintMethod.Name = "matchTransactionPaper"
+	paperTransactionRequest.MintMethod.Payment.Value = info.Value
+	paperTransactionRequest.MintMethod.Payment.Currency = portalConfig.Paper.Payment.Currency
+
+	//sign
+	_, _, _, assets, spay, _, err := function.JudgeChain(info.ChainId)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperTransaction Chain error")
+		return out, common.ChainNetError, errors.New("current network is not supported")
+	}
+
+	//tokenId
+	var vAssets model.Assets
+	err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.UID}, map[string]interface{}{
+		model.AssetsColumns.TokenID: info.TokenId,
+	}, nil, &vAssets)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperTransaction assets by AssetId not find error:%s", err.Error())
+		return out, 0, err
+	}
+
+	var orderDetail model.OrdersDetail
+	err = p.dao.WithContext(info.Ctx).First([]string{model.OrdersDetailColumns.OrderID, model.OrdersDetailColumns.Price}, map[string]interface{}{
+		model.OrdersDetailColumns.NftID: info.TokenId,
+	}, nil, &orderDetail)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperTransaction First OrderDetail error:%s", err.Error())
+		return out, 0, err
+	}
+
+	var order model.Orders
+	err = p.dao.WithContext(info.Ctx).First([]string{model.OrdersColumns.SaltNonce, model.OrdersColumns.Signature, model.OrdersColumns.Signature,
+		model.OrdersColumns.StartTime, model.OrdersColumns.ExpireTime}, map[string]interface{}{
+		model.OrdersColumns.ID: orderDetail.OrderID,
+	}, nil, &order)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperTransaction First Order error:%s", err.Error())
+		return out, 0, err
+	}
+
+	saltNonce, _ := strconv.ParseInt(order.SaltNonce, 10, 64)
+
+	paperTransactionRequest.MintMethod.Args.ToAddress = info.WalletAddress
+	paperTransactionRequest.MintMethod.Args.OwnerAddress = vAssets.UID
+	paperTransactionRequest.MintMethod.Args.NftAddress = assets
+	paperTransactionRequest.MintMethod.Args.PaymentToken = spay
+	paperTransactionRequest.MintMethod.Args.TokenId = info.TokenId
+	paperTransactionRequest.MintMethod.Args.Price = orderDetail.Price
+	paperTransactionRequest.MintMethod.Args.StartTime = order.StartTime.Unix()
+	paperTransactionRequest.MintMethod.Args.EndTime = order.ExpireTime.Unix()
+	paperTransactionRequest.MintMethod.Args.Price = orderDetail.Price
+	paperTransactionRequest.MintMethod.Args.SaltNonce = saltNonce
+	paperTransactionRequest.MintMethod.Args.Signature = order.Signature
+
+	marshal, err := json.Marshal(&paperTransactionRequest)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperTransaction Sign error:%s", err)
+		return out, 0, err
+	}
+	reader := bytes.NewReader(marshal)
+	req, _ := http.NewRequest("POST", portalConfig.Paper.Payment.Url, reader)
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("content-type", "application/json")
+	req.Header.Add("Authorization", portalConfig.Paper.Payment.Authorization)
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+	body, _ := ioutil.ReadAll(res.Body)
+	err = json.Unmarshal(body, &out)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperTransaction Unmarshal error:%s", err)
 		return out, 0, err
 	}
 	return

@@ -225,3 +225,7 @@ type OrdersOfficial struct {
 	BasePagination
 	Data []OrdersDetail `json:"orders_list"`
 }
+
+type PaperTransaction struct {
+	SdkClientSecret string `json:"sdkClientSecret"`
+}

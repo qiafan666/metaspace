@@ -39,6 +39,7 @@ var witheList = map[string]string{
 	"/metaspace/web/orders/detail":              "",
 	"/metaspace/web/send/code":                  "",
 	"/metaspace/web/paper/mint":                 "",
+	"/metaspace/web/paper/transaction":          "",
 	"/metaspace/web/tower/status":               "",
 	"/metaspace/web/orders/official":            "",
 }

@@ -232,3 +232,43 @@ type OrdersOfficial struct {
 
 	ChainId uint64 `json:"chain_id" validate:"required"`
 }
+
+type PaperTransaction struct {
+	BaseRequest
+	TokenId       int64  `json:"token_id" validate:"required"`
+	ChainId       uint64 `json:"chain_id" validate:"required"`
+	Email         string `json:"email"  validate:"required"`
+	WalletAddress string `json:"wallet_address"  validate:"required"`
+	Value         string `json:"value" validate:"required"`
+}
+
+type PaperTransactionRequest struct {
+	Quantity int `json:"quantity"`
+	Metadata struct {
+	} `json:"metadata"`
+	ExpiresInMinutes      int    `json:"expiresInMinutes"`
+	UsePaperKey           bool   `json:"usePaperKey"`
+	HideApplePayGooglePay bool   `json:"hideApplePayGooglePay"`
+	ContractId            string `json:"contractId"`
+	WalletAddress         string `json:"walletAddress"`
+	Email                 string `json:"email"`
+	MintMethod            struct {
+		Name string `json:"name"`
+		Args struct {
+			ToAddress    string `json:"toAddress"`
+			OwnerAddress string `json:"ownerAddress"`
+			NftAddress   string `json:"nftAddress"`
+			PaymentToken string `json:"paymentToken"`
+			TokenId      int64  `json:"tokenId"`
+			Price        string `json:"price"`
+			StartTime    int64  `json:"startTime"`
+			EndTime      int64  `json:"endTime"`
+			SaltNonce    int64  `json:"saltNonce"`
+			Signature    string `json:"signature"`
+		} `json:"args"`
+		Payment struct {
+			Value    string `json:"value"`
+			Currency string `json:"currency"`
+		} `json:"payment"`
+	} `json:"mintMethod"`
+}

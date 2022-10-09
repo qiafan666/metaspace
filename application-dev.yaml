@@ -23,11 +23,12 @@ grpc:
   host: "127.0.0.1"
   port: "10011"
 eth_contract:
-  monitor_client: "https://rinkeby.infura.io/v3/059609bf2c8e433d8ad4a895a98278ed"
-  mint: "0x2f93498E75cd50A4c15b27Fd6dD7665B0f872D29"
-  assets: "0xCa6c673435dEeDA188Ffd6636eAbC75114b87869"
-  market: "0x75C89f0CF8a960c22DF62C182bAaf3Ff42dD5A76"
+  monitor_client: "https://goerli.infura.io/v3/059609bf2c8e433d8ad4a895a98278ed"
+  mint: "0x214d25b4f8EC232BE8756c2d86011B7c062ede5C"
+  assets: "0x463Ad016bD2FE10e420a906Edbe939D189684b85"
+  market: "0x75B0aA9c90Cb5758BA770683ad79BfDD89B13137"
   ship: ""
+  spay: "0xd4c29b9672D31526eAADB631770d274b840C7348"
 
 bsc_contract:
   monitor_client: "https://nd-131-927-076.p2pify.com/3b956aac3a8f41716b700133d8855f40"
@@ -60,11 +61,12 @@ email:
   from: "kevin.huang@blockfish.io"
 
 paper:
-  eth:
+  payment:
     url: "https://paper.xyz/api/2022-08-12/checkout-sdk-intent"
-    contract_id: "df9dbe67-4195-4098-83ef-4cf016aceaf0"
+    mint_contract_id: "77fd29a6-68a7-4d25-8898-f1ee0331758a"
+    market_contract_id: "d20aa4f5-6fd7-42f7-8e6b-8bdb626d1b64"
     authorization: "Bearer 4cedf19c-32bf-43e1-a211-380b3a0f3ab7"
-    currency: "ETH"
+    currency: "MATIC"
 
 system:
   official: "0xe573f3bcb67c022d1ba5427a3b5959f0f0d5a260"
