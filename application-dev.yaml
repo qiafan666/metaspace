@@ -52,7 +52,7 @@ coinMarket:
   api_key: "05ae21d8-c50e-4e8b-81ba-a67fde72b8f0"
 
 chain:
-  eth: 4
+  eth: 5
   bsc: 97
   polygon: 80001
 

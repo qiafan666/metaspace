@@ -1118,7 +1118,7 @@ func (p portalServiceImp) PaperTransaction(info request.PaperTransaction) (out r
 	paperTransactionRequest.WalletAddress = info.WalletAddress
 	paperTransactionRequest.Email = info.Email
 
-	paperTransactionRequest.MintMethod.Name = "matchTransactionPaper"
+	paperTransactionRequest.MintMethod.Name = "matchTransactionPaperBscDummy"
 	paperTransactionRequest.MintMethod.Payment.Value = info.Value
 	paperTransactionRequest.MintMethod.Payment.Currency = portalConfig.Paper.Payment.Currency
 
