@@ -153,7 +153,7 @@ type ExchangePrice struct {
 
 type AssetDetail struct {
 	AssetId         int64     `json:"asset_id"`
-	WalletAddress   string    `json:"wallet_address"`
+	WalletAddress   string    `json:"seller"`
 	IsNft           uint8     `json:"is_nft"`
 	TokenId         int64     `json:"token_id"`
 	ContrainChain   uint64    `json:"contract_chain"`
