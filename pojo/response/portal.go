@@ -105,7 +105,7 @@ type OrdersDetail struct {
 	Signature       string    `json:"signature"`
 	SaltNonce       int64     `json:"salt_nonce"`
 	Status          uint8     `json:"status"` // 1:active 2:expire 3:canceled 4:finished
-	NftID           int64     `json:"nft_id"`
+	NftID           int64     `json:"token_id"`
 	Category        int64     `json:"category_id"`
 	Type            int64     `json:"type"`
 	Rarity          int64     `json:"rarity_id"`
@@ -197,7 +197,7 @@ type OrdersGroupDetail struct {
 	Signature       string    `json:"signature"`
 	SaltNonce       int64     `json:"salt_nonce"`
 	Status          uint8     `json:"status"` // 1:active 2:expire 3:canceled 4:finished
-	NftID           int64     `json:"nft_id"`
+	NftID           int64     `json:"token_id"`
 	Category        int64     `json:"category_id"`
 	Type            int64     `json:"type"`
 	Rarity          int64     `json:"rarity_id"`
