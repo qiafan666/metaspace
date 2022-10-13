@@ -86,6 +86,7 @@ type ShelfSign struct {
 	PaymentErc20 string    `json:"payment_erc20" validate:"required,max=192"`
 	Price        string    `json:"price" validate:"required,max=192"`
 	ExpireTime   time.Time `json:"expire_time" validate:"required"`
+	StartTime    time.Time `json:"start_time" validate:"required"`
 }
 
 type SellShelf struct {
