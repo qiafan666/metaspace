@@ -229,3 +229,6 @@ type OrdersOfficial struct {
 type PaperTransaction struct {
 	SdkClientSecret string `json:"sdkClientSecret"`
 }
+
+type Test struct {
+}

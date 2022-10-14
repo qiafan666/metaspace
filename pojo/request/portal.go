@@ -273,3 +273,9 @@ type PaperTransactionRequest struct {
 		} `json:"payment"`
 	} `json:"mintMethod"`
 }
+
+type Test struct {
+	BaseRequest
+	Event  string      `json:"event"`
+	Result interface{} `json:"result"`
+}

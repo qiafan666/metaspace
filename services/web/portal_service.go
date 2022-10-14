@@ -60,6 +60,7 @@ type PortalService interface {
 	SendCode(info request.SendCode) (out response.SendCode, code commons.ResponseCode, err error)
 	PaperMint(info request.PaperMint) (out response.PaperMint, code commons.ResponseCode, err error)
 	PaperTransaction(info request.PaperTransaction) (out response.PaperTransaction, code commons.ResponseCode, err error)
+	Test(info request.Test) (out response.Test, code commons.ResponseCode, err error)
 }
 
 var portalConfig struct {
@@ -1193,5 +1194,14 @@ func (p portalServiceImp) PaperTransaction(info request.PaperTransaction) (out r
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperTransaction Unmarshal error:%s", err)
 		return out, 0, err
 	}
+	return
+}
+
+func (p portalServiceImp) Test(info request.Test) (out response.Test, code commons.ResponseCode, err error) {
+	marshal, err := json.Marshal(info)
+	if err != nil {
+		return response.Test{}, 0, err
+	}
+	slog.Slog.InfoF(info.Ctx, " paper mint body : %s", marshal)
 	return
 }

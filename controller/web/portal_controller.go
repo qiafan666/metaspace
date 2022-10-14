@@ -360,6 +360,19 @@ func (receiver *PortalWebController) PostOrdersOfficial() {
 	}
 }
 
+func (receiver *PortalWebController) PostTest() {
+	input := request.Test{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostTest"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.PortalService.Test(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
 func (receiver *PortalWebController) GetHealth() {
 	receiver.Ctx.StatusCode(iris.StatusOK)
 	return
