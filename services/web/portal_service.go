@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/blockfishio/metaspace-backend/contract/bsc/bsc_mint"
 	"github.com/blockfishio/metaspace-backend/contract/eth/eth_mint"
 	"github.com/blockfishio/metaspace-backend/grpc"
 	"github.com/blockfishio/metaspace-backend/grpc/proto"
@@ -1002,7 +1003,7 @@ func (p portalServiceImp) PaperMint(info request.PaperMint) (out response.PaperM
 
 	address := ethCommon.HexToAddress(mint)
 	slog.Slog.InfoF(info.Ctx, "mint :%s", mint)
-	instance, err := eth_mint.NewContracts(address, client)
+	instance, err := bsc_mint.NewContracts(address, client)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint NewContracts error")
 		return out, 0, err
