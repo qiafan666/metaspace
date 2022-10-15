@@ -1001,6 +1001,7 @@ func (p portalServiceImp) PaperMint(info request.PaperMint) (out response.PaperM
 	}
 
 	address := ethCommon.HexToAddress(mint)
+	slog.Slog.InfoF(info.Ctx, "mint :%s", mint)
 	instance, err := eth_mint.NewContracts(address, client)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint NewContracts error")
