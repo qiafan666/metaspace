@@ -79,7 +79,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		return out, 0, err
 	}
 
-	_, ship, market, assets, _, client, err := function.JudgeChain(vAssets.OriginChain)
+	_, ship, market, assets, client, err := function.JudgeChain(vAssets.OriginChain)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
 		return out, common.ChainNetError, errors.New("current network is not supported")
@@ -199,7 +199,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		return out, 0, err
 	}
 
-	_, ship, market, assets, _, client, err := function.JudgeChain(vAssets.OriginChain)
+	_, ship, market, assets, client, err := function.JudgeChain(vAssets.OriginChain)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
 		return out, common.ChainNetError, errors.New("current network is not supported")

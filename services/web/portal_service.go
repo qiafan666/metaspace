@@ -73,6 +73,7 @@ var portalConfig struct {
 		Assets string `yaml:"assets"`
 		Ship   string `yaml:"ship"`
 		Market string `yaml:"market"`
+		Spay   string `yaml:"spay"`
 	} `yaml:"eth_contract"`
 	BSCContract struct {
 		Client string `yaml:"monitor_client"`
@@ -580,7 +581,7 @@ func (p portalServiceImp) GetTowerStatus(info request.TowerStats) (out response.
 
 func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error) {
 
-	mint, ship, _, assets, _, client, err := function.JudgeChain(info.Chain)
+	mint, ship, _, assets, client, err := function.JudgeChain(info.Chain)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
 		return out, common.ChainNetError, errors.New("current network is not supported")
@@ -993,7 +994,7 @@ func (p portalServiceImp) PaperMint(info request.PaperMint) (out response.PaperM
 	paperMintRequest.MintMethod.Payment.Currency = portalConfig.Paper.Payment.Currency
 
 	//sign
-	mint, ship, _, assets, _, client, err := function.JudgeChain(info.ChainId)
+	mint, ship, _, assets, client, err := function.JudgeChain(info.ChainId)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint Chain error")
 		return out, common.ChainNetError, errors.New("current network is not supported")
@@ -1124,7 +1125,7 @@ func (p portalServiceImp) PaperTransaction(info request.PaperTransaction) (out r
 	paperTransactionRequest.MintMethod.Payment.Currency = portalConfig.Paper.Payment.Currency
 
 	//sign
-	_, _, _, assets, spay, _, err := function.JudgeChain(info.ChainId)
+	_, _, _, assets, _, err := function.JudgeChain(info.ChainId)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperTransaction Chain error")
 		return out, common.ChainNetError, errors.New("current network is not supported")
@@ -1164,7 +1165,7 @@ func (p portalServiceImp) PaperTransaction(info request.PaperTransaction) (out r
 	paperTransactionRequest.MintMethod.Args.ToAddress = info.WalletAddress
 	paperTransactionRequest.MintMethod.Args.OwnerAddress = vAssets.UID
 	paperTransactionRequest.MintMethod.Args.NftAddress = assets
-	paperTransactionRequest.MintMethod.Args.PaymentToken = spay
+	paperTransactionRequest.MintMethod.Args.PaymentToken = portalConfig.ETHContract.Spay
 	paperTransactionRequest.MintMethod.Args.TokenId = info.TokenId
 	paperTransactionRequest.MintMethod.Args.Price = orderDetail.Price
 	paperTransactionRequest.MintMethod.Args.StartTime = order.StartTime.Unix()
