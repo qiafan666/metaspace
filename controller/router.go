@@ -26,6 +26,7 @@ func RegisterRouter(ctx *iris.Application) {
 				PortalService:     web2.NewPortalServiceInstance(),
 				GameAssetsService: web2.NewGameAssetsInstance(),
 				MarketService:     web2.NewMarketInstance(),
+				AvatarService:     web2.NewAvatarServiceInstance(),
 			})
 		})
 	//api router

@@ -230,5 +230,46 @@ type PaperTransaction struct {
 	SdkClientSecret string `json:"sdkClientSecret"`
 }
 
+type Avatar struct {
+	BasePagination
+	Data []AvatarBody `json:"avatar_list"`
+}
+
+type AvatarBody struct {
+	Id            int64     `json:"asset_id"`
+	Owner         string    `json:"seller"`
+	AvatarID      int64     `json:"token_id"`
+	Content       string    `json:"content"`
+	IsShelf       uint8     `json:"is_shelf"` // 1:shelf  2:not shelf
+	Status        uint8     `json:"status"`
+	Price         string    `json:"price"`
+	OrderId       uint64    `json:"order_id"`
+	ExpireTime    time.Time `json:"expire_time"`
+	Signature     string    `json:"signature"`
+	SaltNonce     string    `json:"salt_nonce"`
+	StartTime     time.Time `json:"start_time"`
+	ContractChain uint64    `json:"contract_chain"`
+}
+
+type OrderAvatar struct {
+	BasePagination
+	Data []AvatarDetail `json:"avatar_list"`
+}
+
+type AvatarDetail struct {
+	Id            int64     `json:"order_id"`
+	AssetId       int64     `json:"asset_id"`
+	Owner         string    `json:"seller"`
+	AvatarID      int64     `json:"token_id"`
+	Content       string    `json:"content"`
+	Price         string    `json:"price"`
+	Status        uint8     `json:"status"`
+	Signature     string    `json:"signature"`
+	SaltNonce     string    `json:"salt_nonce"`
+	StartTime     time.Time `json:"start_time"`
+	ExpireTime    time.Time `json:"expire_time"`
+	ContractChain uint64    `json:"contract_chain"`
+}
+
 type Test struct {
 }

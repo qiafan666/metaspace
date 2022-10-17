@@ -36,16 +36,21 @@ type MarketService interface {
 	GetOrdersGroup(info request.OrdersGroup) (out response.OrdersGroup, code commons.ResponseCode, err error)
 	GetOrdersGroupDetail(info request.OrdersGroupDetail) (out []response.OrdersGroupDetail, code commons.ResponseCode, err error)
 	GetOrdersOfficial(info request.OrdersOfficial) (out response.OrdersOfficial, code commons.ResponseCode, err error)
+	OrderAvatar(info request.OrderAvatar) (out response.OrderAvatar, code commons.ResponseCode, err error)
 }
 
-var marketPortalConfig struct {
+var marketConfig struct {
 	System struct {
 		Official string `yaml:"official"`
 	} `yaml:"system"`
+	Chain struct {
+		ETH uint64 `yaml:"eth"`
+		BSC uint64 `yaml:"bsc"`
+	} `yaml:"chain"`
 }
 
 func init() {
-	cornus.GetCornusInstance().LoadCustomizeConfig(&marketPortalConfig)
+	cornus.GetCornusInstance().LoadCustomizeConfig(&marketConfig)
 }
 
 var marketServiceIns *marketServiceImp
@@ -664,7 +669,7 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 				Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
 				Where("orders.status=?", common.OrderStatusActive).
 				Where("`group`.group_name=?", common.GroupLand).
-				Where("assets.uid !=?", marketPortalConfig.System.Official)
+				Where("assets.uid !=?", marketConfig.System.Official)
 			//filter
 			if info.ChainId > 0 {
 				db = db.Where("assets.origin_chain=?", info.ChainId)
@@ -787,7 +792,7 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 				Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
 				Where("orders.status=?", common.OrderStatusActive).
 				Where("`group`.group_name=?", common.GroupTicket).
-				Where("assets.uid !=?", marketPortalConfig.System.Official)
+				Where("assets.uid !=?", marketConfig.System.Official)
 			//filter
 			if info.ChainId > 0 {
 				db = db.Where("assets.origin_chain=?", info.ChainId)
@@ -909,7 +914,7 @@ redo:
 			Where("orders.status=?", common.OrderStatusActive).
 			Where("assets.category !=?", common.Land).
 			Where("assets.category !=?", common.Ticket).
-			Where("assets.uid !=?", marketPortalConfig.System.Official)
+			Where("assets.uid !=?", marketConfig.System.Official)
 		if info.ChainId > 0 {
 			db = db.Where("assets.origin_chain=?", info.ChainId)
 		}
@@ -946,7 +951,7 @@ redo:
 				Where("orders.status=?", common.OrderStatusActive).
 				Where("assets.category !=?", common.Land).
 				Where("assets.category !=?", common.Ticket).
-				Where("assets.uid !=?", marketPortalConfig.System.Official)
+				Where("assets.uid !=?", marketConfig.System.Official)
 			//filter
 			if info.ChainId > 0 {
 				db = db.Where("assets.origin_chain=?", info.ChainId)
@@ -1113,7 +1118,7 @@ func (m marketServiceImp) GetOrdersGroupDetail(info request.OrdersGroupDetail) (
 				Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
 				Where("orders.status=?", common.OrderStatusActive).
 				Where("`group`.group_name=?", group).
-				Where("assets.uid !=?", marketPortalConfig.System.Official)
+				Where("assets.uid !=?", marketConfig.System.Official)
 			//filter
 			if info.ChainId > 0 {
 				db = db.Where("assets.origin_chain=?", info.ChainId)
@@ -1228,7 +1233,7 @@ redo:
 		db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
 			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
 			Where("orders.status=?", common.OrderStatusActive).
-			Where("assets.uid=?", marketPortalConfig.System.Official)
+			Where("assets.uid=?", marketConfig.System.Official)
 		return db
 	})
 	if err != nil {
@@ -1246,7 +1251,7 @@ redo:
 				Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
 				Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
 				Where("orders.status=?", common.OrderStatusActive).
-				Where("assets.uid=?", marketPortalConfig.System.Official)
+				Where("assets.uid=?", marketConfig.System.Official)
 			//filter
 			if info.ChainId > 0 {
 				db = db.Where("assets.origin_chain=?", info.ChainId)
@@ -1379,6 +1384,119 @@ redo:
 		goto redo
 	}
 	out.Total = count + 1
+	out.CurrentPage = info.CurrentPage
+	out.PrePageCount = info.PageCount
+	return
+
+}
+
+func (m marketServiceImp) OrderAvatar(info request.OrderAvatar) (out response.OrderAvatar, code commons.ResponseCode, err error) {
+redo:
+	count, err := m.dao.WithContext(info.Ctx).Count(join.OrdersAvatar{}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+			Joins("INNER JOIN avatar ON avatar.avatar_id = orders_detail.nft_id").
+			Where("orders.status=?", common.OrderStatusActive).
+			Where("orders_detail.market_type=?", common.Avatar)
+		return db
+	})
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp OrderAvatar Count error %s", err.Error())
+		return out, 0, err
+	}
+
+	var ordersAvatar []join.OrdersAvatar
+	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce,orders.buyer," +
+		"orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time,orders_detail.nft_id," +
+		"orders_detail.price,orders_detail.market_type,avatar.id as asset_id,avatar.avatar_id,avatar.owner,avatar.content,avatar.is_shelf"}, map[string]interface{}{},
+		func(db *gorm.DB) *gorm.DB {
+			db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
+				Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
+				Joins("INNER JOIN avatar ON avatar.avatar_id = orders_detail.nft_id").
+				Where("orders.status=?", common.OrderStatusActive).
+				Where("orders_detail.market_type=?", common.Avatar)
+
+			return db.Order(model.OrdersColumns.UpdatedTime + " desc")
+		}, &ordersAvatar)
+	if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp OrderAvatar detail error %s", err.Error())
+		return out, 0, err
+	}
+
+	tx := m.dao.Tx()
+
+	out.Data = make([]response.AvatarDetail, 0, len(ordersAvatar))
+	redoFlag := false
+
+	for _, v := range ordersAvatar {
+		//check expireTime
+		if v.ExpireTime.Before(time.Now()) {
+			//update order status
+			result, err := tx.WithContext(info.Ctx).Update(model.Orders{
+				Status: common.OrderStatusExpire,
+			}, map[string]interface{}{
+				model.OrdersColumns.ID: v.Id,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update Order Status error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+			if result == 0 {
+				redoFlag = true
+				continue
+			}
+
+			_, err = tx.WithContext(info.Ctx).Update(model.Avatar{
+				IsShelf: common.NotShelf,
+			}, map[string]interface{}{
+				model.AvatarColumns.AvatarID: v.AvatarID,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update avatar is_nft error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+
+			//add expire history
+			newTransactionHistory := model.TransactionHistory{
+				WalletAddress: v.Seller,
+				TokenID:       v.NftID,
+				Price:         v.Price,
+				OriginChain:   marketConfig.Chain.ETH,
+				Status:        common.Expire,
+				MarketType:    common.Avatar,
+				UpdatedTime:   time.Now(),
+				CreatedTime:   time.Now(),
+			}
+			err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+				tx.Rollback()
+				return out, 0, err
+			}
+		} else {
+
+			out.Data = append(out.Data, response.AvatarDetail{
+				Id:            v.Id,
+				AssetId:       v.AvatarID,
+				Owner:         v.Owner,
+				AvatarID:      v.AvatarID,
+				Content:       string(v.Content),
+				Price:         v.Price,
+				Status:        v.Status,
+				Signature:     v.Signature,
+				SaltNonce:     v.SaltNonce,
+				StartTime:     v.StartTime,
+				ExpireTime:    v.ExpireTime,
+				ContractChain: avatarConfig.Chain.ETH,
+			})
+		}
+	}
+	_ = tx.Commit()
+	if redoFlag {
+		goto redo
+	}
+	out.Total = count
 	out.CurrentPage = info.CurrentPage
 	out.PrePageCount = info.PageCount
 	return

@@ -274,6 +274,24 @@ type PaperTransactionRequest struct {
 	} `json:"mintMethod"`
 }
 
+type Avatar struct {
+	BaseRequest
+	BasePagination
+	BasePortalRequest
+}
+
+type OrderAvatar struct {
+	BaseRequest
+	BasePagination
+	BasePortalRequest
+}
+
+type AvatarDetail struct {
+	BaseRequest
+	BasePortalRequest
+	AssetId int64 `json:"asset_id" validate:"required"`
+}
+
 type Test struct {
 	BaseRequest
 	Event  string      `json:"event"`
