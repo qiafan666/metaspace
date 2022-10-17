@@ -1126,7 +1126,7 @@ func (p portalServiceImp) PaperTransaction(info request.PaperTransaction) (out r
 	paperTransactionRequest.MintMethod.Payment.Currency = portalConfig.Paper.Payment.Currency
 
 	//sign
-	_, _, _, assets, _, err := function.JudgeChain(info.ChainId)
+	//_, _, _, _, _, err := function.JudgeChain(info.ChainId)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperTransaction Chain error")
 		return out, common.ChainNetError, errors.New("current network is not supported")
