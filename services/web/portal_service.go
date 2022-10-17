@@ -1002,7 +1002,6 @@ func (p portalServiceImp) PaperMint(info request.PaperMint) (out response.PaperM
 	}
 
 	address := ethCommon.HexToAddress(mint)
-	slog.Slog.InfoF(info.Ctx, "mint :%s", mint)
 	instance, err := bsc_mint.NewContracts(address, client)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint NewContracts error")
@@ -1054,8 +1053,6 @@ func (p portalServiceImp) PaperMint(info request.PaperMint) (out response.PaperM
 			nftAddress = ship
 		} else {
 			message, err = instance.GetMessageHash(nil, ethCommon.HexToAddress(assets), tokenId, userAddress, category, subCategory, rarity)
-			slog.Slog.InfoF(info.Ctx, "assets :%s", assets)
-
 			if err != nil {
 				slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint GetMessageHash error:%s", err.Error())
 				return out, 0, err
