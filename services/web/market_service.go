@@ -47,6 +47,9 @@ var marketConfig struct {
 		ETH uint64 `yaml:"eth"`
 		BSC uint64 `yaml:"bsc"`
 	} `yaml:"chain"`
+	ETHContract struct {
+		Avatar string `yaml:"avatar"`
+	} `yaml:"eth_contract"`
 }
 
 func init() {
@@ -74,25 +77,23 @@ type marketServiceImp struct {
 
 func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out response.ShelfSign, code commons.ResponseCode, err error) {
 
-	//tokenId
-	var vAssets model.Assets
-	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenID, model.AssetsColumns.UID, model.AssetsColumns.Category, model.AssetsColumns.OriginChain}, map[string]interface{}{
-		model.AssetsColumns.ID: info.AssetId,
-	}, nil, &vAssets)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature assets by AssetId not find error:%s", err.Error())
-		return out, 0, err
-	}
+	switch info.MarketType {
+	case common.Assets:
+		//tokenId
+		var vAssets model.Assets
+		err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenID, model.AssetsColumns.UID, model.AssetsColumns.Category, model.AssetsColumns.OriginChain}, map[string]interface{}{
+			model.AssetsColumns.ID: info.AssetId,
+		}, nil, &vAssets)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature assets by AssetId not find error:%s", err.Error())
+			return out, 0, err
+		}
 
-	_, ship, market, assets, client, err := function.JudgeChain(vAssets.OriginChain)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
-		return out, common.ChainNetError, errors.New("current network is not supported")
-	}
-
-	tokenId := big.NewInt(vAssets.TokenID)
-	if vAssets.TokenID > 0 {
-		// check is nft
+		_, ship, market, assets, client, err := function.JudgeChain(vAssets.OriginChain)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
+			return out, common.ChainNetError, errors.New("current network is not supported")
+		}
 
 		var address ethcommon.Address
 		if vAssets.Category == int64(common.Ship) {
@@ -101,79 +102,136 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 			address = ethcommon.HexToAddress(assets)
 		}
 
-		instanceOwner, errs := eth_assets.NewContracts(address, client)
-		if errs != nil {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature address not match error:%s", err.Error())
-			return out, 0, errs
-		}
+		tokenId := big.NewInt(vAssets.TokenID)
+		if vAssets.TokenID > 0 {
+			// check is nft
 
-		of, errs := instanceOwner.OwnerOf(nil, tokenId)
-		if errs != nil {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get walletAdress error")
-			return out, 0, errs
-		}
-		if strings.ToLower(of.String()) != info.BaseWallet {
-			//check assets owner
-			if vAssets.UID != strings.ToLower(of.String()) {
-				_, errs = m.dao.WithContext(info.Ctx).Update(model.Assets{
-					UID:       strings.ToLower(of.String()),
-					UpdatedAt: time.Now(),
-				}, map[string]interface{}{
-					model.AssetsColumns.TokenID: vAssets.TokenID,
-				}, nil)
-				if errs != nil {
-					slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets uid error %s", err.Error())
-					return out, 0, errs
-				}
+			instanceOwner, errs := eth_assets.NewContracts(address, client)
+			if errs != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature address not match error:%s", err.Error())
+				return out, 0, errs
 			}
 
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature find assets walletAdress Mismatch with user error")
-			return out, 0, errors.New("marketServiceImp GetShelfSignature find assets walletAdress Mismatch with user error")
+			of, errs := instanceOwner.OwnerOf(nil, tokenId)
+			if errs != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature get walletAdress error")
+				return out, 0, errs
+			}
+			if strings.ToLower(of.String()) != info.BaseWallet {
+				//check assets owner
+				if vAssets.UID != strings.ToLower(of.String()) {
+					_, errs = m.dao.WithContext(info.Ctx).Update(model.Assets{
+						UID:       strings.ToLower(of.String()),
+						UpdatedAt: time.Now(),
+					}, map[string]interface{}{
+						model.AssetsColumns.TokenID: vAssets.TokenID,
+					}, nil)
+					if errs != nil {
+						slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets uid error %s", err.Error())
+						return out, 0, errs
+					}
+				}
 
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature find assets walletAdress Mismatch with user error")
+				return out, 0, errors.New("marketServiceImp GetShelfSignature find assets walletAdress Mismatch with user error")
+
+			}
+
+		} else {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature error: tokenId not nil")
+			return out, 0, err
 		}
 
-	} else {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature error: tokenId not nil")
-		return out, 0, err
+		//_price
+		price, flag := big.NewInt(0).SetString(info.Price, 10)
+		if flag == false {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature price setString error")
+			return out, commons.ParameterError, err
+		}
+		//_saltNonce
+		saltNonce := big.NewInt(int64(rand.Int31()))
+
+		startTimeUnix := info.StartTime.UTC().Unix()
+		endTimeUnix := info.ExpireTime.UTC().Unix()
+
+		instance, err := eth_market.NewContracts(ethcommon.HexToAddress(market), client)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
+			return out, 0, err
+		}
+
+		message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(market), tokenId, ethcommon.HexToAddress(info.PaymentErc20),
+			price, big.NewInt(startTimeUnix), big.NewInt(endTimeUnix), saltNonce)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
+			return out, 0, err
+		}
+		out.SignMessage = ethcommon.BytesToHash(message[:]).String()
+		out.SaltNonce = saltNonce.String()
+		err = m.redis.SetRawMessage(info.Ctx, inner.RawMessage{
+			RawMessage: out.SignMessage,
+			StartTime:  info.StartTime,
+			ExpireTime: info.ExpireTime,
+		}, time.Minute*3)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetTokenUser error %s", err.Error())
+			return out, 0, err
+		}
+		return out, 0, nil
+	case common.Avatar:
+		var avatar model.Avatar
+		err = m.dao.WithContext(info.Ctx).First([]string{model.AvatarColumns.AvatarID}, map[string]interface{}{
+			model.AvatarColumns.ID: info.AssetId,
+		}, nil, &avatar)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature assets by AssetId not find error:%s", err.Error())
+			return out, 0, err
+		}
+
+		_, _, market, _, client, err := function.JudgeChain(marketConfig.Chain.ETH)
+
+		//_price
+		price, flag := big.NewInt(0).SetString(info.Price, 10)
+		if flag == false {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature price setString error")
+			return out, commons.ParameterError, err
+		}
+		tokenId := big.NewInt(avatar.AvatarID)
+		//_saltNonce
+		saltNonce := big.NewInt(int64(rand.Int31()))
+
+		startTime := time.Now()
+		endTime := info.ExpireTime
+
+		address := ethcommon.HexToAddress(market)
+		instance, err := eth_market.NewContracts(address, client)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
+			return out, 0, err
+		}
+
+		message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(marketConfig.ETHContract.Avatar), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, big.NewInt(startTime.Unix()), big.NewInt(endTime.Unix()), saltNonce)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
+			return out, 0, err
+		}
+		out.SignMessage = ethcommon.BytesToHash(message[:]).String()
+		out.SaltNonce = saltNonce.String()
+		err = m.redis.SetRawMessage(info.Ctx, inner.RawMessage{
+			RawMessage: out.SignMessage,
+			StartTime:  startTime,
+			ExpireTime: endTime,
+		}, time.Minute*3)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetTokenUser error %s", err.Error())
+			return out, 0, err
+		}
+		return out, 0, nil
+	default:
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp type error")
+		return
 	}
 
-	//_price
-	price, flag := big.NewInt(0).SetString(info.Price, 10)
-	if flag == false {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature price setString error")
-		return out, commons.ParameterError, err
-	}
-	//_saltNonce
-	saltNonce := big.NewInt(int64(rand.Int31()))
-
-	startTimeUnix := info.StartTime.UTC().Unix()
-	endTimeUnix := info.ExpireTime.UTC().Unix()
-
-	address := ethcommon.HexToAddress(market)
-	instance, err := eth_market.NewContracts(address, client)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
-		return out, 0, err
-	}
-
-	message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(assets), tokenId, ethcommon.HexToAddress(info.PaymentErc20),
-		price, big.NewInt(startTimeUnix), big.NewInt(endTimeUnix), saltNonce)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
-		return out, 0, err
-	}
-	out.SignMessage = ethcommon.BytesToHash(message[:]).String()
-	out.SaltNonce = saltNonce.String()
-	err = m.redis.SetRawMessage(info.Ctx, inner.RawMessage{
-		RawMessage: out.SignMessage,
-		StartTime:  info.StartTime,
-		ExpireTime: info.ExpireTime,
-	}, time.Minute*3)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetTokenUser error %s", err.Error())
-		return out, 0, err
-	}
-	return out, 0, nil
 }
 
 func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellShelf, code commons.ResponseCode, err error) {
@@ -194,209 +252,405 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 		slog.Slog.ErrorF(info.Ctx, "marketServiceImp expireTime error:%s", err.Error())
 		return out, 0, err
 	}
-	//itemId
-	var vAssets model.Assets
-	err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenID, model.AssetsColumns.Category, model.AssetsColumns.OriginChain}, map[string]interface{}{
-		model.AssetsColumns.ID: info.ItemId,
-	}, nil, &vAssets)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf assets by ItemId not find error:%s", err.Error())
-		return out, 0, err
-	}
 
-	_, ship, market, assets, client, err := function.JudgeChain(vAssets.OriginChain)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
-		return out, common.ChainNetError, errors.New("current network is not supported")
-	}
-
-	var address ethcommon.Address
-	if vAssets.Category == int64(common.Ship) {
-		address = ethcommon.HexToAddress(ship)
-	} else {
-		address = ethcommon.HexToAddress(assets)
-	}
-
-	instance, err := eth_assets.NewContracts(address, client)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf NewContracts error:%s", err.Error())
-		return out, 0, err
-	}
-
-	of, err := instance.OwnerOf(nil, big.NewInt(vAssets.TokenID))
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp get userAddress error: %s", err.Error())
-		return out, 0, err
-	}
-
-	//check
-	if info.BaseWallet != strings.ToLower(of.String()) {
-		slog.Slog.ErrorF(info.Ctx, "assets address not wallet address")
-		return out, common.WalletError, errors.New("inconsistent wallet addresses")
-	}
-
-	if strings.HasPrefix(info.SignedMessage, "0x") == false {
-		info.SignedMessage = "0x" + info.SignedMessage
-	}
-
-	marketAddress := ethcommon.HexToAddress(market)
-	marketInstance, err := eth_market.NewContracts(marketAddress, client)
-	if err != nil {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf marketNewContracts error:%s", err.Error())
-		return out, 0, err
-	}
-
-	flag, err := marketInstance.UsedSignatures(nil, []byte(info.SignedMessage))
-	if flag == true {
-		slog.Slog.InfoF(info.Ctx, "marketServiceImp GetSellShelf Signatures already used : %s", err.Error())
-		return out, common.UsedSignature, err
-	}
-
-	if err = function.VerifySigEthHash(of.String(), info.SignedMessage, info.RawMessage); err != nil {
-		slog.Slog.InfoF(info.Ctx, "marketServiceImp GetSellShelf verify error %s", err.Error())
-		return out, common.SignatureVerificationError, err
-	}
-
-	tx := m.dao.Tx()
-	defer func() {
+	switch info.MarketType {
+	case common.Assets:
+		//itemId
+		var vAssets model.Assets
+		err = m.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.TokenID, model.AssetsColumns.Category, model.AssetsColumns.OriginChain}, map[string]interface{}{
+			model.AssetsColumns.ID: info.ItemId,
+		}, nil, &vAssets)
 		if err != nil {
-			tx.Rollback()
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf assets by ItemId not find error:%s", err.Error())
+			return out, 0, err
+		}
+
+		_, ship, market, assets, client, err := function.JudgeChain(vAssets.OriginChain)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
+			return out, common.ChainNetError, errors.New("current network is not supported")
+		}
+
+		var address ethcommon.Address
+		if vAssets.Category == int64(common.Ship) {
+			address = ethcommon.HexToAddress(ship)
 		} else {
-			_ = tx.Commit()
+			address = ethcommon.HexToAddress(assets)
 		}
-	}()
 
-	var ordersDetail model.OrdersDetail
-	err = m.dao.First([]string{model.OrdersDetailColumns.OrderID}, map[string]interface{}{
-		model.OrdersDetailColumns.NftID: vAssets.TokenID,
-	}, nil, &ordersDetail)
-	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
-		slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf get ordersDetail by tokenId error %s", err.Error())
-		return out, 0, err
-
-	} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
-		newOrders := model.Orders{
-			Seller:      info.BaseWallet,
-			Signature:   info.SignedMessage,
-			Status:      common.OrderStatusActive,
-			SaltNonce:   info.SaltNonce,
-			TotalPrice:  info.Price,
-			StartTime:   signMessage.StartTime,
-			ExpireTime:  signMessage.ExpireTime,
-			CreatedTime: time.Now(),
-			UpdatedTime: time.Now(),
-		}
-		err = tx.WithContext(info.Ctx).Create(&newOrders)
+		instance, err := eth_assets.NewContracts(address, client)
 		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Create error %s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf NewContracts error:%s", err.Error())
 			return out, 0, err
 		}
 
-		newOrdersDetail := model.OrdersDetail{
-			OrderID:     newOrders.ID,
-			NftID:       vAssets.TokenID,
-			Price:       info.Price,
-			CreatedTime: time.Now(),
-			UpdatedTime: time.Now(),
-		}
-
-		err = tx.WithContext(info.Ctx).Create(&newOrdersDetail)
+		of, err := instance.OwnerOf(nil, big.NewInt(vAssets.TokenID))
 		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders detail Create error %s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp get userAddress error: %s", err.Error())
 			return out, 0, err
 		}
 
-		//add shelf history
-		newTransactionHistory := model.TransactionHistory{
-			WalletAddress: info.BaseWallet,
-			TokenID:       vAssets.TokenID,
-			Price:         info.Price,
-			OriginChain:   vAssets.OriginChain,
-			Status:        common.Shelf,
-			UpdatedTime:   time.Now(),
-			CreatedTime:   time.Now(),
+		//check
+		if info.BaseWallet != strings.ToLower(of.String()) {
+			slog.Slog.ErrorF(info.Ctx, "assets address not wallet address")
+			return out, common.WalletError, errors.New("inconsistent wallet addresses")
 		}
 
-		err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+		if strings.HasPrefix(info.SignedMessage, "0x") == false {
+			info.SignedMessage = "0x" + info.SignedMessage
+		}
+
+		marketAddress := ethcommon.HexToAddress(market)
+		marketInstance, err := eth_market.NewContracts(marketAddress, client)
 		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf marketNewContracts error:%s", err.Error())
 			return out, 0, err
 		}
 
-		//update assets is_nft
-		_, err = tx.WithContext(info.Ctx).Update(model.Assets{
-			IsShelf: common.IsShelf,
-		}, map[string]interface{}{
-			model.AssetsColumns.TokenID: vAssets.TokenID,
-		}, nil)
+		flag, err := marketInstance.UsedSignatures(nil, []byte(info.SignedMessage))
+		if flag == true {
+			slog.Slog.InfoF(info.Ctx, "marketServiceImp GetSellShelf Signatures already used : %s", err.Error())
+			return out, common.UsedSignature, err
+		}
+
+		if err = function.VerifySigEthHash(of.String(), info.SignedMessage, info.RawMessage); err != nil {
+			slog.Slog.InfoF(info.Ctx, "marketServiceImp GetSellShelf verify error %s", err.Error())
+			return out, common.SignatureVerificationError, err
+		}
+
+		tx := m.dao.Tx()
+		defer func() {
+			if err != nil {
+				tx.Rollback()
+			} else {
+				_ = tx.Commit()
+			}
+		}()
+
+		var ordersDetail model.OrdersDetail
+		err = m.dao.First([]string{model.OrdersDetailColumns.OrderID}, map[string]interface{}{
+			model.OrdersDetailColumns.NftID:      vAssets.TokenID,
+			model.OrdersDetailColumns.MarketType: common.Assets,
+		}, nil, &ordersDetail)
+		if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf get ordersDetail by tokenId error %s", err.Error())
+			return out, 0, err
+
+		} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
+			newOrders := model.Orders{
+				Seller:      info.BaseWallet,
+				Signature:   info.SignedMessage,
+				Status:      common.OrderStatusActive,
+				SaltNonce:   info.SaltNonce,
+				TotalPrice:  info.Price,
+				StartTime:   signMessage.StartTime,
+				ExpireTime:  signMessage.ExpireTime,
+				CreatedTime: time.Now(),
+				UpdatedTime: time.Now(),
+			}
+			err = tx.WithContext(info.Ctx).Create(&newOrders)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Create error %s", err.Error())
+				return out, 0, err
+			}
+
+			newOrdersDetail := model.OrdersDetail{
+				OrderID:     newOrders.ID,
+				NftID:       vAssets.TokenID,
+				Price:       info.Price,
+				MarketType:  common.Assets,
+				CreatedTime: time.Now(),
+				UpdatedTime: time.Now(),
+			}
+
+			err = tx.WithContext(info.Ctx).Create(&newOrdersDetail)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders detail Create error %s", err.Error())
+				return out, 0, err
+			}
+
+			//add shelf history
+			newTransactionHistory := model.TransactionHistory{
+				WalletAddress: info.BaseWallet,
+				TokenID:       vAssets.TokenID,
+				Price:         info.Price,
+				OriginChain:   vAssets.OriginChain,
+				MarketType:    common.Assets,
+				Status:        common.Shelf,
+				UpdatedTime:   time.Now(),
+				CreatedTime:   time.Now(),
+			}
+
+			err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+				return out, 0, err
+			}
+
+			//update assets is_nft
+			_, err = tx.WithContext(info.Ctx).Update(model.Assets{
+				IsShelf: common.IsShelf,
+			}, map[string]interface{}{
+				model.AssetsColumns.TokenID: vAssets.TokenID,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets is_nft error %s", err.Error())
+				return out, 0, err
+			}
+
+			out.RawMessage = info.RawMessage
+			out.SignMessage = info.SignedMessage
+		} else {
+			//update order status
+			_, err = tx.WithContext(info.Ctx).Update(model.Orders{
+				Status:      common.OrderStatusActive,
+				SaltNonce:   info.SaltNonce,
+				Signature:   info.SignedMessage,
+				TotalPrice:  info.Price,
+				StartTime:   signMessage.StartTime,
+				ExpireTime:  signMessage.ExpireTime,
+				UpdatedTime: time.Now(),
+			}, map[string]interface{}{
+				model.OrdersColumns.ID: ordersDetail.OrderID,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update Order Status error %s", err.Error())
+				return out, 0, err
+			}
+			//update orders_detail status
+			_, err = tx.WithContext(info.Ctx).Update(model.OrdersDetail{
+				Price:       info.Price,
+				UpdatedTime: time.Now(),
+			}, map[string]interface{}{
+				model.OrdersDetailColumns.NftID: vAssets.TokenID,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update orders_detail expireTime error %s", err.Error())
+				return out, 0, err
+			}
+
+			//add shelf history
+			newTransactionHistory := model.TransactionHistory{
+				WalletAddress: info.BaseWallet,
+				TokenID:       vAssets.TokenID,
+				Price:         info.Price,
+				OriginChain:   vAssets.OriginChain,
+				Status:        common.Shelf,
+				MarketType:    common.Assets,
+				UpdatedTime:   time.Now(),
+				CreatedTime:   time.Now(),
+			}
+
+			err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+				return out, 0, err
+			}
+
+			//update assets is_nft
+			_, err = tx.WithContext(info.Ctx).Update(model.Assets{
+				IsShelf: common.IsShelf,
+			}, map[string]interface{}{
+				model.AssetsColumns.TokenID: vAssets.TokenID,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets is_nft error %s", err.Error())
+				return out, 0, err
+			}
+
+			out.RawMessage = info.RawMessage
+			out.SignMessage = info.SignedMessage
+		}
+		return out, 0, nil
+
+	case common.Avatar:
+		var avatar model.Avatar
+		err = m.dao.WithContext(info.Ctx).First([]string{model.AvatarColumns.AvatarID, model.AvatarColumns.Owner}, map[string]interface{}{
+			model.AvatarColumns.ID: info.ItemId,
+		}, nil, &avatar)
 		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets is_nft error %s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf assets by ItemId not find error:%s", err.Error())
 			return out, 0, err
 		}
 
-		out.RawMessage = info.RawMessage
-		out.SignMessage = info.SignedMessage
-	} else {
-		//update order status
-		_, err = tx.WithContext(info.Ctx).Update(model.Orders{
-			Status:      common.OrderStatusActive,
-			SaltNonce:   info.SaltNonce,
-			Signature:   info.SignedMessage,
-			TotalPrice:  info.Price,
-			StartTime:   signMessage.StartTime,
-			ExpireTime:  signMessage.ExpireTime,
-			UpdatedTime: time.Now(),
-		}, map[string]interface{}{
-			model.OrdersColumns.ID: ordersDetail.OrderID,
-		}, nil)
-		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update Order Status error %s", err.Error())
-			return out, 0, err
+		if strings.HasPrefix(info.SignedMessage, "0x") == false {
+			info.SignedMessage = "0x" + info.SignedMessage
 		}
-		//update orders_detail status
-		_, err = tx.WithContext(info.Ctx).Update(model.OrdersDetail{
-			Price:       info.Price,
-			UpdatedTime: time.Now(),
-		}, map[string]interface{}{
-			model.OrdersDetailColumns.NftID: vAssets.TokenID,
-		}, nil)
+
+		_, _, market, _, client, err := function.JudgeChain(marketConfig.Chain.ETH)
 		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update orders_detail expireTime error %s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
+			return out, common.ChainNetError, errors.New("current network is not supported")
+		}
+
+		marketAddress := ethcommon.HexToAddress(market)
+		marketInstance, err := eth_market.NewContracts(marketAddress, client)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf marketNewContracts error:%s", err.Error())
 			return out, 0, err
 		}
 
-		//add shelf history
-		newTransactionHistory := model.TransactionHistory{
-			WalletAddress: info.BaseWallet,
-			TokenID:       vAssets.TokenID,
-			Price:         info.Price,
-			OriginChain:   vAssets.OriginChain,
-			Status:        common.Shelf,
-			UpdatedTime:   time.Now(),
-			CreatedTime:   time.Now(),
+		flag, err := marketInstance.UsedSignatures(nil, []byte(info.SignedMessage))
+		if flag == true {
+			slog.Slog.InfoF(info.Ctx, "marketServiceImp GetSellShelf Signatures already used : %s", err.Error())
+			return out, common.UsedSignature, err
 		}
 
-		err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
-		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+		if err = function.VerifySigEthHash(avatar.Owner, info.SignedMessage, info.RawMessage); err != nil {
+			slog.Slog.InfoF(info.Ctx, "marketServiceImp GetSellShelf verify error %s", err.Error())
+			return out, common.SignatureVerificationError, err
+		}
+
+		tx := m.dao.Tx()
+		defer func() {
+			if err != nil {
+				tx.Rollback()
+			} else {
+				_ = tx.Commit()
+			}
+		}()
+
+		var ordersDetail model.OrdersDetail
+		err = m.dao.First([]string{model.OrdersDetailColumns.OrderID}, map[string]interface{}{
+			model.OrdersDetailColumns.NftID:      avatar.AvatarID,
+			model.OrdersDetailColumns.MarketType: common.Avatar,
+		}, nil, &ordersDetail)
+		if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == false {
+			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSellShelf get ordersDetail by tokenId error %s", err.Error())
 			return out, 0, err
-		}
 
-		//update assets is_nft
-		_, err = tx.WithContext(info.Ctx).Update(model.Assets{
-			IsShelf: common.IsShelf,
-		}, map[string]interface{}{
-			model.AssetsColumns.TokenID: vAssets.TokenID,
-		}, nil)
-		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets is_nft error %s", err.Error())
-			return out, 0, err
-		}
+		} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) == true {
+			newOrders := model.Orders{
+				Seller:      info.BaseWallet,
+				Signature:   info.SignedMessage,
+				Status:      common.OrderStatusActive,
+				SaltNonce:   info.SaltNonce,
+				TotalPrice:  info.Price,
+				StartTime:   signMessage.StartTime,
+				ExpireTime:  signMessage.ExpireTime,
+				CreatedTime: time.Now(),
+				UpdatedTime: time.Now(),
+			}
+			err = tx.WithContext(info.Ctx).Create(&newOrders)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders Create error %s", err.Error())
+				return out, 0, err
+			}
 
-		out.RawMessage = info.RawMessage
-		out.SignMessage = info.SignedMessage
+			newOrdersDetail := model.OrdersDetail{
+				OrderID:     newOrders.ID,
+				NftID:       avatar.AvatarID,
+				Price:       info.Price,
+				MarketType:  common.Avatar,
+				CreatedTime: time.Now(),
+				UpdatedTime: time.Now(),
+			}
+
+			err = tx.WithContext(info.Ctx).Create(&newOrdersDetail)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp orders detail Create error %s", err.Error())
+				return out, 0, err
+			}
+
+			//add shelf history
+			newTransactionHistory := model.TransactionHistory{
+				WalletAddress: info.BaseWallet,
+				TokenID:       avatar.AvatarID,
+				Price:         info.Price,
+				OriginChain:   marketConfig.Chain.ETH,
+				Status:        common.Shelf,
+				MarketType:    common.Avatar,
+				UpdatedTime:   time.Now(),
+				CreatedTime:   time.Now(),
+			}
+
+			err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+				return out, 0, err
+			}
+
+			//update assets is_nft
+			_, err = tx.WithContext(info.Ctx).Update(model.Avatar{
+				IsShelf: common.IsShelf,
+			}, map[string]interface{}{
+				model.AvatarColumns.AvatarID: avatar.AvatarID,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update avatar is_nft error %s", err.Error())
+				return out, 0, err
+			}
+
+			out.RawMessage = info.RawMessage
+			out.SignMessage = info.SignedMessage
+		} else {
+			//update order status
+			_, err = tx.WithContext(info.Ctx).Update(model.Orders{
+				Status:      common.OrderStatusActive,
+				SaltNonce:   info.SaltNonce,
+				Signature:   info.SignedMessage,
+				TotalPrice:  info.Price,
+				StartTime:   signMessage.StartTime,
+				ExpireTime:  signMessage.ExpireTime,
+				UpdatedTime: time.Now(),
+			}, map[string]interface{}{
+				model.OrdersColumns.ID: ordersDetail.OrderID,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update Order Status error %s", err.Error())
+				return out, 0, err
+			}
+			//update orders_detail status
+			_, err = tx.WithContext(info.Ctx).Update(model.OrdersDetail{
+				Price:       info.Price,
+				UpdatedTime: time.Now(),
+			}, map[string]interface{}{
+				model.OrdersDetailColumns.NftID: avatar.AvatarID,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update orders_detail expireTime error %s", err.Error())
+				return out, 0, err
+			}
+
+			//add shelf history
+			newTransactionHistory := model.TransactionHistory{
+				WalletAddress: info.BaseWallet,
+				TokenID:       avatar.AvatarID,
+				Price:         info.Price,
+				OriginChain:   marketConfig.Chain.ETH,
+				Status:        common.Shelf,
+				MarketType:    common.Avatar,
+				UpdatedTime:   time.Now(),
+				CreatedTime:   time.Now(),
+			}
+
+			err = tx.WithContext(info.Ctx).Create(&newTransactionHistory)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp TransactionHistory Create error %s", err.Error())
+				return out, 0, err
+			}
+
+			//update assets is_nft
+			_, err = tx.WithContext(info.Ctx).Update(model.Avatar{
+				IsShelf: common.IsShelf,
+			}, map[string]interface{}{
+				model.AvatarColumns.AvatarID: avatar.AvatarID,
+			}, nil)
+			if err != nil {
+				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update assets is_nft error %s", err.Error())
+				return out, 0, err
+			}
+
+			out.RawMessage = info.RawMessage
+			out.SignMessage = info.SignedMessage
+		}
+		return out, 0, nil
+
+	default:
+		slog.Slog.ErrorF(info.Ctx, "marketServiceImp type error")
+		return
+
 	}
-	return out, 0, nil
 }
 
 func (m marketServiceImp) GetOrders(info request.Orders) (out response.Orders, code commons.ResponseCode, err error) {
@@ -660,7 +914,7 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 	var landOrdersDetail []join.OrdersDetail
 	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce," +
 		"orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time," +
-		"orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.uid,assets.description,assets.image,assets.`name`," +
+		"orders_detail.nft_id,orders_detail.price,orders_detail.market_type,assets.id as asset_id,assets.uid,assets.description,assets.image,assets.`name`," +
 		"assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain,`group`.group_name"},
 		map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 			db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
@@ -669,6 +923,7 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 				Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
 				Where("orders.status=?", common.OrderStatusActive).
 				Where("`group`.group_name=?", common.GroupLand).
+				Where("orders_detail.market_type=?", common.Assets).
 				Where("assets.uid !=?", marketConfig.System.Official)
 			//filter
 			if info.ChainId > 0 {
@@ -783,7 +1038,7 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 	var ticketOrdersDetail []join.OrdersDetail
 	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce," +
 		"orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time," +
-		"orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.uid,assets.description,assets.image,assets.`name`," +
+		"orders_detail.nft_id,orders_detail.price,orders_detail.market_type,assets.id as asset_id,assets.uid,assets.description,assets.image,assets.`name`," +
 		"assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain,`group`.group_name"},
 		map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 			db.Joins("INNER JOIN orders_detail ON orders_detail.order_id = orders.id").
@@ -791,6 +1046,7 @@ func (m marketServiceImp) GetOrdersGroup(info request.OrdersGroup) (out response
 				Joins("INNER JOIN sku ON assets.category = sku.category and assets.type = sku.type and assets.rarity = sku.rarity").
 				Joins("INNER JOIN `group` ON `group`.sku = sku.sku_name").
 				Where("orders.status=?", common.OrderStatusActive).
+				Where("orders_detail.market_type =?", common.Assets).
 				Where("`group`.group_name=?", common.GroupTicket).
 				Where("assets.uid !=?", marketConfig.System.Official)
 			//filter
@@ -913,6 +1169,7 @@ redo:
 			Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
 			Where("orders.status=?", common.OrderStatusActive).
 			Where("assets.category !=?", common.Land).
+			Where("orders_detail.market_type=?", common.Assets).
 			Where("assets.category !=?", common.Ticket).
 			Where("assets.uid !=?", marketConfig.System.Official)
 		if info.ChainId > 0 {
@@ -942,7 +1199,7 @@ redo:
 	var ordersDetail []join.OrdersDetail
 	err = m.dao.WithContext(info.Ctx).Find([]string{"orders.id,orders.`status`,orders.signature,orders.salt_nonce," +
 		"orders.buyer,orders.seller,orders.total_price,orders.start_time,orders.expire_time,orders.updated_time," +
-		"orders_detail.nft_id,orders_detail.price,assets.id as asset_id,assets.uid,assets.description,assets.image,assets.`name`," +
+		"orders_detail.nft_id,orders_detail.price,orders_detail.market_type,assets.id as asset_id,assets.uid,assets.description,assets.image,assets.`name`," +
 		"assets.category,assets.type,assets.rarity,assets.index_id,assets.nick_name,assets.origin_chain"},
 		map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 			db.Scopes(marketPaginate(info.CurrentPage, info.PageCount, num)).
@@ -950,6 +1207,7 @@ redo:
 				Joins("INNER JOIN assets ON assets.token_id = orders_detail.nft_id").
 				Where("orders.status=?", common.OrderStatusActive).
 				Where("assets.category !=?", common.Land).
+				Where("orders_detail.market_type=?", common.Assets).
 				Where("assets.category !=?", common.Ticket).
 				Where("assets.uid !=?", marketConfig.System.Official)
 			//filter
@@ -1488,7 +1746,7 @@ redo:
 				SaltNonce:     v.SaltNonce,
 				StartTime:     v.StartTime,
 				ExpireTime:    v.ExpireTime,
-				ContractChain: avatarConfig.Chain.ETH,
+				ContractChain: marketConfig.Chain.ETH,
 			})
 		}
 	}
