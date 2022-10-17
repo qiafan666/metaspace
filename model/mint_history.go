@@ -9,20 +9,20 @@ CREATE TABLE `mint_history` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'id',
   `wallet_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `token_id` bigint NOT NULL,
-  `origin_chain` tinyint unsigned NOT NULL,
+  `origin_chain` bigint unsigned NOT NULL,
   `status` tinyint unsigned NOT NULL COMMENT '1:mint',
   `updated_time` timestamp(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update timestamp',
   `created_time` timestamp(3) NOT NULL COMMENT 'create timestamp',
   PRIMARY KEY (`id`),
   KEY `token_id` (`token_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=138 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+) ENGINE=InnoDB AUTO_INCREMENT=176 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 ******sql******/
 // MintHistory [...]
 type MintHistory struct {
 	ID            int64     `gorm:"primaryKey;column:id" json:"-"` // id
 	WalletAddress string    `gorm:"column:wallet_address" json:"wallet_address"`
 	TokenID       int64     `gorm:"column:token_id" json:"token_id"`
-	OriginChain   uint8     `gorm:"column:origin_chain" json:"origin_chain"`
+	OriginChain   uint64    `gorm:"column:origin_chain" json:"origin_chain"`
 	Status        uint8     `gorm:"column:status" json:"status"`             // 1:mint
 	UpdatedTime   time.Time `gorm:"column:updated_time" json:"updated_time"` // update timestamp
 	CreatedTime   time.Time `gorm:"column:created_time" json:"created_time"` // create timestamp

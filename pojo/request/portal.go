@@ -75,8 +75,8 @@ type TowerStats struct {
 type Sign struct {
 	BaseRequest
 	BasePortalRequest
-	Chain   uint8 `json:"chain" validate:"required"`
-	TokenId int64 `json:"token_id" validate:"required"`
+	Chain   uint64 `json:"chain" validate:"required"`
+	TokenId int64  `json:"token_id" validate:"required"`
 }
 
 type ShelfSign struct {
@@ -86,6 +86,7 @@ type ShelfSign struct {
 	PaymentErc20 string    `json:"payment_erc20" validate:"required,max=192"`
 	Price        string    `json:"price" validate:"required,max=192"`
 	ExpireTime   time.Time `json:"expire_time" validate:"required"`
+	StartTime    time.Time `json:"start_time" validate:"required"`
 }
 
 type SellShelf struct {
@@ -110,7 +111,7 @@ type Orders struct {
 	SortTime  uint   `json:"sort_time" validate:"max=2"`
 	Search    string `json:"search" validate:"max=192"`
 
-	ChainId uint8 `json:"chain_id"`
+	ChainId uint64 `json:"chain_id"`
 }
 
 type OrderCancel struct {
@@ -133,7 +134,7 @@ type UserHistory struct {
 	Type              uint8     `json:"type" validate:"required"` //1:transaction history  //2:mint history //3:Listing history
 	FilterTransaction uint8     `json:"filter_transaction"`
 	FilterTime        time.Time `json:"filter_time"`
-	ChainId           uint8     `json:"chain_id"`
+	ChainId           uint64    `json:"chain_id"`
 }
 
 type ExchangePrice struct {
@@ -146,9 +147,9 @@ type ExchangePrice struct {
 type AssetDetail struct {
 	BaseRequest
 	BasePortalRequest
-	AssetId int64 `json:"asset_id"`
-	ChainId uint8 `json:"chain_id"`
-	TokenId int64 `json:"token_id"`
+	AssetId int64  `json:"asset_id"`
+	ChainId uint64 `json:"chain_id"`
+	TokenId int64  `json:"token_id"`
 }
 
 type GameCurrency struct {
@@ -168,14 +169,14 @@ type OrdersGroup struct {
 	SortTime  uint   `json:"sort_time" validate:"max=2"`
 	Search    string `json:"search" validate:"max=192"`
 
-	ChainId uint8 `json:"chain_id"`
+	ChainId uint64 `json:"chain_id"`
 }
 
 type OrdersGroupDetail struct {
 	BaseRequest
 	GroupName string `json:"group_name" validate:"required"`
 	SortPrice uint   `json:"sort_price" validate:"max=2"`
-	ChainId   uint8  `json:"chain_id"`
+	ChainId   uint64 `json:"chain_id"`
 }
 
 type SendCode struct {
@@ -186,7 +187,7 @@ type SendCode struct {
 type PaperMint struct {
 	BaseRequest
 	TokenId       int64  `json:"token_id" validate:"required"`
-	ChainId       uint8  `json:"chain_id" validate:"required"`
+	ChainId       uint64 `json:"chain_id" validate:"required"`
 	Email         string `json:"email"  validate:"required"`
 	WalletAddress string `json:"wallet_address"  validate:"required"`
 }
@@ -230,5 +231,51 @@ type OrdersOfficial struct {
 	SortTime  uint   `json:"sort_time" validate:"max=2"`
 	Search    string `json:"search" validate:"max=192"`
 
-	ChainId uint8 `json:"chain_id" validate:"required"`
+	ChainId uint64 `json:"chain_id" validate:"required"`
+}
+
+type PaperTransaction struct {
+	BaseRequest
+	TokenId       int64  `json:"token_id" validate:"required"`
+	ChainId       uint64 `json:"chain_id" validate:"required"`
+	Email         string `json:"email"  validate:"required"`
+	WalletAddress string `json:"wallet_address"  validate:"required"`
+	Value         string `json:"value" validate:"required"`
+}
+
+type PaperTransactionRequest struct {
+	Quantity int `json:"quantity"`
+	Metadata struct {
+	} `json:"metadata"`
+	ExpiresInMinutes      int    `json:"expiresInMinutes"`
+	UsePaperKey           bool   `json:"usePaperKey"`
+	HideApplePayGooglePay bool   `json:"hideApplePayGooglePay"`
+	ContractId            string `json:"contractId"`
+	WalletAddress         string `json:"walletAddress"`
+	Email                 string `json:"email"`
+	MintMethod            struct {
+		Name string `json:"name"`
+		Args struct {
+			ToAddress    string `json:"toAddress"`
+			OwnerAddress string `json:"ownerAddress"`
+			NftAddress   string `json:"nftAddress"`
+			PaymentToken string `json:"paymentToken"`
+			TokenId      int64  `json:"tokenId"`
+			Price        string `json:"price"`
+			StartTime    int64  `json:"startTime"`
+			EndTime      int64  `json:"endTime"`
+			SaltNonce    int64  `json:"saltNonce"`
+			Signature    string `json:"signature"`
+		} `json:"args"`
+		Payment struct {
+			Value    string `json:"value"`
+			Currency string `json:"currency"`
+		} `json:"payment"`
+	} `json:"mintMethod"`
+}
+
+type Test struct {
+	BaseRequest
+	Event  string      `json:"event"`
+	Result interface{} `json:"result"`
 }

@@ -30,7 +30,7 @@ var (
 
 // ContractsMetaData contains all meta data concerning the Contracts contract.
 var ContractsMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"category\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"subcategory\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"rarity\",\"type\":\"uint256\"}],\"name\":\"MintTransaction\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"adminAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"feeToAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_nftAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_tokenId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_ownerAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_category\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_subcategory\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_rarity\",\"type\":\"uint256\"}],\"name\":\"getMessageHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"message\",\"type\":\"bytes32\"}],\"name\":\"getMessageHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"nftAddress\",\"type\":\"address\"},{\"internalType\":\"uint256[4]\",\"name\":\"values\",\"type\":\"uint256[4]\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"matchMint\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_adminAddress\",\"type\":\"address\"}],\"name\":\"setAdminAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_feeToAddress\",\"type\":\"address\"}],\"name\":\"setFeeToAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_transactionFee\",\"type\":\"uint256\"}],\"name\":\"setTransactionFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"transactionFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"name\":\"usedSignatures\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"category\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"subcategory\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"rarity\",\"type\":\"uint256\"}],\"name\":\"MintTransaction\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"MintTransactionPaper\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"adminAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"feeToAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_nftAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_tokenId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_ownerAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_category\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_subcategory\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_rarity\",\"type\":\"uint256\"}],\"name\":\"getMessageHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"message\",\"type\":\"bytes32\"}],\"name\":\"getMessageHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"nftAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"userAddress\",\"type\":\"address\"},{\"internalType\":\"uint256[4]\",\"name\":\"values\",\"type\":\"uint256[4]\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"matchMint\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"nftAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"userAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"category\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"subcategory\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"rarity\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"matchMintPaper\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"nftAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"userAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"category\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"subcategory\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"rarity\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"matchMintPaperBSCDummy\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_adminAddress\",\"type\":\"address\"}],\"name\":\"setAdminAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_feeToAddress\",\"type\":\"address\"}],\"name\":\"setFeeToAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_transactionFee\",\"type\":\"uint256\"}],\"name\":\"setTransactionFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"transactionFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"name\":\"usedSignatures\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // ContractsABI is the input ABI used to generate the binding from.
@@ -396,25 +396,67 @@ func (_Contracts *ContractsCallerSession) UsedSignatures(arg0 []byte) (bool, err
 	return _Contracts.Contract.UsedSignatures(&_Contracts.CallOpts, arg0)
 }
 
-// MatchMint is a paid mutator transaction binding the contract method 0xacfae9bb.
+// MatchMint is a paid mutator transaction binding the contract method 0x214a2175.
 //
-// Solidity: function matchMint(address nftAddress, uint256[4] values, bytes signature) returns(bool)
-func (_Contracts *ContractsTransactor) MatchMint(opts *bind.TransactOpts, nftAddress common.Address, values [4]*big.Int, signature []byte) (*types.Transaction, error) {
-	return _Contracts.contract.Transact(opts, "matchMint", nftAddress, values, signature)
+// Solidity: function matchMint(address nftAddress, address userAddress, uint256[4] values, bytes signature) returns(bool)
+func (_Contracts *ContractsTransactor) MatchMint(opts *bind.TransactOpts, nftAddress common.Address, userAddress common.Address, values [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.contract.Transact(opts, "matchMint", nftAddress, userAddress, values, signature)
 }
 
-// MatchMint is a paid mutator transaction binding the contract method 0xacfae9bb.
+// MatchMint is a paid mutator transaction binding the contract method 0x214a2175.
 //
-// Solidity: function matchMint(address nftAddress, uint256[4] values, bytes signature) returns(bool)
-func (_Contracts *ContractsSession) MatchMint(nftAddress common.Address, values [4]*big.Int, signature []byte) (*types.Transaction, error) {
-	return _Contracts.Contract.MatchMint(&_Contracts.TransactOpts, nftAddress, values, signature)
+// Solidity: function matchMint(address nftAddress, address userAddress, uint256[4] values, bytes signature) returns(bool)
+func (_Contracts *ContractsSession) MatchMint(nftAddress common.Address, userAddress common.Address, values [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.Contract.MatchMint(&_Contracts.TransactOpts, nftAddress, userAddress, values, signature)
 }
 
-// MatchMint is a paid mutator transaction binding the contract method 0xacfae9bb.
+// MatchMint is a paid mutator transaction binding the contract method 0x214a2175.
 //
-// Solidity: function matchMint(address nftAddress, uint256[4] values, bytes signature) returns(bool)
-func (_Contracts *ContractsTransactorSession) MatchMint(nftAddress common.Address, values [4]*big.Int, signature []byte) (*types.Transaction, error) {
-	return _Contracts.Contract.MatchMint(&_Contracts.TransactOpts, nftAddress, values, signature)
+// Solidity: function matchMint(address nftAddress, address userAddress, uint256[4] values, bytes signature) returns(bool)
+func (_Contracts *ContractsTransactorSession) MatchMint(nftAddress common.Address, userAddress common.Address, values [4]*big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.Contract.MatchMint(&_Contracts.TransactOpts, nftAddress, userAddress, values, signature)
+}
+
+// MatchMintPaper is a paid mutator transaction binding the contract method 0x2749890c.
+//
+// Solidity: function matchMintPaper(address nftAddress, address userAddress, uint256 tokenId, uint256 category, uint256 subcategory, uint256 rarity, bytes signature) payable returns(bool)
+func (_Contracts *ContractsTransactor) MatchMintPaper(opts *bind.TransactOpts, nftAddress common.Address, userAddress common.Address, tokenId *big.Int, category *big.Int, subcategory *big.Int, rarity *big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.contract.Transact(opts, "matchMintPaper", nftAddress, userAddress, tokenId, category, subcategory, rarity, signature)
+}
+
+// MatchMintPaper is a paid mutator transaction binding the contract method 0x2749890c.
+//
+// Solidity: function matchMintPaper(address nftAddress, address userAddress, uint256 tokenId, uint256 category, uint256 subcategory, uint256 rarity, bytes signature) payable returns(bool)
+func (_Contracts *ContractsSession) MatchMintPaper(nftAddress common.Address, userAddress common.Address, tokenId *big.Int, category *big.Int, subcategory *big.Int, rarity *big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.Contract.MatchMintPaper(&_Contracts.TransactOpts, nftAddress, userAddress, tokenId, category, subcategory, rarity, signature)
+}
+
+// MatchMintPaper is a paid mutator transaction binding the contract method 0x2749890c.
+//
+// Solidity: function matchMintPaper(address nftAddress, address userAddress, uint256 tokenId, uint256 category, uint256 subcategory, uint256 rarity, bytes signature) payable returns(bool)
+func (_Contracts *ContractsTransactorSession) MatchMintPaper(nftAddress common.Address, userAddress common.Address, tokenId *big.Int, category *big.Int, subcategory *big.Int, rarity *big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.Contract.MatchMintPaper(&_Contracts.TransactOpts, nftAddress, userAddress, tokenId, category, subcategory, rarity, signature)
+}
+
+// MatchMintPaperBSCDummy is a paid mutator transaction binding the contract method 0xead115c8.
+//
+// Solidity: function matchMintPaperBSCDummy(address nftAddress, address userAddress, uint256 tokenId, uint256 category, uint256 subcategory, uint256 rarity, bytes signature) payable returns(bool)
+func (_Contracts *ContractsTransactor) MatchMintPaperBSCDummy(opts *bind.TransactOpts, nftAddress common.Address, userAddress common.Address, tokenId *big.Int, category *big.Int, subcategory *big.Int, rarity *big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.contract.Transact(opts, "matchMintPaperBSCDummy", nftAddress, userAddress, tokenId, category, subcategory, rarity, signature)
+}
+
+// MatchMintPaperBSCDummy is a paid mutator transaction binding the contract method 0xead115c8.
+//
+// Solidity: function matchMintPaperBSCDummy(address nftAddress, address userAddress, uint256 tokenId, uint256 category, uint256 subcategory, uint256 rarity, bytes signature) payable returns(bool)
+func (_Contracts *ContractsSession) MatchMintPaperBSCDummy(nftAddress common.Address, userAddress common.Address, tokenId *big.Int, category *big.Int, subcategory *big.Int, rarity *big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.Contract.MatchMintPaperBSCDummy(&_Contracts.TransactOpts, nftAddress, userAddress, tokenId, category, subcategory, rarity, signature)
+}
+
+// MatchMintPaperBSCDummy is a paid mutator transaction binding the contract method 0xead115c8.
+//
+// Solidity: function matchMintPaperBSCDummy(address nftAddress, address userAddress, uint256 tokenId, uint256 category, uint256 subcategory, uint256 rarity, bytes signature) payable returns(bool)
+func (_Contracts *ContractsTransactorSession) MatchMintPaperBSCDummy(nftAddress common.Address, userAddress common.Address, tokenId *big.Int, category *big.Int, subcategory *big.Int, rarity *big.Int, signature []byte) (*types.Transaction, error) {
+	return _Contracts.Contract.MatchMintPaperBSCDummy(&_Contracts.TransactOpts, nftAddress, userAddress, tokenId, category, subcategory, rarity, signature)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
@@ -665,6 +707,152 @@ func (_Contracts *ContractsFilterer) WatchMintTransaction(opts *bind.WatchOpts, 
 func (_Contracts *ContractsFilterer) ParseMintTransaction(log types.Log) (*ContractsMintTransaction, error) {
 	event := new(ContractsMintTransaction)
 	if err := _Contracts.contract.UnpackLog(event, "MintTransaction", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// ContractsMintTransactionPaperIterator is returned from FilterMintTransactionPaper and is used to iterate over the raw logs and unpacked data for MintTransactionPaper events raised by the Contracts contract.
+type ContractsMintTransactionPaperIterator struct {
+	Event *ContractsMintTransactionPaper // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ContractsMintTransactionPaperIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ContractsMintTransactionPaper)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ContractsMintTransactionPaper)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ContractsMintTransactionPaperIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ContractsMintTransactionPaperIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ContractsMintTransactionPaper represents a MintTransactionPaper event raised by the Contracts contract.
+type ContractsMintTransactionPaper struct {
+	TokenId         *big.Int
+	ContractAddress common.Address
+	Owner           common.Address
+	Raw             types.Log // Blockchain specific contextual infos
+}
+
+// FilterMintTransactionPaper is a free log retrieval operation binding the contract event 0x5ef73bbeba1b49e6a49bb1c0f9b8cfc3d19785b0898d5dfa7ee3d8a4cf5fa34d.
+//
+// Solidity: event MintTransactionPaper(uint256 indexed tokenId, address contractAddress, address owner)
+func (_Contracts *ContractsFilterer) FilterMintTransactionPaper(opts *bind.FilterOpts, tokenId []*big.Int) (*ContractsMintTransactionPaperIterator, error) {
+
+	var tokenIdRule []interface{}
+	for _, tokenIdItem := range tokenId {
+		tokenIdRule = append(tokenIdRule, tokenIdItem)
+	}
+
+	logs, sub, err := _Contracts.contract.FilterLogs(opts, "MintTransactionPaper", tokenIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return &ContractsMintTransactionPaperIterator{contract: _Contracts.contract, event: "MintTransactionPaper", logs: logs, sub: sub}, nil
+}
+
+// WatchMintTransactionPaper is a free log subscription operation binding the contract event 0x5ef73bbeba1b49e6a49bb1c0f9b8cfc3d19785b0898d5dfa7ee3d8a4cf5fa34d.
+//
+// Solidity: event MintTransactionPaper(uint256 indexed tokenId, address contractAddress, address owner)
+func (_Contracts *ContractsFilterer) WatchMintTransactionPaper(opts *bind.WatchOpts, sink chan<- *ContractsMintTransactionPaper, tokenId []*big.Int) (event.Subscription, error) {
+
+	var tokenIdRule []interface{}
+	for _, tokenIdItem := range tokenId {
+		tokenIdRule = append(tokenIdRule, tokenIdItem)
+	}
+
+	logs, sub, err := _Contracts.contract.WatchLogs(opts, "MintTransactionPaper", tokenIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ContractsMintTransactionPaper)
+				if err := _Contracts.contract.UnpackLog(event, "MintTransactionPaper", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseMintTransactionPaper is a log parse operation binding the contract event 0x5ef73bbeba1b49e6a49bb1c0f9b8cfc3d19785b0898d5dfa7ee3d8a4cf5fa34d.
+//
+// Solidity: event MintTransactionPaper(uint256 indexed tokenId, address contractAddress, address owner)
+func (_Contracts *ContractsFilterer) ParseMintTransactionPaper(log types.Log) (*ContractsMintTransactionPaper, error) {
+	event := new(ContractsMintTransactionPaper)
+	if err := _Contracts.contract.UnpackLog(event, "MintTransactionPaper", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
