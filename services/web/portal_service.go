@@ -1126,7 +1126,7 @@ func (p portalServiceImp) PaperTransaction(info request.PaperTransaction) (out r
 	paperTransactionRequest.MintMethod.Payment.Currency = portalConfig.Paper.Payment.Currency
 
 	//sign
-	//_, _, _, _, _, err := function.JudgeChain(info.ChainId)
+	_, _, _, assets, _, err := function.JudgeChain(info.ChainId)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperTransaction Chain error")
 		return out, common.ChainNetError, errors.New("current network is not supported")
@@ -1165,8 +1165,8 @@ func (p portalServiceImp) PaperTransaction(info request.PaperTransaction) (out r
 
 	paperTransactionRequest.MintMethod.Args.ToAddress = info.WalletAddress
 	paperTransactionRequest.MintMethod.Args.OwnerAddress = vAssets.UID
-	paperTransactionRequest.MintMethod.Args.NftAddress = "0x694a34d99Ee89cB5af24B2255073e5a7f2b997E1"
-	paperTransactionRequest.MintMethod.Args.PaymentToken = "0x13A637026dF26F846D55ACC52775377717345c06"
+	paperTransactionRequest.MintMethod.Args.NftAddress = assets
+	paperTransactionRequest.MintMethod.Args.PaymentToken = portalConfig.ETHContract.Spay
 	paperTransactionRequest.MintMethod.Args.TokenId = info.TokenId
 	paperTransactionRequest.MintMethod.Args.Price = orderDetail.Price
 	paperTransactionRequest.MintMethod.Args.StartTime = order.StartTime.Unix()
