@@ -1165,7 +1165,7 @@ func (p portalServiceImp) PaperTransaction(info request.PaperTransaction) (out r
 
 	paperTransactionRequest.MintMethod.Args.ToAddress = info.WalletAddress
 	paperTransactionRequest.MintMethod.Args.OwnerAddress = vAssets.UID
-	paperTransactionRequest.MintMethod.Args.NftAddress = "0x463Ad016bD2FE10e420a906Edbe939D189684b85"
+	paperTransactionRequest.MintMethod.Args.NftAddress = "0x694a34d99Ee89cB5af24B2255073e5a7f2b997E1"
 	paperTransactionRequest.MintMethod.Args.PaymentToken = "0x13A637026dF26F846D55ACC52775377717345c06"
 	paperTransactionRequest.MintMethod.Args.TokenId = info.TokenId
 	paperTransactionRequest.MintMethod.Args.Price = orderDetail.Price
