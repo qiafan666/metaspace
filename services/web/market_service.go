@@ -1736,7 +1736,7 @@ redo:
 
 			out.Data = append(out.Data, response.AvatarDetail{
 				Id:            v.Id,
-				AssetId:       v.AvatarID,
+				AssetId:       v.AssetId,
 				Owner:         v.Owner,
 				AvatarID:      v.AvatarID,
 				Content:       string(v.Content),

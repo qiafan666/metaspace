@@ -711,7 +711,8 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 			"transaction_history.unit,transaction_history.origin_chain,transaction_history.status,transaction_history.created_time,assets.name,assets.index_id,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 			db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 				Joins("LEFT JOIN assets ON transaction_history.token_id = assets.token_id").
-				Where("transaction_history.wallet_address=?", info.BaseWallet)
+				Where("transaction_history.wallet_address=?", info.BaseWallet).
+				Where("transaction_history.market_type=?", common.Assets)
 			if info.ChainId > 0 {
 				db = db.Where("transaction_history.origin_chain=?", info.ChainId)
 			}
