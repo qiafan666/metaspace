@@ -151,8 +151,12 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		//_saltNonce
 		saltNonce := big.NewInt(int64(rand.Int31()))
 
-		startTimeUnix := info.StartTime.UTC().Unix()
-		endTimeUnix := info.ExpireTime.UTC().Unix()
+		startTimeUnix := info.StartTime.Unix()
+		endTimeUnix := info.ExpireTime.Unix()
+		slog.Slog.ErrorF(info.Ctx, "startTime:%s", info.StartTime)
+		slog.Slog.ErrorF(info.Ctx, "endTime:%s", info.ExpireTime)
+		slog.Slog.ErrorF(info.Ctx, "startTimeUnix:%s", startTimeUnix)
+		slog.Slog.ErrorF(info.Ctx, "endTimeUnix:%s", endTimeUnix)
 
 		instance, err := eth_market.NewContracts(ethcommon.HexToAddress(market), client)
 		if err != nil {
