@@ -153,24 +153,14 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 
 		startTimeUnix := info.StartTime.Unix()
 		endTimeUnix := info.ExpireTime.Unix()
-		slog.Slog.ErrorF(info.Ctx, "startTime:%s", info.StartTime)
-		slog.Slog.ErrorF(info.Ctx, "endTime:%s", info.ExpireTime)
-		slog.Slog.ErrorF(info.Ctx, "startTimeUnix:%s", startTimeUnix)
-		slog.Slog.ErrorF(info.Ctx, "endTimeUnix:%s", endTimeUnix)
 
 		instance, err := eth_market.NewContracts(ethcommon.HexToAddress(market), client)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
 			return out, 0, err
 		}
-		slog.Slog.ErrorF(info.Ctx, "market:%s", market)
-		slog.Slog.ErrorF(info.Ctx, "tokenId:%s", tokenId)
-		slog.Slog.ErrorF(info.Ctx, "PaymentErc20:%s", info.PaymentErc20)
-		slog.Slog.ErrorF(info.Ctx, "price:%s", price)
-		slog.Slog.ErrorF(info.Ctx, "startTimeUnix:%s", startTimeUnix)
-		slog.Slog.ErrorF(info.Ctx, "endTimeUnix:%s", endTimeUnix)
-		slog.Slog.ErrorF(info.Ctx, "saltNonce:%s", saltNonce)
-		message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(market), tokenId, ethcommon.HexToAddress(info.PaymentErc20),
+
+		message, err := instance.GetMessageHash(nil, address, tokenId, ethcommon.HexToAddress(info.PaymentErc20),
 			price, big.NewInt(startTimeUnix), big.NewInt(endTimeUnix), saltNonce)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
