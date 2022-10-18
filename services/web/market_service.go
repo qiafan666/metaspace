@@ -163,7 +163,13 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetShelfSignature NewContracts error:%s", err.Error())
 			return out, 0, err
 		}
-
+		slog.Slog.ErrorF(info.Ctx, "market:%s", market)
+		slog.Slog.ErrorF(info.Ctx, "tokenId:%s", tokenId)
+		slog.Slog.ErrorF(info.Ctx, "PaymentErc20:%s", info.PaymentErc20)
+		slog.Slog.ErrorF(info.Ctx, "price:%s", price)
+		slog.Slog.ErrorF(info.Ctx, "startTimeUnix:%s", startTimeUnix)
+		slog.Slog.ErrorF(info.Ctx, "endTimeUnix:%s", endTimeUnix)
+		slog.Slog.ErrorF(info.Ctx, "saltNonce:%s", saltNonce)
 		message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(market), tokenId, ethcommon.HexToAddress(info.PaymentErc20),
 			price, big.NewInt(startTimeUnix), big.NewInt(endTimeUnix), saltNonce)
 		if err != nil {
