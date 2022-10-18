@@ -812,7 +812,7 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 		return out, 0, nil
 	case common.ListenHistory:
 	default:
-		slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserHistory error:history type not exists")
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp UserHistory error:history type not exists")
 		return out, common.HistoryError, errors.New("history type not exists")
 	}
 	return
@@ -845,6 +845,10 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 
 				return db
 			}, &assetsOrders)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp find assetsOrders Error: %s", err.Error())
+			return out, common.AssetsNotExist, err
+		}
 	} else {
 		var asset model.Assets
 		err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.ID}, map[string]interface{}{
@@ -868,7 +872,7 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 				return db
 			}, &assetsOrders)
 		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find assetsOrders Error: %s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp find assetsOrders Error: %s", err.Error())
 			return out, common.AssetsNotExist, err
 		}
 
@@ -879,7 +883,7 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 	if err != nil {
 		category := strconv.FormatInt(assetsOrders.Category, 10)
 		subCategory := strconv.FormatInt(assetsOrders.Type, 10)
-		slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp SubcategoryString Category:%s,type:%s,Error: %s", category, subCategory, err.Error())
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SubcategoryString Category:%s,type:%s,Error: %s", category, subCategory, err.Error())
 		subCategoryString = "unknown type"
 	}
 
