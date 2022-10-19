@@ -291,7 +291,7 @@ type OrderAvatar struct {
 type AvatarDetail struct {
 	BaseRequest
 	BasePortalRequest
-	TokenId int64 `json:"token_id" validate:"required"`
+	TokenId *int64 `json:"token_id" validate:"required"`
 }
 
 type Test struct {
