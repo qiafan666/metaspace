@@ -23,6 +23,7 @@ type AvatarService interface {
 	Token(context *context.Context)
 	GetAvatar(info request.Avatar) (out response.Avatar, code commons.ResponseCode, err error)
 	AvatarDetail(info request.AvatarDetail) (out response.AvatarDetail, code commons.ResponseCode, err error)
+	AvatarMarketDetail(info request.AvatarDetail) (out response.AvatarDetail, code commons.ResponseCode, err error)
 }
 
 var avatarConfig struct {
@@ -203,7 +204,43 @@ func (a avatarServiceImp) AvatarDetail(info request.AvatarDetail) (out response.
 		db = db.Joins("Left JOIN orders_detail ON orders_detail.nft_id = avatar.avatar_id and orders_detail.market_type=? ", common.Avatar).
 			Joins("Left JOIN orders ON orders.id = orders_detail.order_id").
 			Where("avatar.owner=?", info.BaseWallet).
-			Where("avatar.owner != nil").
+			Where("avatar.avatar_id=?", info.TokenId)
+		return db
+	}, &avatarOrder)
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		slog.Slog.ErrorF(info.Ctx, "avatarServiceImp find avatarOrders Error: %s", err.Error())
+		return out, common.AssetsNotExist, errors.New(commons.GetCodeAndMsg(common.AssetsNotExist, info.Language))
+	} else if err != nil {
+		slog.Slog.ErrorF(info.Ctx, "avatarServiceImp find avatarOrders Error: %s", err.Error())
+		return out, 0, err
+	}
+
+	out = response.AvatarDetail{
+		AssetId:       avatarOrder.ID,
+		Owner:         avatarOrder.Owner,
+		AvatarID:      avatarOrder.AvatarID,
+		Status:        avatarOrder.Status,
+		Content:       string(avatarOrder.Content),
+		Price:         avatarOrder.Price,
+		ExpireTime:    avatarOrder.ExpireTime,
+		Signature:     avatarOrder.Signature,
+		StartTime:     avatarOrder.StartTime,
+		SaltNonce:     avatarOrder.SaltNonce,
+		ContractChain: avatarConfig.Chain.ETH,
+		IsNft:         common.IsNft,
+	}
+	return
+}
+
+func (a avatarServiceImp) AvatarMarketDetail(info request.AvatarDetail) (out response.AvatarDetail, code commons.ResponseCode, err error) {
+
+	var avatarOrder join.AvatarOrders
+	err = a.dao.WithContext(info.Ctx).First([]string{"avatar.id,avatar.avatar_id,avatar.is_shelf,avatar.content,avatar.owner," +
+		"orders_detail.price,orders_detail.order_id,orders.start_time,orders.expire_time,orders.updated_time,orders.`status`," +
+		"orders.signature,orders.salt_nonce,orders.status"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
+		db = db.Joins("Left JOIN orders_detail ON orders_detail.nft_id = avatar.avatar_id and orders_detail.market_type=? ", common.Avatar).
+			Joins("Left JOIN orders ON orders.id = orders_detail.order_id").
+			Where("orders.status=?", common.OrderStatusActive).
 			Where("avatar.avatar_id=?", info.TokenId)
 		return db
 	}, &avatarOrder)
