@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/dao"
 	"github.com/blockfishio/metaspace-backend/model"
@@ -202,10 +203,14 @@ func (a avatarServiceImp) AvatarDetail(info request.AvatarDetail) (out response.
 		db = db.Joins("Left JOIN orders_detail ON orders_detail.nft_id = avatar.avatar_id and orders_detail.market_type=? ", common.Avatar).
 			Joins("Left JOIN orders ON orders.id = orders_detail.order_id").
 			Where("avatar.owner=?", info.BaseWallet).
+			Where("avatar.owner != nil").
 			Where("avatar.avatar_id=?", info.TokenId)
 		return db
 	}, &avatarOrder)
-	if err != nil {
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		slog.Slog.ErrorF(info.Ctx, "avatarServiceImp find avatarOrders Error: %s", err.Error())
+		return out, common.AssetsNotExist, errors.New(commons.GetCodeAndMsg(common.AssetsNotExist, info.Language))
+	} else if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "avatarServiceImp find avatarOrders Error: %s", err.Error())
 		return out, 0, err
 	}
@@ -222,6 +227,7 @@ func (a avatarServiceImp) AvatarDetail(info request.AvatarDetail) (out response.
 		StartTime:     avatarOrder.StartTime,
 		SaltNonce:     avatarOrder.SaltNonce,
 		ContractChain: avatarConfig.Chain.ETH,
+		IsNft:         common.IsNft,
 	}
 	return
 }

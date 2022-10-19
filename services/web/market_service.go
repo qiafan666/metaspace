@@ -1747,6 +1747,7 @@ redo:
 				StartTime:     v.StartTime,
 				ExpireTime:    v.ExpireTime,
 				ContractChain: marketConfig.Chain.ETH,
+				IsNft:         common.IsNft,
 			})
 		}
 	}

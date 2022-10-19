@@ -269,6 +269,7 @@ type AvatarDetail struct {
 	StartTime     time.Time `json:"start_time"`
 	ExpireTime    time.Time `json:"expire_time"`
 	ContractChain uint64    `json:"contract_chain"`
+	IsNft         uint8     `json:"is_nft"`
 }
 
 type Test struct {
