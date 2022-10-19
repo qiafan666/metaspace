@@ -200,8 +200,8 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		//_saltNonce
 		saltNonce := big.NewInt(int64(rand.Int31()))
 
-		startTime := time.Now()
-		endTime := info.ExpireTime
+		startTimeUnix := info.StartTime.Unix()
+		endTimeUnix := info.ExpireTime.Unix()
 
 		address := ethcommon.HexToAddress(market)
 		instance, err := eth_market.NewContracts(address, client)
@@ -210,7 +210,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 			return out, 0, err
 		}
 
-		message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(marketConfig.ETHContract.Avatar), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, big.NewInt(startTime.Unix()), big.NewInt(endTime.Unix()), saltNonce)
+		message, err := instance.GetMessageHash(nil, ethcommon.HexToAddress(marketConfig.ETHContract.Avatar), tokenId, ethcommon.HexToAddress(info.PaymentErc20), price, big.NewInt(startTimeUnix), big.NewInt(endTimeUnix), saltNonce)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "marketServiceImp GetSign GetMessageHash error:%s", err.Error())
 			return out, 0, err
@@ -219,8 +219,8 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 		out.SaltNonce = saltNonce.String()
 		err = m.redis.SetRawMessage(info.Ctx, inner.RawMessage{
 			RawMessage: out.SignMessage,
-			StartTime:  startTime,
-			ExpireTime: endTime,
+			StartTime:  info.StartTime,
+			ExpireTime: info.ExpireTime,
 		}, time.Minute*3)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp SetTokenUser error %s", err.Error())
