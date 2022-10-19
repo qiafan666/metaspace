@@ -27,7 +27,7 @@ eth_contract:
   monitor_client: "https://goerli.infura.io/v3/059609bf2c8e433d8ad4a895a98278ed"
   mint: "0x214d25b4f8EC232BE8756c2d86011B7c062ede5C"
   assets: "0x463Ad016bD2FE10e420a906Edbe939D189684b85"
-  market: "0x75B0aA9c90Cb5758BA770683ad79BfDD89B13137"
+  market: "0xaB2fba0A21a9E99FBf4060Ef2ac7570944820F10"
   ship: ""
   spay: "0xd4c29b9672D31526eAADB631770d274b840C7348"
 
