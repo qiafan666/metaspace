@@ -202,7 +202,7 @@ func (a avatarServiceImp) AvatarDetail(info request.AvatarDetail) (out response.
 		db = db.Joins("Left JOIN orders_detail ON orders_detail.nft_id = avatar.avatar_id and orders_detail.market_type=? ", common.Avatar).
 			Joins("Left JOIN orders ON orders.id = orders_detail.order_id").
 			Where("avatar.owner=?", info.BaseWallet).
-			Where("avatar.id=?", info.AssetId)
+			Where("avatar.avatar_id=?", info.TokenId)
 		return db
 	}, &avatarOrder)
 	if err != nil {
