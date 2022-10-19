@@ -422,7 +422,8 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 				Price:       info.Price,
 				UpdatedTime: time.Now(),
 			}, map[string]interface{}{
-				model.OrdersDetailColumns.NftID: vAssets.TokenID,
+				model.OrdersDetailColumns.NftID:      vAssets.TokenID,
+				model.OrdersDetailColumns.MarketType: common.Assets,
 			}, nil)
 			if err != nil {
 				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update orders_detail expireTime error %s", err.Error())
@@ -605,7 +606,8 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 				Price:       info.Price,
 				UpdatedTime: time.Now(),
 			}, map[string]interface{}{
-				model.OrdersDetailColumns.NftID: avatar.AvatarID,
+				model.OrdersDetailColumns.NftID:      avatar.AvatarID,
+				model.OrdersDetailColumns.MarketType: common.Avatar,
 			}, nil)
 			if err != nil {
 				slog.Slog.ErrorF(info.Ctx, "marketServiceImp Update orders_detail expireTime error %s", err.Error())
