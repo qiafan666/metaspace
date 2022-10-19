@@ -19,7 +19,7 @@ type AvatarOrders struct {
 	ExpireTime time.Time `gorm:"column:expire_time" json:"expire_time"`
 	StartTime  time.Time `gorm:"column:start_time" json:"start_time"`
 
-	OrderID uint64 `gorm:"column:order_id" json:"order_id"` // orders id
+	OrderID int64  `gorm:"column:order_id" json:"order_id"` // orders id
 	NftID   string `gorm:"column:nft_id" json:"nft_id"`
 	Price   string `gorm:"column:price" json:"price"`
 }

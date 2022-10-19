@@ -218,6 +218,7 @@ func (a avatarServiceImp) AvatarDetail(info request.AvatarDetail) (out response.
 	out = response.AvatarDetail{
 		AssetId:       avatarOrder.ID,
 		Owner:         avatarOrder.Owner,
+		OrderId:       avatarOrder.OrderID,
 		AvatarID:      avatarOrder.AvatarID,
 		Status:        avatarOrder.Status,
 		Content:       string(avatarOrder.Content),
@@ -255,6 +256,7 @@ func (a avatarServiceImp) AvatarMarketDetail(info request.AvatarDetail) (out res
 	out = response.AvatarDetail{
 		AssetId:       avatarOrder.ID,
 		Owner:         avatarOrder.Owner,
+		OrderId:       avatarOrder.OrderID,
 		AvatarID:      avatarOrder.AvatarID,
 		Status:        avatarOrder.Status,
 		Content:       string(avatarOrder.Content),

@@ -1735,7 +1735,7 @@ redo:
 		} else {
 
 			out.Data = append(out.Data, response.AvatarDetail{
-				Id:            v.Id,
+				OrderId:       v.Id,
 				AssetId:       v.AssetId,
 				Owner:         v.Owner,
 				AvatarID:      v.AvatarID,

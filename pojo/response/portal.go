@@ -243,7 +243,7 @@ type AvatarBody struct {
 	IsShelf       uint8     `json:"is_shelf"` // 1:shelf  2:not shelf
 	Status        uint8     `json:"status"`
 	Price         string    `json:"price"`
-	OrderId       uint64    `json:"order_id"`
+	OrderId       int64     `json:"order_id"`
 	ExpireTime    time.Time `json:"expire_time"`
 	Signature     string    `json:"signature"`
 	SaltNonce     string    `json:"salt_nonce"`
@@ -257,7 +257,7 @@ type OrderAvatar struct {
 }
 
 type AvatarDetail struct {
-	Id            int64     `json:"order_id"`
+	OrderId       int64     `json:"order_id"`
 	AssetId       int64     `json:"asset_id"`
 	Owner         string    `json:"seller"`
 	AvatarID      int64     `json:"token_id"`
