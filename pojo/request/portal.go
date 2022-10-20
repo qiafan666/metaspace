@@ -297,7 +297,6 @@ type AvatarDetail struct {
 type AvatarsOfficial struct {
 	BaseRequest
 	BasePagination
-	TokenId *int64 `json:"token_id" validate:"required"`
 }
 
 type Test struct {
