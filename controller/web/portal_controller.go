@@ -417,6 +417,20 @@ func (receiver *PortalWebController) PostAvatarMarketDetail() {
 	}
 }
 
+func (receiver *PortalWebController) PostAvatarsOfficial() {
+	input := request.AvatarsOfficial{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostAvatarsOfficial"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.MarketService.GetAvatarsOfficial(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
 func (receiver *PortalWebController) PostTest() {
 	input := request.Test{}
 	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostTest"); code != commons.OK {

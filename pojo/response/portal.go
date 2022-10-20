@@ -272,5 +272,10 @@ type AvatarDetail struct {
 	IsNft         uint8     `json:"is_nft"`
 }
 
+type AvatarsOfficial struct {
+	BasePagination
+	Data []AvatarBody `json:"avatar_list"`
+}
+
 type Test struct {
 }

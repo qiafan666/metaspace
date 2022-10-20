@@ -294,6 +294,12 @@ type AvatarDetail struct {
 	TokenId *int64 `json:"token_id" validate:"required"`
 }
 
+type AvatarsOfficial struct {
+	BaseRequest
+	BasePagination
+	TokenId *int64 `json:"token_id" validate:"required"`
+}
+
 type Test struct {
 	BaseRequest
 	Event  string      `json:"event"`
