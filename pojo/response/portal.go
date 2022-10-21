@@ -223,7 +223,8 @@ type PaperMint struct {
 
 type OrdersOfficial struct {
 	BasePagination
-	Data []OrdersDetail `json:"orders_list"`
+	Official bool           `json:"official"`
+	Data     []OrdersDetail `json:"orders_list"`
 }
 
 type PaperTransaction struct {

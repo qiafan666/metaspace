@@ -1650,6 +1650,7 @@ redo:
 	out.Total = count + 1
 	out.CurrentPage = info.CurrentPage
 	out.PrePageCount = info.PageCount
+	out.Official = true
 	return
 
 }
