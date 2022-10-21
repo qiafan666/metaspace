@@ -16,6 +16,7 @@ var config struct {
 		Assets string `yaml:"assets"`
 		Ship   string `yaml:"ship"`
 		Market string `yaml:"market"`
+		Spay   string `yaml:"spay"`
 	} `yaml:"eth_contract"`
 	BSCContract struct {
 		Client string `yaml:"monitor_client"`
@@ -23,6 +24,7 @@ var config struct {
 		Assets string `yaml:"assets"`
 		Ship   string `yaml:"ship"`
 		Market string `yaml:"market"`
+		Spay   string `yaml:"spay"`
 	} `yaml:"bsc_contract"`
 	PolygonContract struct {
 		Client string `yaml:"monitor_client"`
@@ -64,12 +66,13 @@ func init() {
 	}
 }
 
-func JudgeChain(chain uint64) (mint, ship, market, assets string, client *ethclient.Client, err error) {
+func JudgeChain(chain uint64) (mint, ship, market, assets, spay string, client *ethclient.Client, err error) {
 	if chain == config.Chain.ETH {
 		mint = config.ETHContract.Mint
 		ship = config.ETHContract.Ship
 		market = config.ETHContract.Market
 		assets = config.ETHContract.Assets
+		spay = config.ETHContract.Spay
 		client = ethClient
 		return
 	} else if chain == config.Chain.BSC {
@@ -77,6 +80,7 @@ func JudgeChain(chain uint64) (mint, ship, market, assets string, client *ethcli
 		ship = config.BSCContract.Ship
 		market = config.BSCContract.Market
 		assets = config.BSCContract.Assets
+		spay = config.BSCContract.Spay
 		client = bscClient
 		return
 	} else if chain == config.Chain.Polygon {
@@ -87,6 +91,6 @@ func JudgeChain(chain uint64) (mint, ship, market, assets string, client *ethcli
 		client = polygonClient
 		return
 	} else {
-		return "", "", "", "", nil, errors.New("chain type error")
+		return "", "", "", "", "", nil, errors.New("chain type error")
 	}
 }

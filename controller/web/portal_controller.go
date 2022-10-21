@@ -15,6 +15,7 @@ type PortalWebController struct {
 	PortalService     web.PortalService
 	GameAssetsService web.GameAssetsService
 	MarketService     web.MarketService
+	AvatarService     web.AvatarService
 }
 
 func (receiver *PortalWebController) PostLoginThird() {
@@ -354,6 +355,76 @@ func (receiver *PortalWebController) PostOrdersOfficial() {
 	}
 	function.BindBaseRequest(&input, receiver.Ctx)
 	if out, code, err := receiver.MarketService.GetOrdersOfficial(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
+func (receiver *PortalWebController) PostUserAvatar() {
+	input := request.Avatar{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostUserAvatar"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.AvatarService.GetAvatar(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
+func (receiver *PortalWebController) PostOrderAvatar() {
+	input := request.OrderAvatar{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostOrderAvatar"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.MarketService.OrderAvatar(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
+func (receiver *PortalWebController) PostAvatarDetail() {
+	input := request.AvatarDetail{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostAvatarDetail"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.AvatarService.AvatarDetail(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
+func (receiver *PortalWebController) PostAvatarMarketDetail() {
+	input := request.AvatarDetail{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostAvatarMarketDetail"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.AvatarService.AvatarMarketDetail(input); err != nil {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
+	} else {
+		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))
+	}
+}
+
+func (receiver *PortalWebController) PostAvatarsOfficial() {
+	input := request.AvatarsOfficial{}
+	if code, msg := utils.ValidateAndBindCtxParameters(&input, receiver.Ctx, "PortalWebController PostAvatarsOfficial"); code != commons.OK {
+		_, _ = receiver.Ctx.JSON(commons.BuildFailedWithMsg(code, msg))
+		return
+	}
+	function.BindBaseRequest(&input, receiver.Ctx)
+	if out, code, err := receiver.MarketService.GetAvatarsOfficial(input); err != nil {
 		_, _ = receiver.Ctx.JSON(commons.BuildFailed(code, input.Language))
 	} else {
 		_, _ = receiver.Ctx.JSON(commons.BuildSuccess(out, input.Language))

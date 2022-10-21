@@ -582,7 +582,7 @@ func (p portalServiceImp) GetTowerStatus(info request.TowerStats) (out response.
 
 func (p portalServiceImp) GetSign(info request.Sign) (out response.Sign, code commons.ResponseCode, err error) {
 
-	mint, ship, _, assets, client, err := function.JudgeChain(info.Chain)
+	mint, ship, _, assets, _, client, err := function.JudgeChain(info.Chain)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
 		return out, common.ChainNetError, errors.New("current network is not supported")
@@ -711,7 +711,8 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 			"transaction_history.unit,transaction_history.origin_chain,transaction_history.status,transaction_history.created_time,assets.name,assets.index_id,assets.nick_name"}, map[string]interface{}{}, func(db *gorm.DB) *gorm.DB {
 			db = db.Scopes(Paginate(info.CurrentPage, info.PageCount)).
 				Joins("LEFT JOIN assets ON transaction_history.token_id = assets.token_id").
-				Where("transaction_history.wallet_address=?", info.BaseWallet)
+				Where("transaction_history.wallet_address=?", info.BaseWallet).
+				Where("transaction_history.market_type=?", common.Assets)
 			if info.ChainId > 0 {
 				db = db.Where("transaction_history.origin_chain=?", info.ChainId)
 			}
@@ -811,7 +812,7 @@ func (p portalServiceImp) UserHistory(info request.UserHistory) (out response.Us
 		return out, 0, nil
 	case common.ListenHistory:
 	default:
-		slog.Slog.ErrorF(info.Ctx, "PlatformServiceImp UserHistory error:history type not exists")
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp UserHistory error:history type not exists")
 		return out, common.HistoryError, errors.New("history type not exists")
 	}
 	return
@@ -844,6 +845,10 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 
 				return db
 			}, &assetsOrders)
+		if err != nil {
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp find assetsOrders Error: %s", err.Error())
+			return out, common.AssetsNotExist, err
+		}
 	} else {
 		var asset model.Assets
 		err = p.dao.WithContext(info.Ctx).First([]string{model.AssetsColumns.ID}, map[string]interface{}{
@@ -867,7 +872,7 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 				return db
 			}, &assetsOrders)
 		if err != nil {
-			slog.Slog.ErrorF(info.Ctx, "gameAssetsServiceImp find assetsOrders Error: %s", err.Error())
+			slog.Slog.ErrorF(info.Ctx, "portalServiceImp find assetsOrders Error: %s", err.Error())
 			return out, common.AssetsNotExist, err
 		}
 
@@ -878,7 +883,7 @@ func (p portalServiceImp) AssetDetail(info request.AssetDetail) (out response.As
 	if err != nil {
 		category := strconv.FormatInt(assetsOrders.Category, 10)
 		subCategory := strconv.FormatInt(assetsOrders.Type, 10)
-		slog.Slog.ErrorF(info.Ctx, "gameAssetServiceImp SubcategoryString Category:%s,type:%s,Error: %s", category, subCategory, err.Error())
+		slog.Slog.ErrorF(info.Ctx, "portalServiceImp SubcategoryString Category:%s,type:%s,Error: %s", category, subCategory, err.Error())
 		subCategoryString = "unknown type"
 	}
 
@@ -995,7 +1000,7 @@ func (p portalServiceImp) PaperMint(info request.PaperMint) (out response.PaperM
 	paperMintRequest.MintMethod.Payment.Currency = portalConfig.Paper.Payment.Currency
 
 	//sign
-	mint, ship, _, assets, client, err := function.JudgeChain(info.ChainId)
+	mint, ship, _, assets, _, client, err := function.JudgeChain(info.ChainId)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperMint Chain error")
 		return out, common.ChainNetError, errors.New("current network is not supported")
@@ -1126,7 +1131,7 @@ func (p portalServiceImp) PaperTransaction(info request.PaperTransaction) (out r
 	paperTransactionRequest.MintMethod.Payment.Currency = portalConfig.Paper.Payment.Currency
 
 	//sign
-	_, _, _, assets, _, err := function.JudgeChain(info.ChainId)
+	_, _, _, assets, spay, _, err := function.JudgeChain(info.ChainId)
 	if err != nil {
 		slog.Slog.ErrorF(info.Ctx, "portalServiceImp PaperTransaction Chain error")
 		return out, common.ChainNetError, errors.New("current network is not supported")
@@ -1166,7 +1171,7 @@ func (p portalServiceImp) PaperTransaction(info request.PaperTransaction) (out r
 	paperTransactionRequest.MintMethod.Args.ToAddress = info.WalletAddress
 	paperTransactionRequest.MintMethod.Args.OwnerAddress = vAssets.UID
 	paperTransactionRequest.MintMethod.Args.NftAddress = assets
-	paperTransactionRequest.MintMethod.Args.PaymentToken = portalConfig.ETHContract.Spay
+	paperTransactionRequest.MintMethod.Args.PaymentToken = spay
 	paperTransactionRequest.MintMethod.Args.TokenId = info.TokenId
 	paperTransactionRequest.MintMethod.Args.Price = orderDetail.Price
 	paperTransactionRequest.MintMethod.Args.StartTime = order.StartTime.Unix()

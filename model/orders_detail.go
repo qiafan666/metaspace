@@ -10,11 +10,13 @@ CREATE TABLE `orders_detail` (
   `order_id` bigint unsigned NOT NULL COMMENT 'orders id',
   `nft_id` bigint NOT NULL,
   `price` varchar(256) NOT NULL,
+  `market_type` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '1:assets 2:avatar',
   `updated_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   `created_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`),
-  KEY `order_id` (`order_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=57 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+  KEY `order_id` (`order_id`),
+  KEY `nft_id` (`nft_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=134 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 ******sql******/
 // OrdersDetail [...]
 type OrdersDetail struct {
@@ -22,6 +24,7 @@ type OrdersDetail struct {
 	OrderID     uint64    `gorm:"column:order_id" json:"order_id"` // orders id
 	NftID       int64     `gorm:"column:nft_id" json:"nft_id"`
 	Price       string    `gorm:"column:price" json:"price"`
+	MarketType  uint8     `gorm:"column:market_type" json:"market_type"` // 1:assets 2:avatar
 	UpdatedTime time.Time `gorm:"column:updated_time" json:"updated_time"`
 	CreatedTime time.Time `gorm:"column:created_time" json:"created_time"`
 }
@@ -37,6 +40,7 @@ var OrdersDetailColumns = struct {
 	OrderID     string
 	NftID       string
 	Price       string
+	MarketType  string
 	UpdatedTime string
 	CreatedTime string
 }{
@@ -44,6 +48,7 @@ var OrdersDetailColumns = struct {
 	OrderID:     "order_id",
 	NftID:       "nft_id",
 	Price:       "price",
+	MarketType:  "market_type",
 	UpdatedTime: "updated_time",
 	CreatedTime: "created_time",
 }

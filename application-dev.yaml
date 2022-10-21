@@ -27,7 +27,7 @@ eth_contract:
   monitor_client: "https://goerli.infura.io/v3/059609bf2c8e433d8ad4a895a98278ed"
   mint: "0x214d25b4f8EC232BE8756c2d86011B7c062ede5C"
   assets: "0x463Ad016bD2FE10e420a906Edbe939D189684b85"
-  market: "0x75B0aA9c90Cb5758BA770683ad79BfDD89B13137"
+  market: "0xaB2fba0A21a9E99FBf4060Ef2ac7570944820F10"
   ship: ""
   spay: "0xd4c29b9672D31526eAADB631770d274b840C7348"
 
@@ -37,6 +37,7 @@ bsc_contract:
   assets: "0xd0300c1CdB5aa481D1631Acd886898c3AD93D520"
   market: "0x962d264829a70CDB4D7a0c5968Be1F28E950b173"
   ship: "0x9DB1fdf0FF36756a4B20BF488032fb99D65Ce63B"
+  spay: ""
 
 polygon_contract:
   monitor_client: "https://polygon-mumbai.infura.io/v3/e4286e0fd98b4ef9a3c53f93dbd53634"

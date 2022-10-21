@@ -87,6 +87,7 @@ type ShelfSign struct {
 	Price        string    `json:"price" validate:"required,max=192"`
 	ExpireTime   time.Time `json:"expire_time" validate:"required"`
 	StartTime    time.Time `json:"start_time" validate:"required"`
+	MarketType   uint8     `json:"market_type" validate:"required"` //1:assets 2:avatar
 }
 
 type SellShelf struct {
@@ -97,6 +98,7 @@ type SellShelf struct {
 	ItemId        string `json:"item_id" validate:"required,max=192"`
 	Price         string `json:"price" validate:"required"`
 	SaltNonce     string `json:"salt_nonce" validate:"required"`
+	MarketType    uint8  `json:"market_type" validate:"required"` //1:assets 2:avatar
 }
 
 type Orders struct {
@@ -272,6 +274,29 @@ type PaperTransactionRequest struct {
 			Currency string `json:"currency"`
 		} `json:"payment"`
 	} `json:"mintMethod"`
+}
+
+type Avatar struct {
+	BaseRequest
+	BasePagination
+	BasePortalRequest
+}
+
+type OrderAvatar struct {
+	BaseRequest
+	BasePagination
+	BasePortalRequest
+}
+
+type AvatarDetail struct {
+	BaseRequest
+	BasePortalRequest
+	TokenId *int64 `json:"token_id" validate:"required"`
+}
+
+type AvatarsOfficial struct {
+	BaseRequest
+	BasePagination
 }
 
 type Test struct {
