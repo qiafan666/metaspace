@@ -90,7 +90,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 			return out, 0, err
 		}
 
-		_, ship, market, assets, client, err := function.JudgeChain(vAssets.OriginChain)
+		_, ship, market, assets, _, client, err := function.JudgeChain(vAssets.OriginChain)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
 			return out, common.ChainNetError, errors.New("current network is not supported")
@@ -189,7 +189,7 @@ func (m marketServiceImp) GetShelfSignature(info request.ShelfSign) (out respons
 			return out, 0, err
 		}
 
-		_, _, market, _, client, err := function.JudgeChain(marketConfig.Chain.ETH)
+		_, _, market, _, _, client, err := function.JudgeChain(marketConfig.Chain.ETH)
 
 		//_price
 		price, flag := big.NewInt(0).SetString(info.Price, 10)
@@ -266,7 +266,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 			return out, 0, err
 		}
 
-		_, ship, market, assets, client, err := function.JudgeChain(vAssets.OriginChain)
+		_, ship, market, assets, _, client, err := function.JudgeChain(vAssets.OriginChain)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
 			return out, common.ChainNetError, errors.New("current network is not supported")
@@ -479,7 +479,7 @@ func (m marketServiceImp) SellShelf(info request.SellShelf) (out response.SellSh
 			info.SignedMessage = "0x" + info.SignedMessage
 		}
 
-		_, _, market, _, client, err := function.JudgeChain(marketConfig.Chain.ETH)
+		_, _, market, _, _, client, err := function.JudgeChain(marketConfig.Chain.ETH)
 		if err != nil {
 			slog.Slog.ErrorF(info.Ctx, "portalServiceImp GetSign Chain error")
 			return out, common.ChainNetError, errors.New("current network is not supported")
