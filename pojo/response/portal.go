@@ -121,6 +121,7 @@ type OrdersDetail struct {
 	ExpireTime      time.Time `json:"expire_time"`
 	ContractAddress string    `json:"contract_address"`
 	GroupName       string    `json:"group_name"`
+	Official        bool      `json:"official"`
 }
 
 type OrderCancel struct {
@@ -223,8 +224,7 @@ type PaperMint struct {
 
 type OrdersOfficial struct {
 	BasePagination
-	Official bool           `json:"official"`
-	Data     []OrdersDetail `json:"orders_list"`
+	Data []OrdersDetail `json:"orders_list"`
 }
 
 type PaperTransaction struct {

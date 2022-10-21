@@ -1640,6 +1640,7 @@ redo:
 				ExpireTime:      v.ExpireTime,
 				ContractChain:   v.OriginChain,
 				ContractAddress: contractAddress,
+				Official:        true,
 			})
 		}
 	}
@@ -1650,7 +1651,6 @@ redo:
 	out.Total = count + 1
 	out.CurrentPage = info.CurrentPage
 	out.PrePageCount = info.PageCount
-	out.Official = true
 	return
 
 }
