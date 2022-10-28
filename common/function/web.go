@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/jau1jz/cornus"
-	slog "github.com/jau1jz/cornus/commons/log"
+	"github.com/qiafan666/quickweb"
+	slog "github.com/qiafan666/quickweb/commons/log"
 )
 
 var config struct {

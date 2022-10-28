@@ -8,7 +8,7 @@ import (
 	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/pojo/inner"
 	"github.com/go-redis/redis/v8"
-	"github.com/jau1jz/cornus"
+	"github.com/qiafan666/quickweb"
 	"time"
 )
 

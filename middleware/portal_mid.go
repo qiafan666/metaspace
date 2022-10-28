@@ -6,9 +6,9 @@ import (
 	"github.com/blockfishio/metaspace-backend/pojo/request"
 	commonService "github.com/blockfishio/metaspace-backend/services/common"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/jau1jz/cornus"
-	"github.com/jau1jz/cornus/commons"
 	"github.com/kataras/iris/v12"
+	"github.com/qiafan666/quickweb"
+	"github.com/qiafan666/quickweb/commons"
 	"sync"
 )
 

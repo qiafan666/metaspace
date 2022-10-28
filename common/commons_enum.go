@@ -1,8 +1,8 @@
 package common
 
 import (
-	"github.com/jau1jz/cornus/commons"
-	"github.com/jau1jz/cornus/config"
+	"github.com/qiafan666/quickweb/commons"
+	"github.com/qiafan666/quickweb/config"
 	"time"
 )
 
@@ -14,7 +14,7 @@ func init() {
 	}
 }
 
-//define the error code
+// define the error code
 const (
 	PasswordOrAccountError       = 100001
 	AccountAlreadyExists         = 100002
@@ -107,19 +107,19 @@ const (
 	OrderStatusFinish = 4
 )
 
-//ctx value enum
+// ctx value enum
 const (
 	BaseRequest       = "base_request"
 	BasePortalRequest = "base_portal_request"
 	BaseApiRequest    = "base_api_request"
 )
 
-//url
+// url
 const (
 	UrlCallbackLogin = "/metaspace/callback/login"
 )
 
-//third login
+// third login
 const (
 	BaseRequestSign          = "Sign"
 	BaseRequestApiKey        = "Api-key"
@@ -144,7 +144,7 @@ const (
 	ListenHistory      = 3
 )
 
-//transaction_history activity type
+// transaction_history activity type
 const (
 	Shelf     = 1
 	Cancel    = 2
@@ -153,7 +153,7 @@ const (
 	Expire    = 5
 )
 
-//get coin price
+// get coin price
 const (
 	CoinMarket = "coin_market"
 )
@@ -162,7 +162,7 @@ const (
 	GetGMarsEvent = 1
 )
 
-//default avatar
+// default avatar
 const DefaultAvatar = "0"
 
 const (

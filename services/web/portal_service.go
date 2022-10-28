@@ -34,10 +34,10 @@ import (
 	"github.com/blockfishio/metaspace-backend/pojo/response"
 	"github.com/blockfishio/metaspace-backend/redis"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/jau1jz/cornus"
-	"github.com/jau1jz/cornus/commons"
-	slog "github.com/jau1jz/cornus/commons/log"
-	"github.com/jau1jz/cornus/commons/utils"
+	"github.com/qiafan666/quickweb"
+	"github.com/qiafan666/quickweb/commons"
+	slog "github.com/qiafan666/quickweb/commons/log"
+	"github.com/qiafan666/quickweb/commons/utils"
 	"gorm.io/gorm"
 )
 

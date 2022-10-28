@@ -1,7 +1,7 @@
 package function
 
 import (
-	"github.com/jau1jz/cornus"
+	"github.com/qiafan666/quickweb"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )

@@ -4,9 +4,9 @@ import (
 	"github.com/blockfishio/metaspace-backend/common/function"
 	"github.com/blockfishio/metaspace-backend/pojo/request"
 	"github.com/blockfishio/metaspace-backend/services/api"
-	"github.com/jau1jz/cornus/commons"
-	"github.com/jau1jz/cornus/commons/utils"
 	"github.com/kataras/iris/v12"
+	"github.com/qiafan666/quickweb/commons"
+	"github.com/qiafan666/quickweb/commons/utils"
 )
 
 type PlatformController struct {

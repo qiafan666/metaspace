@@ -6,8 +6,8 @@ import (
 	"github.com/blockfishio/metaspace-backend/model"
 	"github.com/blockfishio/metaspace-backend/pojo/inner"
 	"github.com/blockfishio/metaspace-backend/redis"
-	"github.com/jau1jz/cornus/commons"
-	slog "github.com/jau1jz/cornus/commons/log"
+	"github.com/qiafan666/quickweb/commons"
+	slog "github.com/qiafan666/quickweb/commons/log"
 	"sync"
 )
 

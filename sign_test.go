@@ -10,7 +10,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/blockfishio/metaspace-backend/pojo/response"
-	"github.com/jau1jz/cornus/commons/utils"
+	"github.com/qiafan666/quickweb/commons/utils"
 	"testing"
 )
 
@@ -32,9 +32,9 @@ func TestSign(t *testing.T) {
 	fmt.Println(hex.EncodeToString(sign))
 	//4a4a8a564975c8c603f25a9a53652a82389c417a207e37318ef393f858d58b668c9ba85c5b2fb9530b66ac39488c2b42b509b80904a57b1797e95d724feab15445256f8c5513156ec69f6e335b316b8ac6e98944dc5b9f46fa4c2bf77c9eff0fd0d5896d6b3d15b7599028f4062adf3feca3c3ccbadfa67f43ff329764b9344a44f089fea5c4950f8bc43262db630f1c55dc35e5eda2cb3ef3447db1c88fe10c87a84c57b4fb48981c03f1890fe34193659015dea87b5d410aa184df133ad3a1bb799f4727832daf47ff691f4ce01fc718114c012e52faefd19ae0746a06e77d312d7c6f630ab0e0bc09175657e0b36506ba9701546e2f2d4aa65b319d4b3bd2
 	/*
-	    JJ�VIu���Z�Se*�8�Az ~71����XՋf���\[/�Sf�9H�+B�	�	�{��]rO��TE%o�UnƟn3[1k����D�[�F�L+�|���Չmk=�Y�(�*�?���̺ߦC�2�d�4JD����ĕ��2b�cU�5����>�D}�ȏ���LW��H����A�e�ި{]A
-		���:ӡ�y�G'�-�G�iL��L.R��њ�tj�}1-|oc
-		���	VW��e��Tn/-J�[1�K;�
+		    JJ�VIu���Z�Se*�8�Az ~71����XՋf���\[/�Sf�9H�+B�	�	�{��]rO��TE%o�UnƟn3[1k����D�[�F�L+�|���Չmk=�Y�(�*�?���̺ߦC�2�d�4JD����ĕ��2b�cU�5����>�D}�ȏ���LW��H����A�e�ި{]A
+			���:ӡ�y�G'�-�G�iL��L.R��њ�tj�}1-|oc
+			���	VW��e��Tn/-J�[1�K;�
 	*/
 }
 

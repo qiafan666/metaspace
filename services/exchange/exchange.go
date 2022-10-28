@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/redis"
-	slog "github.com/jau1jz/cornus/commons/log"
+	slog "github.com/qiafan666/quickweb/commons/log"
 	"sync"
 	"time"
 )

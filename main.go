@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/blockfishio/metaspace-backend/common"
 	router "github.com/blockfishio/metaspace-backend/controller"
-	"github.com/jau1jz/cornus"
-	"github.com/jau1jz/cornus/commons"
+	"github.com/qiafan666/quickweb"
+	"github.com/qiafan666/quickweb/commons"
 )
 
 func main() {

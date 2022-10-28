@@ -3,8 +3,8 @@ package grpc
 import (
 	"github.com/blockfishio/metaspace-backend/common"
 	"github.com/blockfishio/metaspace-backend/grpc/proto"
-	"github.com/jau1jz/cornus"
-	slog "github.com/jau1jz/cornus/commons/log"
+	"github.com/qiafan666/quickweb"
+	slog "github.com/qiafan666/quickweb/commons/log"
 	"google.golang.org/grpc"
 )
 
