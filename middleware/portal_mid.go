@@ -1,19 +1,13 @@
 package middleware
 
 import (
-	"github.com/blockfishio/metaspace-backend/common"
-	"github.com/blockfishio/metaspace-backend/pojo/inner"
-	"github.com/blockfishio/metaspace-backend/pojo/request"
-	commonService "github.com/blockfishio/metaspace-backend/services/common"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/kataras/iris/v12"
+	"github.com/qiafan666/fundametality/common"
+	"github.com/qiafan666/fundametality/pojo/request"
 	"github.com/qiafan666/quickweb"
 	"github.com/qiafan666/quickweb/commons"
-	"sync"
 )
-
-var comService commonService.PublicService
-var commonMidOnce sync.Once
 
 var jwtConfig struct {
 	JWT struct {
@@ -30,29 +24,9 @@ var witheList = map[string]string{
 	"/metaspace/web/login":                      "",
 	"/metaspace/web/login/nonce":                "",
 	"/metaspace/web/subscribe/newsletter/email": "",
-	"/metaspace/web/health":                     "",
-	"/metaspace/web/orders":                     "",
-	"/metaspace/web/login/third":                "",
-	"/metaspace/web/exchange/price":             "",
-	"/metaspace/web/asset/detail":               "",
-	"/metaspace/web/orders/group":               "",
-	"/metaspace/web/orders/detail":              "",
-	"/metaspace/web/send/code":                  "",
-	"/metaspace/web/paper/mint":                 "",
-	"/metaspace/web/paper/transaction":          "",
-	"/metaspace/web/tower/status":               "",
-	"/metaspace/web/orders/official":            "",
-	"/metaspace/web/order/avatar":               "",
-	"/metaspace/web/avatar/market/detail":       "",
-	"/metaspace/web/avatars/official":           "",
-	"/metaspace/web/test":                       "",
 }
 
 func CheckPortalAuth(ctx iris.Context) {
-
-	commonMidOnce.Do(func() {
-		comService = commonService.NewPublicInstance()
-	})
 
 	var language, uuid, email string
 	var user inner.User
@@ -79,11 +53,6 @@ func CheckPortalAuth(ctx iris.Context) {
 			return
 		}
 
-		user, _, err = comService.GetUser(ctx, uuid)
-		if err != nil {
-			_, _ = ctx.JSON(commons.BuildFailed(commons.UnKnowError, commons.DefualtLanguage))
-			return
-		}
 	}
 	ctx.Values().Set(common.BasePortalRequest, request.BasePortalRequest{
 		BaseUserID: user.UserId,

@@ -3,7 +3,6 @@ package common
 import (
 	"github.com/qiafan666/quickweb/commons"
 	"github.com/qiafan666/quickweb/config"
-	"time"
 )
 
 var DebugFlag bool
@@ -81,30 +80,7 @@ const (
 
 // redis key
 const (
-	UserNonce           = "user/nonce/%s"
-	ThirdPartyPublicKey = "third_party/publicKey/%s"
-	ThirdPartyRand      = "third_party/rand/%s"
-	ThirdPartyAuthCode  = "third_party/auth_code/%s"
-	ThirdPartyUserToken = "third_party/user_token/%s/%s"
-	ThirdPartyTokenUser = "third_party/token_user/%s"
-	RawMessage          = "user/raw_message/%s"
-	ExchanagePrice      = "user/exchange/%s/%s"
-	EmailCode           = "user/emailCode/%s"
-)
-
-const (
-	SignGrpcConnectBefore = 1
-	SignGrpcConnecting    = 2
-	SignGrpcConnected     = 3
-)
-
-const GrpcTimeoutIn = 5 * time.Second
-
-const (
-	OrderStatusActive = 1
-	OrderStatusExpire = 2
-	OrderStatusCancel = 3
-	OrderStatusFinish = 4
+	RawMessage = "user/raw_message/%s"
 )
 
 // ctx value enum
@@ -112,60 +88,4 @@ const (
 	BaseRequest       = "base_request"
 	BasePortalRequest = "base_portal_request"
 	BaseApiRequest    = "base_api_request"
-)
-
-// url
-const (
-	UrlCallbackLogin = "/metaspace/callback/login"
-)
-
-// third login
-const (
-	BaseRequestSign          = "Sign"
-	BaseRequestApiKey        = "Api-key"
-	BaseRequestTimestamp     = "Timestamp"
-	BaseRequestRand          = "Rand"
-	BaseRequestAuthorization = "Authorization"
-)
-
-const (
-	IsNft  = 1
-	NotNft = 2
-)
-
-const (
-	IsShelf  = 1
-	NotShelf = 2
-)
-
-const (
-	TransactionHistory = 1
-	MintHistory        = 2
-	ListenHistory      = 3
-)
-
-// transaction_history activity type
-const (
-	Shelf     = 1
-	Cancel    = 2
-	Sold      = 3
-	Purchased = 4
-	Expire    = 5
-)
-
-// get coin price
-const (
-	CoinMarket = "coin_market"
-)
-
-const (
-	GetGMarsEvent = 1
-)
-
-// default avatar
-const DefaultAvatar = "0"
-
-const (
-	Assets uint8 = 1
-	Avatar uint8 = 2
 )

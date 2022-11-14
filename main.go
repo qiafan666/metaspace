@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/blockfishio/metaspace-backend/common"
-	router "github.com/blockfishio/metaspace-backend/controller"
+	"github.com/qiafan666/fundametality/common"
+	router "github.com/qiafan666/fundametality/controller"
 	"github.com/qiafan666/quickweb"
 	"github.com/qiafan666/quickweb/commons"
 )
@@ -11,7 +11,7 @@ func main() {
 	server := cornus.GetCornusInstance()
 	server.Default()
 	server.RegisterErrorCodeAndMsg(commons.MsgLanguageEnglish, common.EnglishCodeMsg)
-	server.StartServer(cornus.DatabaseService, cornus.RedisService)
+	//server.StartServer(cornus.DatabaseService, cornus.RedisService)
 	router.RegisterRouter(server.App().GetIrisApp())
 	server.WaitClose()
 }

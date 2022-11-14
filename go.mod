@@ -1,4 +1,4 @@
-module github.com/blockfishio/metaspace-backend
+module github.com/qiafan666/fundametality
 
 go 1.19
 
