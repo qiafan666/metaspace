@@ -2,7 +2,7 @@ package function
 
 import (
 	"errors"
-	"github.com/blockfishio/metaspace-backend/common"
+	"github.com/qiafan666/metaspace/common"
 )
 
 func GetCategoryString(mType int64) string {

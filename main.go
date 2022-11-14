@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/blockfishio/metaspace-backend/common"
-	router "github.com/blockfishio/metaspace-backend/controller"
+	"github.com/qiafan666/metaspace/common"
+	router "github.com/qiafan666/metaspace/controller"
 	"github.com/qiafan666/quickweb"
 	"github.com/qiafan666/quickweb/commons"
 )

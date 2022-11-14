@@ -1,10 +1,10 @@
 package common
 
 import (
-	"github.com/blockfishio/metaspace-backend/dao"
-	"github.com/blockfishio/metaspace-backend/model"
-	"github.com/blockfishio/metaspace-backend/pojo/inner"
-	"github.com/blockfishio/metaspace-backend/redis"
+	"github.com/qiafan666/metaspace/dao"
+	"github.com/qiafan666/metaspace/model"
+	"github.com/qiafan666/metaspace/pojo/inner"
+	"github.com/qiafan666/metaspace/redis"
 	"github.com/qiafan666/quickweb/commons/utils"
 	"sync"
 	"time"

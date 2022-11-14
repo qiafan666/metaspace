@@ -1,12 +1,12 @@
 package middleware
 
 import (
-	"github.com/blockfishio/metaspace-backend/common"
-	"github.com/blockfishio/metaspace-backend/pojo/inner"
-	"github.com/blockfishio/metaspace-backend/pojo/request"
-	commonService "github.com/blockfishio/metaspace-backend/services/common"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/kataras/iris/v12"
+	"github.com/qiafan666/metaspace/common"
+	"github.com/qiafan666/metaspace/pojo/inner"
+	"github.com/qiafan666/metaspace/pojo/request"
+	commonService "github.com/qiafan666/metaspace/services/common"
 	"github.com/qiafan666/quickweb"
 	"github.com/qiafan666/quickweb/commons"
 	"sync"

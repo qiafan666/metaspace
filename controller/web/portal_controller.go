@@ -1,10 +1,10 @@
 package web
 
 import (
-	"github.com/blockfishio/metaspace-backend/common/function"
-	"github.com/blockfishio/metaspace-backend/pojo/request"
-	"github.com/blockfishio/metaspace-backend/services/web"
 	"github.com/kataras/iris/v12"
+	"github.com/qiafan666/metaspace/common/function"
+	"github.com/qiafan666/metaspace/pojo/request"
+	"github.com/qiafan666/metaspace/services/web"
 	"github.com/qiafan666/quickweb/commons"
 	"github.com/qiafan666/quickweb/commons/utils"
 	"net/http"

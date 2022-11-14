@@ -1,8 +1,8 @@
 package grpc
 
 import (
-	"github.com/blockfishio/metaspace-backend/common"
-	"github.com/blockfishio/metaspace-backend/grpc/proto"
+	"github.com/qiafan666/metaspace/common"
+	"github.com/qiafan666/metaspace/grpc/proto"
 	"github.com/qiafan666/quickweb"
 	slog "github.com/qiafan666/quickweb/commons/log"
 	"google.golang.org/grpc"

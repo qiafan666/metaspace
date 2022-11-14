@@ -1,14 +1,14 @@
 package router
 
 import (
-	"github.com/blockfishio/metaspace-backend/controller/api"
-	"github.com/blockfishio/metaspace-backend/controller/web"
-	"github.com/blockfishio/metaspace-backend/middleware"
-	api2 "github.com/blockfishio/metaspace-backend/services/api"
-	web2 "github.com/blockfishio/metaspace-backend/services/web"
 	"github.com/iris-contrib/middleware/cors"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
+	"github.com/qiafan666/metaspace/controller/api"
+	"github.com/qiafan666/metaspace/controller/web"
+	"github.com/qiafan666/metaspace/middleware"
+	api2 "github.com/qiafan666/metaspace/services/api"
+	web2 "github.com/qiafan666/metaspace/services/web"
 )
 
 func RegisterRouter(ctx *iris.Application) {

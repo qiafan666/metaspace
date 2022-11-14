@@ -2,8 +2,8 @@ package exchange
 
 import (
 	"context"
-	"github.com/blockfishio/metaspace-backend/common"
-	"github.com/blockfishio/metaspace-backend/redis"
+	"github.com/qiafan666/metaspace/common"
+	"github.com/qiafan666/metaspace/redis"
 	slog "github.com/qiafan666/quickweb/commons/log"
 	"sync"
 	"time"

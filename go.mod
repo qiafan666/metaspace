@@ -1,4 +1,4 @@
-module github.com/blockfishio/metaspace-backend
+module github.com/qiafan666/metaspace
 
 go 1.19
 
@@ -8,8 +8,8 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/iris-contrib/middleware/cors v0.0.0-20211207164801-081c558a02bb
-	github.com/qiafan666/quickweb v1.0.1
 	github.com/kataras/iris/v12 v12.2.0-alpha5
+	github.com/qiafan666/quickweb v1.0.1
 	github.com/sendgrid/sendgrid-go v3.11.1+incompatible
 	github.com/sirupsen/logrus v1.8.1
 	github.com/xuri/excelize/v2 v2.6.0
@@ -21,6 +21,7 @@ require (
 
 require (
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
+	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/btcsuite/btcd v0.20.1-beta // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/go-ole/go-ole v1.2.1 // indirect

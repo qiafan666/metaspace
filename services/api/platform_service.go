@@ -1,13 +1,13 @@
 package api
 
 import (
-	"github.com/blockfishio/metaspace-backend/common"
-	"github.com/blockfishio/metaspace-backend/common/function"
-	"github.com/blockfishio/metaspace-backend/dao"
-	"github.com/blockfishio/metaspace-backend/model"
-	"github.com/blockfishio/metaspace-backend/pojo/request"
-	"github.com/blockfishio/metaspace-backend/pojo/response"
-	"github.com/blockfishio/metaspace-backend/redis"
+	"github.com/qiafan666/metaspace/common"
+	"github.com/qiafan666/metaspace/common/function"
+	"github.com/qiafan666/metaspace/dao"
+	"github.com/qiafan666/metaspace/model"
+	"github.com/qiafan666/metaspace/pojo/request"
+	"github.com/qiafan666/metaspace/pojo/response"
+	"github.com/qiafan666/metaspace/redis"
 	"github.com/qiafan666/quickweb/commons"
 	slog "github.com/qiafan666/quickweb/commons/log"
 	"gorm.io/gorm"

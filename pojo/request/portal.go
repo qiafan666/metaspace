@@ -1,7 +1,7 @@
 package request
 
 import (
-	"github.com/blockfishio/metaspace-backend/common"
+	"github.com/qiafan666/metaspace/common"
 	"time"
 )
 
