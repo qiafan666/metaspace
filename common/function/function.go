@@ -1,11 +1,11 @@
 package function
 
 import (
-	"github.com/blockfishio/metaspace-backend/common"
+	"github.com/qiafan666/fundametality/common"
 	"reflect"
 
-	"github.com/blockfishio/metaspace-backend/pojo/request"
 	"github.com/kataras/iris/v12"
+	"github.com/qiafan666/fundametality/pojo/request"
 )
 
 func BindBaseRequest(entity interface{}, ctx iris.Context) {
@@ -25,23 +25,4 @@ func BindBaseRequest(entity interface{}, ctx iris.Context) {
 		basePortal.Set(reflect.ValueOf(basePortalRequest))
 	}
 
-	baseApiRequest, _ := ctx.Values().Get(common.BaseApiRequest).(request.BaseApiRequest)
-	baseApi := elem.FieldByName("BaseApiRequest")
-	if baseApi.Kind() != reflect.Invalid {
-		baseApi.Set(reflect.ValueOf(baseApiRequest))
-	}
-}
-
-func GetBaseRequest(ctx iris.Context) (request.BaseRequest, bool) {
-	baseRequest, flag := ctx.Values().Get(common.BaseRequest).(request.BaseRequest)
-	return baseRequest, flag
-}
-
-func GetBaseApiRequest(ctx iris.Context) (request.BaseApiRequest, bool) {
-	baseApiRequest, flag := ctx.Values().Get(common.BaseApiRequest).(request.BaseApiRequest)
-	return baseApiRequest, flag
-}
-func GetBasePortalRequest(ctx iris.Context) (request.BasePortalRequest, bool) {
-	basePortalRequest, flag := ctx.Values().Get(common.BasePortalRequest).(request.BasePortalRequest)
-	return basePortalRequest, flag
 }

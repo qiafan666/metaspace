@@ -6,6 +6,7 @@ import (
 	"github.com/kataras/iris/v12/mvc"
 	"github.com/qiafan666/fundametality/controller/web"
 	"github.com/qiafan666/fundametality/middleware"
+	web2 "github.com/qiafan666/fundametality/services/web"
 )
 
 func RegisterRouter(ctx *iris.Application) {
@@ -20,7 +21,7 @@ func RegisterRouter(ctx *iris.Application) {
 		func(application *mvc.Application) {
 			application.Router.Use(middleware.CheckPortalAuth)
 			application.Handle(&web.PortalWebController{
-				PortalService: web.NewPortalServiceInstance(),
+				PortalService: web2.NewPortalServiceInstance(),
 			})
 		})
 }

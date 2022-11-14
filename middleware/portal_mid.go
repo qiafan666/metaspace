@@ -29,7 +29,6 @@ var witheList = map[string]string{
 func CheckPortalAuth(ctx iris.Context) {
 
 	var language, uuid, email string
-	var user inner.User
 
 	BaseRequest := ctx.Values().Get(common.BaseRequest).(request.BaseRequest)
 	language = BaseRequest.Language
@@ -55,10 +54,8 @@ func CheckPortalAuth(ctx iris.Context) {
 
 	}
 	ctx.Values().Set(common.BasePortalRequest, request.BasePortalRequest{
-		BaseUserID: user.UserId,
-		BaseUUID:   uuid,
-		BaseEmail:  email,
-		BaseWallet: user.WalletAddress,
+		BaseUUID:  uuid,
+		BaseEmail: email,
 	})
 	ctx.Next()
 
