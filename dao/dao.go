@@ -2,9 +2,7 @@ package dao
 
 import (
 	"context"
-	"github.com/blockfishio/metaspace-backend/model"
-	"github.com/jau1jz/cornus"
-	slog "github.com/jau1jz/cornus/commons/log"
+	"github.com/qiafan666/quickweb"
 	"gorm.io/gorm"
 	"sync"
 )
@@ -16,9 +14,11 @@ type Dao interface {
 	WithContext(ctx context.Context) Dao
 	Create(interface{}) error
 	First([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
+	Find([]string, map[string]interface{}, func(*gorm.DB) *gorm.DB, interface{}) error
 	Update(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
 	Delete(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
 	Count(interface{}, map[string]interface{}, func(*gorm.DB) *gorm.DB) (int64, error)
+	Raw(string, interface{}) error
 }
 
 type Imp struct {
@@ -38,6 +38,16 @@ func (s Imp) First(selectStr []string, where map[string]interface{}, scope func(
 
 	return s.db.Model(output).Where(where).First(output).Error
 }
+func (s Imp) Find(selectStr []string, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB, output interface{}) (err error) {
+	if scope != nil {
+		s.db = s.db.Scopes(scope)
+	}
+	if len(selectStr) > 0 {
+		s.db = s.db.Select(selectStr)
+	}
+
+	return s.db.Model(output).Where(where).Find(output).Error
+}
 func (s Imp) Update(info interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {
 	if scope != nil {
 		s.db = s.db.Scopes(scope)
@@ -47,11 +57,11 @@ func (s Imp) Update(info interface{}, where map[string]interface{}, scope func(*
 	rows = db.RowsAffected
 	return
 }
-func (s Imp) Count(etity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (total int64, err error) {
+func (s Imp) Count(entity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (total int64, err error) {
 	if scope != nil {
 		s.db = s.db.Scopes(scope)
 	}
-	err = s.db.Model(etity).Where(where).Count(&total).Error
+	err = s.db.Model(entity).Where(where).Count(&total).Error
 	return
 }
 func (s Imp) Delete(entity interface{}, where map[string]interface{}, scope func(*gorm.DB) *gorm.DB) (rows int64, err error) {
@@ -77,22 +87,16 @@ func (s Imp) Rollback() {
 func (s Imp) Commit() error {
 	return s.db.Commit().Error
 }
+func (s Imp) Raw(sql string, output interface{}) error {
+	return s.db.Raw(sql).Scan(output).Error
+}
 
 var db *gorm.DB
 var once sync.Once
 
-func DeviceInstance() Dao {
+func Instance() Dao {
 	once.Do(func() {
 		db = cornus.GetCornusInstance().FeatureDB("metaspace").GormDB()
-		//check table
-		if db.Migrator().HasTable(&model.User{}) == false {
-			err := db.Migrator().CreateTable(&model.User{})
-			if err != nil {
-				s := err.Error()
-				slog.Slog.InfoF(context.Background(), "CreateTable User error %s", s)
-				panic(s)
-			}
-		}
 	})
 	return &Imp{db: db}
 }
